@@ -9,7 +9,7 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
-export default function Dashboard() {
+export default function Dashboard({navigation}) {
   return (
     <View style={styles.container}>
       <View style={styles.balanceView}>
@@ -19,6 +19,9 @@ export default function Dashboard() {
           <Text style={styles.balanceValue}>
               ₦0.00
           </Text>
+          <TouchableOpacity style={styles.balanceValue}>
+              <Text>Logout</Text>
+          </TouchableOpacity>
       </View>
 
       <View style={styles.inflows}>

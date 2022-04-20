@@ -8,10 +8,13 @@ import {Formik} from  'formik';
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
+//KeyboardAvoidingWrapper
+import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper'
+
 import {
     StyledContainer,
     InnerContainer,
-    PageLogo,
+    PageLogo, 
     PageTitle,
     SubTitle,
     StyledFormArea,
@@ -36,11 +39,12 @@ const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
 
 // const white = "#fff";
 
-const Login = () => {
+const Login = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
 
     return (
-        <StyledContainer>
+        <KeyboardAvoidingWrapper>
+            <StyledContainer>
             <StatusBar style="dark"/>
             <InnerContainer>
                 {/* <PageLogo resizeMode="cover" source={require('./../assets/img/img1.png')} /> */}
@@ -51,6 +55,7 @@ const Login = () => {
                     initialValues={{email: '', password: ''}}
                     onSubmit={(values) => {
                         console.log(values);
+                        navigation.navigate('Dashboard')
                     }}
                 >{({handleChange, handleBlur, handleSubmit, values}) => (<StyledFormArea>
 
@@ -90,14 +95,15 @@ const Login = () => {
                     </StyledButton>
                     <ExtraView>
                         <ExtraText>Don't have account already ?</ExtraText>
-                        <TextLink>
+                        <TextLink onPress={() => navigation.navigate('SignUp')}>
                             <TextLinkContent>Sign Up</TextLinkContent>
                         </TextLink>
                     </ExtraView>
                 </StyledFormArea>)}
                 </Formik>
             </InnerContainer>
-        </StyledContainer>
+            </StyledContainer>
+        </KeyboardAvoidingWrapper>
     );
 }
 

@@ -8,6 +8,9 @@ import {Formik} from  'formik';
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
+//KeyboardAvoidingWrapper
+import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper'
+
 import {
     StyledContainer,
     InnerContainer,
@@ -36,7 +39,7 @@ const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
 //DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const SignUp = () => {
+const SignUp = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [show, setShow] = useState(false);
     const [date, setDate] = useState(new Date(2000, 0, 1));
@@ -56,110 +59,113 @@ const SignUp = () => {
     }
 
     return (
-        <StyledContainer>
-            <StatusBar style="dark"/>
-            <InnerContainer>
-                
-                <PageTitle>Escrosis</PageTitle>
-                <SubTitle>Account SignUp</SubTitle>
-
-                {show && (
-                    <DateTimePicker
-                        testID="dateTimePicker"
-                        value={date}
-                        mode='date'
-                        is24Hour={true}
-                        display="default"
-                        onChange={onChange}
-                    />
-                )}
-
-                <Formik 
-                    initialValues={{ fullName: '', email: '', dateOfBirth: '', password: '', confirmPassword: ''}}
+        <KeyboardAvoidingWrapper>
+            <StyledContainer>
+                <StatusBar style="dark"/>
+                <InnerContainer>
                     
-                    onSubmit={(values) => {
-                        console.log(values);
-                    }}
+                    <PageTitle>Escrosis</PageTitle>
+                    <SubTitle>Account SignUp</SubTitle>
 
-                >{({handleChange, handleBlur, handleSubmit, values}) => (<StyledFormArea>
+                    {show && (
+                        <DateTimePicker
+                            testID="dateTimePicker"
+                            value={date}
+                            mode='date'
+                            is24Hour={true}
+                            display="default"
+                            onChange={onChange}
+                        />
+                    )}
 
-                    <MyTextInput 
-                        // label="Email Address"
-                        icon="person"
-                        placeholder="Full Name"
-                        placeholderTextColor={myPlaceHolderTextColor}
-                        onChangeText={handleChange('fullName')}
-                        onBlur = {handleBlur('fullName')}
-                        value={values.fullName}
-                    />
+                    <Formik 
+                        initialValues={{ fullName: '', email: '', dateOfBirth: '', password: '', confirmPassword: ''}}
+                        
+                        onSubmit={(values) => {
+                            console.log(values);
+                            navigation.navigate('Dashboard')
+                        }}
 
-                    <MyTextInput 
-                        icon="mail"
-                        placeholder="myemail@domain.com"
-                        placeholderTextColor={myPlaceHolderTextColor}
-                        onChangeText={handleChange('email')}
-                        onBlur = {handleBlur('email')}
-                        value={values.email}
-                        keyboardtype="email-address"
-                    />
+                    >{({handleChange, handleBlur, handleSubmit, values}) => (<StyledFormArea>
 
-                    <MyTextInput 
-                        icon="calendar"
-                        placeholder="YYYY - MM - DD"
-                        placeholderTextColor={myPlaceHolderTextColor}
-                        onChangeText={handleChange('dateOfBirth')}
-                        onBlur = {handleBlur('dateOfBirth')}
-                        value={dob ? dob.toDateString() : ''}
-                        isDate={true}
-                        editable = {false}
-                        showDatePicker = {showDatePicker}
-                    />
+                        <MyTextInput 
+                            // label="Email Address"
+                            icon="person"
+                            placeholder="Full Name"
+                            placeholderTextColor={myPlaceHolderTextColor}
+                            onChangeText={handleChange('fullName')}
+                            onBlur = {handleBlur('fullName')}
+                            value={values.fullName}
+                        />
 
-                    <MyTextInput 
-                        icon="lock"
-                        placeholder="**********"
-                        placeholderTextColor={myPlaceHolderTextColor}
-                        onChangeText={handleChange('password')}
-                        onBlur = {handleBlur('password')}
-                        value={values.password}
-                        secureTextEntry={hidePassword}
-                        isPassword = {true}
-                        hidePassword={hidePassword}
-                        setHidePassword={setHidePassword}
-                    />
+                        <MyTextInput 
+                            icon="mail"
+                            placeholder="myemail@domain.com"
+                            placeholderTextColor={myPlaceHolderTextColor}
+                            onChangeText={handleChange('email')}
+                            onBlur = {handleBlur('email')}
+                            value={values.email}
+                            keyboardtype="email-address"
+                        />
 
-                    <MyTextInput 
-                        icon="lock"
-                        placeholder="**********"
-                        placeholderTextColor={myPlaceHolderTextColor}
-                        onChangeText={handleChange('confirmPassword')}
-                        onBlur = {handleBlur('confirmPassword')}
-                        value={values.confirmPassword}
-                        secureTextEntry={hidePassword}
-                        isPassword = {true}
-                        hidePassword={hidePassword}
-                        setHidePassword={setHidePassword}
-                    />
+                        <MyTextInput 
+                            icon="calendar"
+                            placeholder="YYYY - MM - DD"
+                            placeholderTextColor={myPlaceHolderTextColor}
+                            onChangeText={handleChange('dateOfBirth')}
+                            onBlur = {handleBlur('dateOfBirth')}
+                            value={dob ? dob.toDateString() : ''}
+                            isDate={true}
+                            editable = {false}
+                            showDatePicker = {showDatePicker}
+                        />
 
-                    <MsgBox>...</MsgBox>
+                        <MyTextInput 
+                            icon="lock"
+                            placeholder="**********"
+                            placeholderTextColor={myPlaceHolderTextColor}
+                            onChangeText={handleChange('password')}
+                            onBlur = {handleBlur('password')}
+                            value={values.password}
+                            secureTextEntry={hidePassword}
+                            isPassword = {true}
+                            hidePassword={hidePassword}
+                            setHidePassword={setHidePassword}
+                        />
 
-                    <StyledButton onPress={handleSubmit}>
-                        <ButtonText>
-                            Login
-                        </ButtonText>
-                    </StyledButton>
-                    <Line />
-                    
-                    <ExtraView>
-                        <ExtraText>Already have an account?</ExtraText>
-                        <TextLink>
-                            <TextLinkContent>Login</TextLinkContent>
-                        </TextLink>
-                    </ExtraView>
-                </StyledFormArea>)}
-                </Formik>
-            </InnerContainer>
-        </StyledContainer>
+                        <MyTextInput 
+                            icon="lock"
+                            placeholder="**********"
+                            placeholderTextColor={myPlaceHolderTextColor}
+                            onChangeText={handleChange('confirmPassword')}
+                            onBlur = {handleBlur('confirmPassword')}
+                            value={values.confirmPassword}
+                            secureTextEntry={hidePassword}
+                            isPassword = {true}
+                            hidePassword={hidePassword}
+                            setHidePassword={setHidePassword}
+                        />
+
+                        <MsgBox>...</MsgBox>
+
+                        <StyledButton onPress={handleSubmit}>
+                            <ButtonText>
+                                Sign Up
+                            </ButtonText>
+                        </StyledButton>
+                        <Line />
+                        
+                        <ExtraView>
+                            <ExtraText>Already have an account?</ExtraText>
+                            <TextLink onPress={() => navigation.navigate('Login')}>
+                                <TextLinkContent>Login</TextLinkContent>
+                            </TextLink>
+                        </ExtraView>
+                    </StyledFormArea>)}
+                    </Formik>
+                </InnerContainer>
+            </StyledContainer>
+        </KeyboardAvoidingWrapper>
     );
 }
 

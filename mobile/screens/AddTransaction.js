@@ -33,7 +33,7 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
-export default function Transaction() {
+export default function AddTransaction() {
   const [selectedValue, setSelectedValue] = useState("java");
 
   const [show, setShow] = useState(false);
@@ -142,7 +142,7 @@ const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword,
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      //backgroundColor: 'blue',
+      backgroundColor: 'blue',
       backgroundColor: '#131112',
       padding: 8,
       justifyContent: 'center'
