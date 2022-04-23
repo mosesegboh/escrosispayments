@@ -10,7 +10,6 @@ const bcrypt = require('bcrypt')
 //sign up
 router.post('/signup', (req, res) => {
     let {name, email, password, dateOfBirth} = req.body
-    console.log(name)
 
     name = name.trim()
     email = email.trim()
@@ -18,7 +17,7 @@ router.post('/signup', (req, res) => {
     dateOfBirth = dateOfBirth.trim()
 
     //validation
-    if (name == " " || email == " " || password == " " || dateOfBirth == " "){
+    if (name == "" || email == "" || password == "" || dateOfBirth){
         res.json({
             status: "FAILED",
             message: "Empty input fields"
@@ -89,7 +88,7 @@ router.post('/signup', (req, res) => {
             console.log(err)
             res.json({
                 status: "FAILED",
-                message: "An error occured"
+                message: "AN error occured"
             })
         })
     }
@@ -98,15 +97,6 @@ router.post('/signup', (req, res) => {
 
 //sign in
 router.post('/signin', (req, res) => {
-    let {name, email, password, dateOfBirth} = req.body
-    console.log(name)
-
-    name = name.trim()
-    email = email.trim()
-    password = password.trim()
-    dateOfBirth = dateOfBirth.trim()
-
-
 
 })
 
