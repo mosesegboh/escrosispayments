@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import { StatusBar } from 'expo-status-bar';
 // import { View } from 'formik';
 
@@ -33,16 +33,31 @@ import {
     TextLinkContent
 } from './../components/styles';
 
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, ActivityIndicator} from 'react-native';
 //Colors
 const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
 //DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+//API Client
+import axios from 'axios'
+
+//async storage
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+//credentials context
+import { CredentialsContext } from './../components/CredentialsContext';
+
+//context
+const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+
 const SignUp = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [show, setShow] = useState(false);
     const [date, setDate] = useState(new Date(2000, 0, 1));
+
+    const [message, setMessage] = useState()
+    const [messageType, setMessageType] = useState()
 
     //Actual date of birth chosen by the user to be sent
     const [dob, setDob] = useState();
@@ -57,6 +72,46 @@ const SignUp = ({navigation}) => {
     const showDatePicker = () => {
         setShow(true);
     }
+
+    //handle signup
+    const handleSignUp = (credentials,setSubmitting) => {
+        handleMessage(null)
+        const url = 'https://boiling-everglades-35416.herokuapp.com/user/signup';
+
+        axios.post(url, credentials).then((response) => {
+            const result = response.data;
+            const {message, status, data} = result
+
+            if(status !== 'SUCCESS') {
+                handleMessage(message, status)
+            }else{
+                // navigation.navigate('Dashboard', {...data})
+                persistLogin({...data}, message, status)
+            }
+            setSubmitting(false)
+        }).catch((error) => {
+            console.log(error)
+            setSubmitting(false)
+            handleMessage("An error occured, check your network and try again")
+        })
+    }
+
+    const handleMessage = (message,type="FAILED") => {
+        setMessage(message)
+        setMessageType(type)
+    }
+
+    const persistLogin = (credentials, message, status) => {
+        AsyncStorage.setItem('escrosisCredentials', JSON.stringify(credentials)).then(() => {
+            handleMessage(message, status)
+            setStoredCredentials(credentials)
+        }).catch(error => {
+            console.log(error)
+            handleMessage('Persisting Login Failed')
+        })
+    }
+
+
 
     return (
         <KeyboardAvoidingWrapper>
@@ -79,23 +134,31 @@ const SignUp = ({navigation}) => {
                     )}
 
                     <Formik 
-                        initialValues={{ fullName: '', email: '', dateOfBirth: '', password: '', confirmPassword: ''}}
+                        initialValues={{ name: '', email: '', dateOfBirth: '', password: '', confirmPassword: ''}}
                         
-                        onSubmit={(values) => {
-                            console.log(values);
-                            navigation.navigate('Dashboard')
+                        onSubmit={(values, {setSubmitting}) => {
+                            values = {...values, dateOfBirth: dob}
+                            if (values.email == "" || values.password == "" || values.dateOfBirth == "" || values.confirmPassword == "") {
+                                handleMessage("please enter all fields")
+                                setSubmitting(false)
+                            }else if (values.password !== values.confirmPassword) {
+                                handleMessage("Passwords do not match")
+                                setSubmitting(false)
+                            }else{
+                                handleSignUp(values, setSubmitting)
+                            }
                         }}
 
-                    >{({handleChange, handleBlur, handleSubmit, values}) => (<StyledFormArea>
+                    >{({handleChange, handleBlur, handleSubmit, values, isSubmitting}) => (<StyledFormArea>
 
                         <MyTextInput 
                             // label="Email Address"
                             icon="person"
                             placeholder="Full Name"
                             placeholderTextColor={myPlaceHolderTextColor}
-                            onChangeText={handleChange('fullName')}
-                            onBlur = {handleBlur('fullName')}
-                            value={values.fullName}
+                            onChangeText={handleChange('name')}
+                            onBlur = {handleBlur('name')}
+                            value={values.name}
                         />
 
                         <MyTextInput 
@@ -146,7 +209,17 @@ const SignUp = ({navigation}) => {
                             setHidePassword={setHidePassword}
                         />
 
-                        <MsgBox>...</MsgBox>
+                        <MsgBox type={messageType}>{message}</MsgBox>
+
+                        {!isSubmitting && <StyledButton onPress={handleSubmit}>
+                        <ButtonText>
+                            Login
+                        </ButtonText>
+                        </StyledButton>}
+
+                        {isSubmitting && <StyledButton disabled = {true}>
+                            <ActivityIndicator size="large" color={primary}/>
+                        </StyledButton>}
 
                         <StyledButton onPress={handleSubmit}>
                             <ButtonText>

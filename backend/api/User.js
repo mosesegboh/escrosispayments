@@ -17,7 +17,7 @@ router.post('/signup', (req, res) => {
     dateOfBirth = dateOfBirth.trim()
 
     //validation
-    if (name == "" || email == "" || password == "" || dateOfBirth){
+    if (name == "" || email == "" || password == "" || dateOfBirth == ""){
         res.json({
             status: "FAILED",
             message: "Empty input fields"
@@ -97,6 +97,56 @@ router.post('/signup', (req, res) => {
 
 //sign in
 router.post('/signin', (req, res) => {
+    let {email, password} = req.body
+
+    email = email.trim()
+    password = password.trim()
+
+    if(email == "" || password == ""){
+        res.json({
+            status: "FAILED",
+            message: "Empty credentials"
+        })
+    }else {
+        //check if the user exist in the database
+        User.find({email}).then(data => {
+            if (data.length){
+                //User exists in the database
+
+                const hashedPassword = data[0].password
+                bcrypt.compare(password, hashedPassword).then(result => {
+                    if (result) {
+                        //password match
+                        res.json({
+                            status: "SUCCESS",
+                            message: "Sign In successful",
+                            data: data
+                        })
+                    }else {
+                        res.json({
+                            status: "FAILED",
+                            message: "Invalid passsword entered",
+                        })
+                    }
+                }).catch(err => {
+                    res.json({
+                        status: "FAILED",
+                        message: "An error has occurred"
+                    })
+                })
+            }else{
+                res.json({
+                    status: "FAILED",
+                    message: "User does not exist"
+                })
+            }
+        }).catch(err => {
+            res.json({
+                status: "FAILED",
+                message: "An error has occurred"
+            })
+        })
+    }
 
 })
 

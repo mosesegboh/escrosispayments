@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import { StatusBar } from 'expo-status-bar';
+import React, {useState, useEffect, useContext} from 'react';
+import {StatusBar} from 'expo-status-bar';
 // import { View } from 'formik';
 
 //formik
@@ -10,6 +10,12 @@ import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
 //KeyboardAvoidingWrapper
 import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper'
+
+//api
+import  axios from 'axios'
+
+//google sign-in
+import * as GoogleSignIn from 'expo-google-sign-in';
 
 import {
     StyledContainer,
@@ -31,16 +37,91 @@ import {
     ExtraText,
     TextLink,
     TextLinkContent
-} from './../components/styles';
+} from './../components/styles'
 
-import {View} from 'react-native';
+import {View, ActivityIndicator, Platform} from 'react-native'
 
-const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
+const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors
 
-// const white = "#fff";
+//async storage
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+//credentials context
+import { CredentialsContext } from './../components/CredentialsContext';
+
+//context
+const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
 const Login = ({navigation}) => {
-    const [hidePassword, setHidePassword] = useState(true);
+    const [hidePassword, setHidePassword] = useState(true)
+    const [message, setMessage] = useState()
+    const [messageType, setMessageType] = useState()
+    const [googleSubmitting, setGoogleSubmitting] = useState(false)
+
+    //
+
+    const handleLogin = (credentials,setSubmitting) => {
+        handleMessage(null)
+        const url = 'https://boiling-everglades-35416.herokuapp.com/user/signin';
+
+        axios.post(url, credentials).then((response) => {
+            const result = response.data;
+            const {message, status, data} = result
+
+            if(status !== 'SUCCESS') {
+                handleMessage(message, status)
+            }else{
+                //navigation.navigate('Dashboard', {...data[0]})
+                persistLogin({...data[0]}, message, status)
+            }
+            setSubmitting(false)
+        }).catch((error) => {
+            console.log(error)
+            setSubmitting(false)
+            handleMessage("An error occured, check your network and try again")
+        })
+    }
+
+    const handleMessage = (message,type="FAILED") => {
+        setMessage(message)
+        setMessageType(type)
+    }
+
+    //initialize google sign in
+    useEffect(() => {
+        initAsync()
+    })
+
+    const androidClientId = '334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com'
+    const iosClientId = '334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com'
+
+    const initAsync = async () => {
+        try {
+            await GoogleSIgnIN.initAsync({
+                clientId: Platform.OS === 'android' ? androidClientId : iosClientId
+            })
+        } catch (error) {
+            
+        }
+    }
+
+    const getUserDetails = async () => {
+        await GoogleSignIn.signInSilentlyAsync()
+    }
+
+    const handleGoogleSignIn = (signIn) => {
+        const config = {}
+    }
+
+    const persistLogin = (credentials, message, status) => {
+        AsyncStorage.setItem('escrosisCredentials', JSON.stringify(credentials)).then(() => {
+            handleMessage(message, status)
+            setStoredCredentials(credentials)
+        }).catch(error => {
+            console.log(error)
+            handleMessage('Persisting Login Failed')
+        })
+    }
 
     return (
         <KeyboardAvoidingWrapper>
@@ -53,11 +134,15 @@ const Login = ({navigation}) => {
 
                 <Formik 
                     initialValues={{email: '', password: ''}}
-                    onSubmit={(values) => {
-                        console.log(values);
-                        navigation.navigate('Dashboard')
+                    onSubmit={(values, {setSubmitting}) => {
+                        if (values.email == "" || values.password == "") {
+                            handleMessage("please enter all fields")
+                            setSubmitting(false)
+                        }else{
+                            handleLogin(values, setSubmitting)
+                        }
                     }}
-                >{({handleChange, handleBlur, handleSubmit, values}) => (<StyledFormArea>
+                >{({handleChange, handleBlur, handleSubmit, values, isSubmitting}) => (<StyledFormArea>
 
                     <MyTextInput 
                         // label="Email Address"
@@ -82,12 +167,17 @@ const Login = ({navigation}) => {
                         hidePassword={hidePassword}
                         setHidePassword={setHidePassword}
                     />
-                    <MsgBox>...</MsgBox>
-                    <StyledButton onPress={handleSubmit}>
+                    <MsgBox type={messageType}>{message}</MsgBox>
+                    {!isSubmitting && <StyledButton onPress={handleSubmit}>
                         <ButtonText>
                             Login
                         </ButtonText>
-                    </StyledButton>
+                    </StyledButton>}
+
+                    {isSubmitting && <StyledButton disabled = {true}>
+                        <ActivityIndicator size="large" color={primary}/>
+                    </StyledButton>}
+
                     <Line />
                     <StyledButton google={true} onPress={handleSubmit}>
                         <Fontisto name="google" color={primary} size={25}/>

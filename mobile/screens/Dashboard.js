@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, {useContext} from 'react';
 import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, ExtraView } from './../components/styles';
 import Constants from 'expo-constants';
@@ -9,17 +9,41 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
-export default function Dashboard({navigation}) {
+//async storage
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+//credentials context
+import { CredentialsContext } from './../components/CredentialsContext';
+
+//you can get rid of navigation and route
+export default function Dashboard({navigation, route}) {
+  // const {name, email} = route.params
+
+  //context
+  const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+
+  const {name, email} = storedCredentials
+
+  const clearLogin = () => {
+    AsyncStorage.removeItem('escrosisCredentials').then(() =>{
+      setStoredCredentials("")
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.balanceView}>
           <Text style={styles.balanceText}>
               TOTAL BALANCE
           </Text>
+          <Text style={styles.balanceText}>Hello {name || 'Egboh Moses jjjj'}</Text>
+          <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text>
           <Text style={styles.balanceValue}>
               ₦0.00
           </Text>
-          <TouchableOpacity style={styles.balanceValue}>
+          <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
               <Text>Logout</Text>
           </TouchableOpacity>
       </View>
