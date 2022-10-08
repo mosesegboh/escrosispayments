@@ -1,1 +1,1 @@
-# escrosispayments app for aiding transactions built on react native and nodejs. This is going to be a live product that will be lunched for comercial purposes. And it will go private when getting to  completion.
+# escrosispayments is a development app in progress for aiding transactions built on react-native and nodejs. This is going to be a live product that will be lunched for commercial purposes and it will go private on completion.
