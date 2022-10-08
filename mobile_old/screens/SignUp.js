@@ -48,13 +48,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 //credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
 
-//context
-const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+
 
 const SignUp = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [show, setShow] = useState(false);
     const [date, setDate] = useState(new Date(2000, 0, 1));
+
+    //context
+const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
     const [message, setMessage] = useState()
     const [messageType, setMessageType] = useState()

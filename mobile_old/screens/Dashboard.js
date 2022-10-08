@@ -3,6 +3,10 @@ import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, ExtraView } from '../components/styles';
 import Constants from 'expo-constants';
 
+// Add this in your component file
+// require('react-dom');
+// window.React2 = require('react');
+// console.log(window.React1 === window.React2);
 
 //Colors
 const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
@@ -23,14 +27,30 @@ export default function Dashboard ({navigation, route}) {
   //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
-  const {name, email} = storedCredentials
+  //context
+  let {name, email, photoUrl} = storedCredentials
+  //const AvatarImg = photoUrl ? {uri: photoUrl} : require('./../assets/img/img1')
 
-  const clearLogin = () => {
-    AsyncStorage.removeItem('escrosisCredentials').then(() =>{
-      setStoredCredentials("")
-    }).catch(err => {
-      console.error(err)
-    })
+  //for google sign in
+  name = name ? name : displayName
+
+  const clearLogin = async () => {
+    try {
+      if (!__DEV__) {
+        await GoogleSignIn.signOutAsync()
+        await  AsyncStorage.removeItem('escrosisCredentials')
+      }else{
+        await  AsyncStorage.removeItem('escrosisCredentials')
+      }
+      setStoredCredentials('')
+    }catch (message) {
+      alert('Logout Error: ' + message)
+    }
+    // AsyncStorage.removeItem('escrosisCredentials').then(() =>{
+    //   setStoredCredentials("")
+    // }).catch(err => {
+    //   console.error(err)
+    // })
   }
 
   return (

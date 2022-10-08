@@ -4,16 +4,16 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 //components
-import Login from './../screens/Login';
-import SignUp from './../screens/SignUp';
-import Dashboard from './../screens/Dashboard';
-import AddTransaction from './../screens/AddTransaction';
-import Transaction from './../screens/Transaction';
+import Login from '../screens/Login';
+import SignUp from '../screens/SignUp';
+import Dashboard from '../screens/Dashboard';
+import AddTransaction from '../screens/AddTransaction';
+import Transaction from '../screens/Transaction';
 
 const Stack = createNativeStackNavigator();
 
 //credentials context
-import { CredentialsContext } from './../components/CredentialsContext';
+import { CredentialsContext } from '../components/CredentialsContext';
 
 const RootStack = () => {
     return(

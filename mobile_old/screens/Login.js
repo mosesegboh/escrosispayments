@@ -44,7 +44,7 @@ import {View, ActivityIndicator, Platform} from 'react-native'
 const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors
 
 //async storage
-// import AsyncStorage from '@react-native-async-storage/async-storage'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 //credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
@@ -90,46 +90,46 @@ const Login = ({navigation}) => {
     }
 
     //initialize google sign in
-    // useEffect(() => {
-    //     initAsync()
-    // })
+    useEffect(() => {
+        initAsync()
+    })
 
-    // const androidClientId = '334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com'
-    // const iosClientId = '334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com'
+    const androidClientId = '334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com'
+    const iosClientId = '334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com'
 
-    // const initAsync = async () => {
-    //     try {
-    //         await GoogleSignIn.initAsync({
-    //             clientId: Platform.OS === 'android' ? androidClientId : iosClientId
-    //         })
-    //         getUserDetails()
-    //     } catch (error) {
-    //         console.log("Google Sign in error: " + message)
-    //     }
-    // }
+    const initAsync = async () => {
+        try {
+            await GoogleSignIn.initAsync({
+                clientId: Platform.OS === 'android' ? androidClientId : iosClientId
+            })
+            getUserDetails()
+        } catch (error) {
+            console.log("Gooogle Sign in error: " + message)
+        }
+    }
 
-    // const getUserDetails = async () => {
-    //     const user = await GoogleSignIn.signInSilentlyAsync()
-    //     setGoogleSubmitting(false)
-    //     user && persistLogin({...user}, "Gooogle Sign in succesful", 'success')
-    // }
+    const getUserDetails = async () => {
+        const user = await GoogleSignIn.signInSilentlyAsync()
+        setGoogleSubmitting(false)
+        user && persistLogin({...user}, "Gooogle Sign in succesful", 'success')
+    }
 
-    // const handleGoogleSignIn = async (signIn) => {
-    //     try {
-    //         setGoogleSubmitting(true)
-    //         await GoogleSignIn.askForPlayServicesAsync()
-    //         const {type, user} = await GoogleSignIn.signInAsync()
-    //         if(type == "success"){
-    //             getUserDetails();
-    //         }else{
-    //             handleMessage('Google sign in cancelled')
-    //             setGoogleSubmitting(false)
-    //         }
-    //     } catch ({message}) {
-    //         setGoogleSubmitting(false)
-    //         handleMessage("Google Sign in error: " + message)
-    //     }
-    // }
+    const handleGoogleSignIn = async (signIn) => {
+        try {
+            setGoogleSubmitting(true)
+            await GoogleSignIn.askForPlayServicesAsync()
+            const {type, user} = await GoogleSignIn.signInAsync()
+            if(type == "success"){
+                getUserDetails();
+            }else{
+                handleMessage('Gooogle sign in cancelled')
+                setGoogleSubmitting(false)
+            }
+        } catch ({message}) {
+            setGoogleSubmitting(false)
+            handleMessage("Gooogle Sign in error: " + message)
+        }
+    }
 
     const persistLogin = (credentials, message, status) => {
         AsyncStorage.setItem('escrosisCredentials', JSON.stringify(credentials)).then(() => {
@@ -199,7 +199,7 @@ const Login = ({navigation}) => {
                     <Line />
                     {
                         !googleSubmitting && (
-                            <StyledButton google={true} /* onPress={handleGoogleSignIn} */>
+                            <StyledButton google={true} onPress={handleGoogleSignIn}>
                                 <Fontisto name="google" color={primary} size={25}/>
                                 <ButtonText google={true}>Sign in with Google</ButtonText>
                             </StyledButton>
