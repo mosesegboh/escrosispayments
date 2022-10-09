@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity,TextInput, Picker, Button } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, TouchableOpacity,TextInput, Button } from 'react-native';
 // import { Colors, ExtraView } from './../components/styles';
 import Constants from 'expo-constants';
 //DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+import {Picker} from '@react-native-picker/picker';
+
+//services
+import {randomString} from '../services/'
 
 import {
   StyledContainer,
@@ -35,9 +40,15 @@ import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
 export default function AddTransaction() {
   const [selectedValue, setSelectedValue] = useState("java");
-
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
+  const [inputValueAmount, setInputValueAmount]= useState();
+  const [transactionId, setTransactionId] = useState();
+
+  useEffect(()=>{
+    var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    setTransactionId(rString);
+  },[]);
 
   //Actual date of birth chosen by the user to be sent
   const [dob, setDob] = useState();
@@ -69,8 +80,10 @@ export default function AddTransaction() {
 
           <TextInput
             style={styles.input}
-            placeholder="Title"
-            placeholderTextColor="#949197" 
+            placeholder="Transactionssss ID"
+            // placeholderTextColor="#949197" 
+            value = {transactionId}
+            editable={false}
           />
 
           <TextInput
@@ -79,6 +92,8 @@ export default function AddTransaction() {
             placeholderTextColor="#949197" 
             type="number"
             keyboardType={'numeric'}
+            onChangeText={amount => setInputValueAmount(amount)}
+            value={inputValueAmount}
           />
 
           <Picker
@@ -111,7 +126,6 @@ export default function AddTransaction() {
           <TouchableOpacity 
             style={styles.addTransactionButton}>
               <Text style={styles.buttonText}>Add Transation</Text>
-            
           </TouchableOpacity>
         </View>
     </View>

@@ -37,11 +37,15 @@ const RootStack = () => {
                             }}
                         >
                             {storedCredentials ?
-                                <Stack.Screen options={{headerTintColor: 'white'}} name="Dashboard" component={Dashboard} /> :
+                            <>
+                                <Stack.Screen options={{headerTintColor: 'white'}} name="Dashboard" component={Dashboard} />
+                                <Stack.Screen name="AddTransaction" component={AddTransaction} />
+                            </>
+                                 :
                                 <>
                                     <Stack.Screen name="Login" component={Login} />
                                     <Stack.Screen name="SignUp" component={SignUp} />
-                                    <Stack.Screen name="AddTransaction" component={AddTransaction} />
+                                    
                                 </>
                             }
                             

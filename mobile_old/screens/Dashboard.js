@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, TextLink } from 'react-native';
 import { Colors, ExtraView } from '../components/styles';
 import Constants from 'expo-constants';
 
@@ -148,7 +148,7 @@ export default function Dashboard ({navigation, route}) {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction')}>
           <Octicons name="plus" size={22} color="#fff" />
       </TouchableOpacity>
       
@@ -159,7 +159,7 @@ export default function Dashboard ({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Constants.statusBarHeight,
+    paddingTop: 0,
     backgroundColor: '#131112',
     padding: 8,
   },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignSelf: 'center',
     borderRadius: 3,
-    marginTop: 20,
+    marginTop: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },

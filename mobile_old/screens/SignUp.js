@@ -56,7 +56,7 @@ const SignUp = ({navigation}) => {
     const [date, setDate] = useState(new Date(2000, 0, 1));
 
     //context
-const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+    const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
     const [message, setMessage] = useState()
     const [messageType, setMessageType] = useState()
