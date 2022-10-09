@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignSelf: 'center',
     borderRadius: 3,
-    marginTop: 0,
+    marginTop: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity,TextInput, Button } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity,TextInput, Button, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
 // import { Colors, ExtraView } from './../components/styles';
 import Constants from 'expo-constants';
 //DateTimePicker
@@ -38,16 +38,20 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
+import {Autocomplete} from 'react-native-autocomplete-input';
+
 export default function AddTransaction() {
   const [selectedValue, setSelectedValue] = useState("java");
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
-  const [inputValueAmount, setInputValueAmount]= useState();
+  const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
+  const [input, setInput] = useState();
+  const [data, setData] = useState();
 
   useEffect(()=>{
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-    setTransactionId(rString);
+    setTransactionId(rString.toUpperCase());
   },[]);
 
   //Actual date of birth chosen by the user to be sent
@@ -58,6 +62,14 @@ export default function AddTransaction() {
       setShow(false);
       setDate(currentDate);
       setDob(currentDate);
+  }
+
+  const onChangeText= async (text) => {
+      setInput(text)
+      if (text.length > 2) {
+        //Lets get our data
+        
+      }
   }
 
   const showDatePicker = () => {
@@ -80,7 +92,7 @@ export default function AddTransaction() {
 
           <TextInput
             style={styles.input}
-            placeholder="Transactionssss ID"
+            // placeholder="Transactionssss ID"
             // placeholderTextColor="#949197" 
             value = {transactionId}
             editable={false}
@@ -122,6 +134,30 @@ export default function AddTransaction() {
             placeholder="Details"
             placeholderTextColor="#949197" 
           />
+
+        {/* <Autocomplete
+              // data={data}
+              // value={query}
+              // onChangeText={(text) => this.setState({ query: text })}
+              // flatListProps={{
+              //   keyExtractor: (_, idx) => idx,
+              //   renderItem: ({ item }) => <Text>{item}</Text>,
+              // }}
+        /> */}
+
+          <TouchableWithoutFeedback>
+            <SafeAreaView>
+              {/* <Text style={styles.input}>Transaction ID</Text> */}
+              <TextInput 
+                style={styles.input}
+                placeholder="Search For Transaction Id"
+                value={input}
+                onChangeText={onChangeText}
+              />
+
+              
+            </SafeAreaView>
+          </TouchableWithoutFeedback>
 
           <TouchableOpacity 
             style={styles.addTransactionButton}>
