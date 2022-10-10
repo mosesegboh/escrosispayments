@@ -40,6 +40,7 @@ const RootStack = () => {
                             <>
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="Dashboard" component={Dashboard} />
                                 <Stack.Screen name="AddTransaction" component={AddTransaction} />
+                                <Stack.Screen name="Transaction" component={Transaction} />
                             </>
                                  :
                                 <>

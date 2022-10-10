@@ -1,6 +1,6 @@
 import React, {useContext} from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, TextLink } from 'react-native';
-import { Colors, ExtraView } from '../components/styles';
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Colors, ExtraView, TextLink, TextLinkContent } from '../components/styles';
 import Constants from 'expo-constants';
 
 // Add this in your component file
@@ -100,7 +100,10 @@ export default function Dashboard ({navigation, route}) {
 
       <View style={styles.recentTransactionHeading}>
           <Text style={styles.recentTransactionText}>Recent Transactions</Text>
-          <Text style={styles.viewAllText}>View All</Text>
+          {/* <Text style={styles.viewAllText}>View All</Text> */}
+          <TextLink onPress={() => navigation.navigate('')}>
+              <TextLinkContent>View All</TextLinkContent>
+          </TextLink>
       </View>
 
       <View style={styles.singleTransaction}>
