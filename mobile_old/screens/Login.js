@@ -67,6 +67,7 @@ const Login = ({navigation}) => {
         const url = 'https://boiling-everglades-35416.herokuapp.com/user/signin';
 
         axios.post(url, credentials).then((response) => {
+            token = response.token
             const result = response.data;
             const {message, status, data} = result
 
@@ -75,6 +76,7 @@ const Login = ({navigation}) => {
             }else{
                 //navigation.navigate('Dashboard', {...data[0]})
                 persistLogin({...data[0]}, message, status)
+                // persistLogin({...data[0],token}, message, status)
             }
             setSubmitting(false)
         }).catch((error) => {

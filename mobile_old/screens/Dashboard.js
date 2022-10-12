@@ -28,7 +28,7 @@ export default function Dashboard ({navigation, route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
   //context
-  let {name, email, photoUrl} = storedCredentials
+  let {name, email, token,  photoUrl} = storedCredentials
   //const AvatarImg = photoUrl ? {uri: photoUrl} : require('./../assets/img/img1')
 
   //for google sign in
@@ -61,6 +61,7 @@ export default function Dashboard ({navigation, route}) {
           </Text>
           <Text style={styles.balanceText}>Hello {name || 'Egboh Moses jjjj'}</Text>
           <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text>
+          <Text style={styles.balanceText}>{token || 'token'}</Text>
           <Text style={styles.balanceValue}>
               ₦0.00
           </Text>
