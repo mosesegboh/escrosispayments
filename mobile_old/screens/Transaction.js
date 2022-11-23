@@ -5,6 +5,9 @@ import Constants from 'expo-constants';
 //DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+//
+import { CredentialsContext } from '../components/CredentialsContext';
+
 import {
   StyledContainer,
   InnerContainer,
@@ -34,6 +37,10 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
 export default function Transaction() {
+
+  //context
+  const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+
   const [selectedValue, setSelectedValue] = useState("java");
 
   const [show, setShow] = useState(false);

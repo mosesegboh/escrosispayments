@@ -11,12 +11,13 @@ const authenticateTokenMiddleware = require("../middleware/authenticateTokenMidd
 
 //sign up
 router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware,  (req, res) => {
-    let {email, transactionId, amount, transactionType, date, details, secondLegTransactionId} = req.body
+    let {email, transactionId, transactionDate, amount, transactionType, date, details, secondLegTransactionId} = req.body
 
 
     // console.log(email);
 
     email = email.trim()
+    transactionDate = transactionDate.trim()
     transactionId = transactionId.trim()
     amount = amount.trim()
     transactionType = transactionType.trim()
@@ -26,14 +27,19 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
 
     // console.log(email)
     //validation
-    if (email == "" || transactionId == "" || amount == "" || transactionType == "" || date=="" || details == ""){
+    if (email == "" || transactionDate == "", transactionId == "" || amount == "" || transactionType == "" || date=="" || details == ""){
         res.json({
             status: "FAILED",
             message: "Empty input fields"
         })
-    } 
+    }else if (!new Date(transactionDate).getTime()) {
+        res.json({
+            status: "FAILED",
+            message: "Invalid transaction date entered"
+        })
+    }
     
-    // else if (!/^[a-zA-Z0-9@ ]*$/.test(email)) {
+    // else if (/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
     //     res.json({
     //         status: "FAILED",
     //         message: "Invalid email"
@@ -58,7 +64,7 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
     } else if (!new Date(date).getTime()){
         res.json({
             status: "FAILED",
-            message: "Invalid transation date entered"
+            message: "Invalid maturity date entered"
         })
     } else if (!/^[a-zA-Z ]*$/.test(details)) {
         res.json({
@@ -71,7 +77,7 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
             message: "Invalid second transaction Id"
         })
     } else {
-        console.log(email)
+        // console.log(email)
         //if validation passed proceed by checking if the user already exist in the database
         Transaction.find({ transactionId }).then(result => {
             if(result.length){
@@ -91,10 +97,10 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
                     // console.log(email)
                     const newTransaction = new Transaction({
                         email,
+                        transactionDate,
                         transactionId,
                         amount,
                         transactionType,
-                        // password: hashedPassword,
                         date,
                         details,
                         secondLegTransactionId
@@ -143,6 +149,47 @@ router.get('/get-transactions', authMiddleware.authMiddleware, authenticateToken
         })
     } else {
         Transaction.find({email}).then(data => {
+            if (!data) {
+                res.json({
+                    status: "FAILED",
+                    message: "There is no transaction available"
+                })
+            }else{
+                res.json({
+                    status: "SUCCESS",
+                    data: data  
+                })
+            }    
+        }).catch(err => {
+            res.json({
+                status: "FAILED",
+                message: "An error has occurred"
+            })
+        })
+    }
+})
+
+
+//get transaction
+router.get('/get-transaction', authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware, (req, res) => {
+    
+    let {email, transactionId} = req.body
+
+    email = email.trim()
+    transactionId = transactionId.trim()
+
+    if (email == ""){
+        res.json({
+            status: "FAILED",
+            message: "Empty email"
+        })
+    }else if(transactionId == "") {
+        res.json({
+            status: "FAILED",
+            message: "Empty transactionId"
+        })
+    } else {
+        Transaction.find({transactionId}).then(data => {
             if (!data) {
                 res.json({
                     status: "FAILED",

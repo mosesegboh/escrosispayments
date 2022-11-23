@@ -63,11 +63,13 @@ const Login = ({navigation}) => {
     //
 
     const handleLogin = (credentials,setSubmitting) => {
+        console.log()
         handleMessage(null)
         const url = 'https://boiling-everglades-35416.herokuapp.com/user/signin';
+        // const url = 'http://localhost:3000/user/signin';
 
         axios.post(url, credentials).then((response) => {
-            token = response.token
+            // token = response.token
             const result = response.data;
             const {message, status, data} = result
 
@@ -137,6 +139,7 @@ const Login = ({navigation}) => {
         AsyncStorage.setItem('escrosisCredentials', JSON.stringify(credentials)).then(() => {
             handleMessage(message, status)
             setStoredCredentials(credentials)
+            // console.log(credentials)
         }).catch(error => {
             console.log(error)
             handleMessage('Persisting Login Failed')
@@ -149,8 +152,8 @@ const Login = ({navigation}) => {
             <StatusBar style="dark"/>
             <InnerContainer>
                 {/* <PageLogo resizeMode="cover" source={require('./../assets/img/img1.png')} /> */}
-                <PageTitle>Escrosis</PageTitle>
-                <SubTitle>Account Login</SubTitle>
+                <PageTitle>Escrosis </PageTitle>
+                <SubTitle>Login </SubTitle>
 
                 <Formik 
                     initialValues={{email: '', password: ''}}
@@ -203,7 +206,7 @@ const Login = ({navigation}) => {
                         !googleSubmitting && (
                             <StyledButton google={true} onPress={handleGoogleSignIn}>
                                 <Fontisto name="google" color={primary} size={25}/>
-                                <ButtonText google={true}>Sign in with Google</ButtonText>
+                                {/* <ButtonText google={true}> Sign in with Google </ButtonText> */}
                             </StyledButton>
                         )
                     }
@@ -219,7 +222,7 @@ const Login = ({navigation}) => {
                     <ExtraView>
                         <ExtraText>Don't have account already ?</ExtraText>
                         <TextLink onPress={() => navigation.navigate('SignUp')}>
-                            <TextLinkContent>Sign Up</TextLinkContent>
+                            <TextLinkContent>    Sign Up</TextLinkContent>
                         </TextLink>
                     </ExtraView>
                 </StyledFormArea>)}
