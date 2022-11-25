@@ -20,6 +20,8 @@ import {Picker} from '@react-native-picker/picker';
 import {randomString} from '../services/';
 //flutterwave
 import {PayWithFlutterwave} from 'flutterwave-react-native';
+
+import ConfirmTransaction from './ConfirmTransaction';
 //credentaisl context
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
@@ -50,7 +52,8 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 //icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 import {Autocomplete} from 'react-native-autocomplete-input';
-export default function AddTransaction() {
+
+export default function AddTransaction({navigation}) {
   //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
@@ -97,12 +100,32 @@ export default function AddTransaction() {
       setShow(true);
   }
 
-  const handleAddTransaction = () => {
-    // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  const navigateConfirmTransaction = () => {
     if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
         setSubmitting(false)
         handleMessage("Please enter all fields")
+        alert("Please enter all fields")
+        return
     }
+    
+    navigation.navigate('ConfirmTransaction', {
+    transactionId: transactionId,
+    email: email,
+    // transactionDate: new Date(),
+    amount: inputValueAmount,
+    transactionType: selectedValue,
+    date: dob,
+    details: details,
+    secondLegTransactionId: secondLeg,
+    token: `Bearer ${token}`
+  })}
+
+  const handleAddTransaction = () => {
+    // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
+    //     setSubmitting(false)
+    //     handleMessage("Please enter all fields")
+    // }
       setSubmitting(true);
       handleMessage(null)
       const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
@@ -150,16 +173,6 @@ export default function AddTransaction() {
           setSubmitting(false)
           handleMessage("An error occured, check your network and try again")
       })
-  }
-
-  const handleOnRedirect = () => {
-    // alert('Redirect Successfully')
-    if(1 == 1){
-      handleMessage('Please enter all fields')
-      setDisabled(true)
-      setSubmitting(false)
-      
-    }
   }
 
   const searchTransactionId = (text) => {
@@ -310,7 +323,7 @@ export default function AddTransaction() {
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
-          {!submitting && <PayWithFlutterwave
+          {/* {!submitting && <PayWithFlutterwave
             // style={styles.addTransactionButton}
             onRedirect={handleOnRedirect}
             // onWillInitialize = {handleOnRedirect}
@@ -327,14 +340,15 @@ export default function AddTransaction() {
             customButton={(props) => (
               <TouchableOpacity
                 style={styles.addTransactionButton}
-                onPress={props.onPress}
+                onPress={testDisabled() == true ? props.onPress : onPress}
                 isBusy={props.isInitializing}
-                disabled={disabled}>
+                disabled={disabled}
+                >
                   <Text style={styles.buttonText}>Add Transaction</Text>
               </TouchableOpacity>
             )}
             // disabled: true
-          />}
+          />} */}
 
           {/* {!submitting && <TouchableOpacity 
             onPress={handleAddTransaction}
@@ -342,11 +356,11 @@ export default function AddTransaction() {
               <Text style={styles.buttonText}>Add Transation</Text>
           </TouchableOpacity>} */}
 
-          {submitting && <TouchableOpacity 
-            onPress={handleAddTransaction}
+          <TouchableOpacity 
+            onPress={navigateConfirmTransaction}
             style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
-          </TouchableOpacity>}
+              <Text style={styles.buttonText}>Add Transaction</Text>
+          </TouchableOpacity>
 
          
           

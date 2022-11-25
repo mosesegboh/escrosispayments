@@ -9,6 +9,7 @@ import SignUp from '../screens/SignUp';
 import Dashboard from '../screens/Dashboard';
 import AddTransaction from '../screens/AddTransaction';
 import Transaction from '../screens/Transaction';
+import ConfirmTransaction from '../screens/ConfirmTransaction';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +42,7 @@ const RootStack = () => {
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="Dashboard" component={Dashboard} />
                                 <Stack.Screen name="AddTransaction" component={AddTransaction} />
                                 <Stack.Screen name="Transaction" component={Transaction} />
+                                <Stack.Screen name="ConfirmTransaction" component={ConfirmTransaction} />
                             </>
                                  :
                                 <>
