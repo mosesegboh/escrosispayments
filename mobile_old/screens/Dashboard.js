@@ -20,6 +20,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 //credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
 
+// import DrawerNavigator from '../navigators/DrawerNavigator';
+
 //you can get rid of navigation and route
 export default function Dashboard ({navigation, route}) {
   // const {name, email} = route.params
@@ -56,6 +58,8 @@ export default function Dashboard ({navigation, route}) {
 
   return (
     <View style={styles.container}>
+
+      {/* <DrawerNavigator /> */}
       <View style={styles.balanceView}>
           <Text style={styles.balanceText}>
               TOTAL BALANCE

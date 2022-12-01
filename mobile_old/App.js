@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import { registerRootComponent } from 'expo';
 import React, {useState} from 'react';
 
@@ -11,11 +12,17 @@ import React, {useState} from 'react';
 //import Apploading
 import Apploading from 'expo-app-loading'
 
+// import { createDrawerNavigator } from '@react-navigation/drawer';
+
+import { NavigationContainer } from '@react-navigation/native';
+
 //async storage
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 //credentials context
 import { CredentialsContext } from './components/CredentialsContext';
+
+// const Drawer = createDrawerNavigator();
 
 //React Navigation Stack
 import RootStack from './navigators/RootStack'

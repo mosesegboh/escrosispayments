@@ -101,7 +101,7 @@ export default function AddTransaction({navigation}) {
   }
 
   const navigateConfirmTransaction = () => {
-    if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
+    if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
         setSubmitting(false)
         handleMessage("Please enter all fields")
         alert("Please enter all fields")
