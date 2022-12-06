@@ -11,6 +11,8 @@ import { Text,
       } from 'react-native';
 // import { Colors, ExtraView } from './../components/styles';
 import Constants from 'expo-constants';
+//import constants file
+// import { FLUTTERWAVE_PUBLIC_KEY } from '../services/constants';
 //api
 import  axios from 'axios'
 //DateTimePicker

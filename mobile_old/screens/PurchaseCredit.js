@@ -25,27 +25,12 @@ import ConfirmTransaction from './ConfirmTransaction';
 //credentaisl context
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
-  StyledContainer,
-  InnerContainer,
-  PageLogo,
-  PageTitle,
-  SubTitle,
-  StyledFormArea,
   LeftIcon,
   StyledInputLabel,
   StyledTextInput,
-  StyledButton,
-  ButtonText,
   RightIcon,
   Colors,
   MsgBox,
-  Line,
-  ExtraView,
-  ExtraText,
-  TextLink,
-  TextLinkContent,
-  FlatList,
-  Pressable,
 } from '../components/styles';
 //Colors
 const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
@@ -53,7 +38,7 @@ const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Col
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 import {Autocomplete} from 'react-native-autocomplete-input';
 
-export default function AddTransaction({navigation}) {
+export default function PurchaseCredit({navigation}) {
   //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
@@ -75,10 +60,13 @@ export default function AddTransaction({navigation}) {
   const [messageType, setMessageType] = useState()
   const [disabled, setDisabled] = useState(false)
   
-
   useEffect(()=>{
+    //generate transaction ID
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
+
+    //make api call to get all the available bill services
+    
   },[]);
 
   //Actual date of birth chosen by the user to be sent

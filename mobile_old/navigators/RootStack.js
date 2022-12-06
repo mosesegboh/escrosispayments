@@ -12,8 +12,10 @@ import SignUp from '../screens/SignUp';
 import Dashboard from '../screens/Dashboard';
 import AddTransaction from '../screens/AddTransaction';
 import Transaction from '../screens/Transaction';
+import PurchaseCredit from '../screens/PurchaseCredit';
 import ConfirmTransaction from '../screens/ConfirmTransaction';
 import Profile from '../screens/Profile';
+import DrawerContent from './DrawerContent';
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
 // import DrawerNavigator from '../navigators/DrawerNavigator';
@@ -27,7 +29,10 @@ import { CredentialsContext } from '../components/CredentialsContext';
 function MyDrawer({navigation}){
     return (
        
-        <Drawer.Navigator initialRouteName="Dashboard">
+        <Drawer.Navigator 
+            initialRouteName="Dashboard"
+            // drawerContent={props => <DrawerContent {...props}/>}
+        >
             <Drawer.Screen 
             options={({navigation})=>({
                 headerLeft: () => (
@@ -44,6 +49,7 @@ function MyDrawer({navigation}){
                 })} 
             name="Dashboard" component={Dashboard} />
             <Drawer.Screen name="Profile" component={Profile} />
+            <Drawer.Screen name="Logout" component={Login} />
         </Drawer.Navigator>
     );
   }
@@ -74,13 +80,31 @@ const RootStack = () => {
                             {storedCredentials ?
                             <>
                                 <Stack.Screen 
-                                
                                     name="Dashboard" 
                                     component={MyDrawer} 
                                 />
-                                <Stack.Screen options={{headerTintColor: 'white'}} name="AddTransaction" component={AddTransaction} 
+                                <Stack.Screen 
+                                    options={{headerShown: true, 
+                                    headerTintColor: 'white', 
+                                    headerStyle: {backgroundColor: "#1b181f",
+                                    }, }}  
+                                    name="AddTransaction" 
+                                    component={AddTransaction} 
                                 />
-                                <Stack.Screen options={{headerTintColor: 'white'}} name="Transaction" component={Transaction} />
+                                <Stack.Screen 
+                                    options={{headerShown: true, 
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }}      
+                                    name="Transaction" component={Transaction} 
+                                />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="PurchaseCredit" component={PurchaseCredit} 
+                                />
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="ConfirmTransaction" component={ConfirmTransaction} />
                             </>
                                  :
@@ -90,8 +114,6 @@ const RootStack = () => {
                                     
                                 </>
                             }
-                            
-                            
                         </Stack.Navigator>
                     </NavigationContainer>
                 )
