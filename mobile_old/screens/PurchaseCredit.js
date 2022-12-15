@@ -4,23 +4,16 @@ import { Text,
         StyleSheet, 
         TouchableOpacity,
         TextInput, 
-        Button, 
-        SafeAreaView, 
-        TouchableWithoutFeedback, 
-        ActivityIndicator 
+        ActivityIndicator
       } from 'react-native';
-// import { Colors, ExtraView } from './../components/styles';
 import Constants from 'expo-constants';
-//api
 import  axios from 'axios'
-//DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Picker} from '@react-native-picker/picker';
-//services
 import {randomString} from '../services/';
 //flutterwave
 import {PayWithFlutterwave} from 'flutterwave-react-native';
-
+import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import ConfirmTransaction from './ConfirmTransaction';
 //credentaisl context
 import { CredentialsContext } from '../components/CredentialsContext';
@@ -32,29 +25,29 @@ import {
   Colors,
   MsgBox,
 } from '../components/styles';
-//Colors
 const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
-//icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 import {Autocomplete} from 'react-native-autocomplete-input';
 
 export default function PurchaseCredit({navigation}) {
   //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
-
   //context
-  let {email, token} = storedCredentials
+  let {email} = storedCredentials
 
-  const [selectedValue, setSelectedValue] = useState("FirstLeg");
+  const [selectedValue, setSelectedValue] = useState();
+  const [selectedValueRecurrence, setSelectedValueRecurrence] = useState();
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
+  const [inputValuePhone, setInputValuePhone] = useState();
   const [transactionId, setTransactionId] = useState();
   const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
   const [details, setDetails] = useState();
   const [input, setInput] = useState();
   const [data, setData] = useState([]);
+  const [billData, setbillData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
@@ -66,7 +59,25 @@ export default function PurchaseCredit({navigation}) {
     setTransactionId(rString.toUpperCase());
 
     //make api call to get all the available bill services
-    
+    // const url = 'https://api.flutterwave.com/v3/bill-categories?airtime=1';
+    // const token = FLUTTERWAVE_SECRET_KEY;
+
+    // axios.get(url, { headers: { Authorization: token } }).then((response) => {
+    // //   console.log(response, 'this is the response')
+    //   const {message, status, data} = response.data
+
+    //   console.log(data, 'this is data')
+     
+    //   if(status == 'success'){
+    //     console.log('it was successful')
+    //     setbillData(data)
+    //   }else{
+    //     handleMessage('An error occured while getting services', 'FAILED')
+    //   }
+    // }).catch((error) => {
+    //     console.log(error)
+    //     handleMessage('An error occured while getting services', 'FAILED')
+    // })
   },[]);
 
   //Actual date of birth chosen by the user to be sent
@@ -195,21 +206,47 @@ export default function PurchaseCredit({navigation}) {
       }
   }
 
-  // const getItemText = (item) => {
-  //   let mainText = item.transactionId;
-    
-  //   return (
-  //     <View style={{ flexDirection: "row", alignItems: "center", padding: 15 }}>
-  //       <View style={{ marginLeft: 10, flexShrink: 1 }}>
-  //         <Text style={{ fontWeight: "700" }}>{mainText}</Text>
-  //         <Text style={{ fontSize: 12 }}>{item.transactionId}</Text>
-  //       </View>
-  //     </View>
-  //   );
-  // };
-  // const props = {
-  //     disabled: true
-  // }
+  const handleAirtimePurchase = (text) => {
+         //do some validation
+         setSubmitting(true)
+
+         var data = JSON.stringify({
+            country: 'NG',
+            customer: inputValuePhone,
+            amount: inputValueAmount,
+            recurrence: selectedValueRecurrence,
+            type: 'AIRTIME',
+            reference: transactionId,
+          });
+          
+          var config = {
+            method: 'post',
+            url: 'https://api.flutterwave.com/v3/bills',
+            headers: { 
+              'Authorization': 'FLWSECK_TEST-b6f850878ce0d9e3ba061e0da47afa56-X', 
+              'Content-Type': 'application/json'
+            },
+            data : data
+          };
+          
+          axios(config)
+          .then(function (response) {
+            console.log(JSON.stringify(response.data));
+            const result = JSON.stringify(response.data)
+
+            const { status, message} = result;
+            handleMessage(message, status)
+            
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error.message);
+            handleMessage('Insufficient funds in your wallet', 'FAILED')
+            alert('insufficient funds in your wallet')
+            setSubmitting(false)
+          });
+          
+  }
 
   return (
     <View style={styles.container}>
@@ -227,11 +264,23 @@ export default function PurchaseCredit({navigation}) {
 
           <TextInput
             style={styles.input}
-            // placeholder="Transactionssss ID"
-            // placeholderTextColor="#949197" 
             value = {transactionId}
             editable={false}
           />
+
+          {/* <Picker
+            selectedValue={selectedValue}
+            style={styles.picker}
+            onValueChange={(itemValue, itemIndex) => setSelectedValue(text)
+                (itemValue)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={item.short_name} value={item.short_name} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker> */}
 
           <TextInput
             style={styles.input}
@@ -243,115 +292,41 @@ export default function PurchaseCredit({navigation}) {
             value={inputValueAmount}
           />
 
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            placeholderTextColor="#949197" 
+            type="number"
+            keyboardType={'numeric'}
+            onChangeText={phone => setInputValuePhone(phone)}
+            value={inputValuePhone}
+          />
+
           <Picker
-            selectedValue={selectedValue}
+            selectedValue={selectedValueRecurrence}
             style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+            onValueChange={(itemValue, itemIndex) => setSelectedValueRecurrence(itemValue)}
           >
-            <Picker.Item label="FirstLeg" value="FirstLeg" />
-            <Picker.Item label="SecondLeg" value="SecondLeg" />
+            <Picker.Item label="ONCE" value="ONCE" />
+            <Picker.Item label="HOURLY" value="HOURLY" />
+            <Picker.Item label="WEEKLY" value="WEEKLY" />
+            <Picker.Item label="DAILY" value="DAILY" />
+            <Picker.Item label="MONTHLY" value="MONTHLY" />
           </Picker>
-
-          <MyTextInput 
-              icon="calendar"
-              placeholder="YYYY - MM - DD"
-              placeholderTextColor={myPlaceHolderTextColor}
-              //onChangeText={handleChange('dateOfBirth')}
-              //onBlur = {handleBlur('dateOfBirth')}
-              value={dob ? dob.toDateString() : ''}
-              isDate={true}
-              editable = {false}
-              showDatePicker = {showDatePicker}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Details"
-            placeholderTextColor="#949197"
-            onChangeText={details => setDetails(details)}
-            value={details} 
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Second Leg Transaction"
-            placeholderTextColor="#949197"
-            onChangeText={secondLeg => setSecondLeg(secondLeg)}
-            value={secondLeg} 
-          />
-
-        {/* <Autocomplete
-              // data={data}
-              // value={query}
-              // onChangeText={(text) => this.setState({ query: text })}
-              // flatListProps={{
-              //   keyExtractor: (_, idx) => idx,
-              //   renderItem: ({ item }) => <Text>{item}</Text>,
-              // }}
-        /> */}
-
-          {/* <TouchableWithoutFeedback onPress={()=>Keyboard.dismiss}>
-            <SafeAreaView style={styles.options}>
-              <TextInput 
-                style={styles.input}
-                placeholder="Search For Transaction Id"
-                value={secondLegTransactionInput}
-                onChangeText={searchTransactionId}
-              />
-              <FlatList 
-                data={data}
-                renderItem={({item, index}) => (
-                  <Pressable onPress={()=>alert('i was clicked')}>
-                     {getItemText(item)}
-                  </Pressable>
-                )}
-              />
-            </SafeAreaView>
-          </TouchableWithoutFeedback> */}
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
-          {/* {!submitting && <PayWithFlutterwave
-            // style={styles.addTransactionButton}
-            onRedirect={handleOnRedirect}
-            // onWillInitialize = {handleOnRedirect}
-            options={{
-              tx_ref: transactionId,
-              authorization: 'FLWPUBK_TEST-3f746dcb908cfa7a7c6088ed4e05388c-X',
-              customer: {
-                email: email
-              },
-              amount: Number(inputValueAmount),
-              currency: 'NGN',
-              payment_options: 'card'
-            }}
-            customButton={(props) => (
-              <TouchableOpacity
-                style={styles.addTransactionButton}
-                onPress={testDisabled() == true ? props.onPress : onPress}
-                isBusy={props.isInitializing}
-                disabled={disabled}
-                >
-                  <Text style={styles.buttonText}>Add Transaction</Text>
-              </TouchableOpacity>
-            )}
-            // disabled: true
-          />} */}
-
-          {/* {!submitting && <TouchableOpacity 
-            onPress={handleAddTransaction}
+           {submitting && <TouchableOpacity 
+            onPress={handleAirtimePurchase}
             style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}>Add Transation</Text>
-          </TouchableOpacity>} */}
+              <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+          </TouchableOpacity>}
 
-          <TouchableOpacity 
-            onPress={navigateConfirmTransaction}
+          {!submitting &&<TouchableOpacity 
+            onPress={handleAirtimePurchase}
             style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}>Add Transaction</Text>
-          </TouchableOpacity>
-
-         
-          
+              <Text style={styles.buttonText}>Purchase Airtime</Text>
+          </TouchableOpacity>}
         </View>
     </View>
   );

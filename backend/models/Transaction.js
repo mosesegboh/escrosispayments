@@ -9,6 +9,16 @@ const TransactionSchema = new Schema({
     transactionType: String,
     date: Date,
     details: String,
+    status: String,
+    balance: Number,
+    lockedTransaction:  {
+        type: Number,
+        required: false,
+    },
+    unLockedTransaction:  {
+        type: Number,
+        required: false,
+    },
     secondLegTransactionId: {
         type: String,
         required: false,

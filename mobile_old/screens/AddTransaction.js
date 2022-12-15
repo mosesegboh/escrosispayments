@@ -74,6 +74,7 @@ export default function AddTransaction({navigation}) {
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
   const [disabled, setDisabled] = useState(false)
+  const [showSecondLeg, setShowSecondLeg] = useState(false)
   
 
   useEffect(()=>{
@@ -101,7 +102,7 @@ export default function AddTransaction({navigation}) {
   }
 
   const navigateConfirmTransaction = () => {
-    if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
+    if ( email == '' || inputValueAmount == '' || dob == '' || transactionId == '' || details == '' ){
         setSubmitting(false)
         handleMessage("Please enter all fields")
         alert("Please enter all fields")
@@ -222,6 +223,14 @@ export default function AddTransaction({navigation}) {
   // const props = {
   //     disabled: true
   // }
+  const handleSelectedValue  = (text) => {
+    setSelectedValue(text)
+    if (text == "FirstLeg") {
+      setShowSecondLeg(false)
+    }else{
+      setShowSecondLeg(true)
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -258,7 +267,7 @@ export default function AddTransaction({navigation}) {
           <Picker
             selectedValue={selectedValue}
             style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
           >
             <Picker.Item label="FirstLeg" value="FirstLeg" />
             <Picker.Item label="SecondLeg" value="SecondLeg" />
@@ -284,13 +293,13 @@ export default function AddTransaction({navigation}) {
             value={details} 
           />
 
-          <TextInput
+          {showSecondLeg && <TextInput
             style={styles.input}
             placeholder="Second Leg Transaction"
             placeholderTextColor="#949197"
             onChangeText={secondLeg => setSecondLeg(secondLeg)}
             value={secondLeg} 
-          />
+          />}
 
         {/* <Autocomplete
               // data={data}

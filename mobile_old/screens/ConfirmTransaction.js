@@ -12,7 +12,8 @@ import { Text,
 // import { Colors, ExtraView } from './../components/styles';
 import Constants from 'expo-constants';
 //import constants file
-// import { FLUTTERWAVE_PUBLIC_KEY } from '../services/constants';
+import { FLUTTERWAVE_SECRET_KEY } from '../services';
+// import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 //api
 import  axios from 'axios'
 //DateTimePicker
@@ -87,6 +88,7 @@ export default function ConfirmTransaction({navigation, route}) {
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
   const [disabled, setDisabled] = useState(false)
+  const [hideButton, setHideButton] = useState(true)
   
 
 //   useEffect(()=>{
@@ -139,6 +141,7 @@ export default function ConfirmTransaction({navigation, route}) {
        
         if(status == 'SUCCESS'){
           setSubmitting(false)
+          // navigation.navigate('AddTransaction')
           handleMessage(message, status)
 
           //set the form to null
@@ -147,83 +150,85 @@ export default function ConfirmTransaction({navigation, route}) {
         //   setDetails(null)
           setData([])
           setInputValueAmount(null)
+          setHideButton(false)
         //   setDate(null)
         }
 
-        navigation.navigate('AddTransaction')
+        // navigation.navigate('AddTransaction')
       }).catch((error) => {
           console.log(error)
           setSubmitting(false)
-          handleMessage("An error occured, check your network and try again")
+          handleMessage("An error occured and this transaction is not completed, check your network and try again")
       })
   }
 
-  const handleOnRedirect = () => {
-    // alert('Adding Transaction.......')
-    setSubmitting(true);
-      handleMessage(null)
-      const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
+  // const handleOnRedirect = () => {
+  //   // alert('Adding Transaction.......')
+  //   setSubmitting(true);
+  //     handleMessage(null)
+  //     const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
 
-      let headers = 
-      {
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      }
+  //     let headers = 
+  //     {
+  //       header: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': `Bearer ${token}`
+  //       }
+  //     }
 
-      const credentials = {
-        email: email,
-        transactionDate: new Date(),
-        transactionId: transactionId,
-        amount: inputValueAmount,
-        transactionType: selectedValue,
-        date: dob,
-        details: details,
-        secondLegTransactionId: secondLeg,
-        token: `Bearer ${token}`
-      }
+  //     const credentials = {
+  //       email: email,
+  //       transactionDate: new Date(),
+  //       transactionId: transactionId,
+  //       amount: inputValueAmount,
+  //       transactionType: selectedValue,
+  //       date: dob,
+  //       details: details,
+  //       secondLegTransactionId: secondLeg,
+  //       token: `Bearer ${token}`
+  //     }
 
-      axios.post(url, credentials, headers).then((response) => {
-        // token = response.token
-        const result = response.data;
-        console.log(result)
-        const {message, status} = result
+  //     axios.post(url, credentials, headers).then((response) => {
+  //       // token = response.token
+  //       const result = response.data;
+  //       console.log(result)
+  //       const {message, status} = result
        
-        if(status == 'SUCCESS'){
-          setSubmitting(false)
-          handleMessage(message, status)
+  //       if(status == 'SUCCESS'){
+  //         setSubmitting(false)
+  //         handleMessage(message, status)
 
-          //set the form to null
-          setInputValueAmount(null)
-          setSecondLeg(null)
-        //   setDetails(null)
-          setData([])
-          setInputValueAmount(null)
-        //   setDate(null)
-        }
-      }).catch((error) => {
-          console.log(error)
-          setSubmitting(false)
-          handleMessage("An error occured, check your network and try again")
-      })
+  //         //set the form to null
+  //         setInputValueAmount(null)
+  //         setSecondLeg(null)
+  //       //   setDetails(null)
+  //         setData([])
+  //         setInputValueAmount(null)
+  //       //   setDate(null)
+  //       }
+  //     }).catch((error) => {
+  //         console.log(error)
+  //         setSubmitting(false)
+  //         handleMessage("An error occured, check your network and try again")
+  //     })
       
-  }
+  // }
 
 
-  const testDisabled = () => {
-    if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" ){
-        setSubmitting(false)
-        handleMessage("Please enter all fields")
-        return false
-    }else{
-      return true
-    }
+  // const testDisabled = () => {
+  //   if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" ){
+  //       setSubmitting(false)
+  //       handleMessage("Please enter all fields")
+  //       return false
+  //   }else{
+  //     return true
+  //   }
     
-  }
+  // }
 
   const handleOnAbort = () => {
     alert ('The transaction failed')
+    // navigation.navigate('')
   }
 
   return (
@@ -250,16 +255,16 @@ export default function ConfirmTransaction({navigation, route}) {
           </View>
 
           <View>
-            <Text style={styles.input}>Transaction Date : {date ? date.toDateString() : ''}</Text>
+            <Text style={styles.input}>Transaction Redemption Date : {date ? date.toDateString() : ''}</Text>
           </View>
 
-          <View>
+          {secondLeg && <View>
             <Text style={styles.input}>{secondLegTransactionId}</Text>
-          </View>
+          </View>}
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
-          {!submitting && <PayWithFlutterwave
+          {hideButton && !submitting && <PayWithFlutterwave
             // style={styles.addTransactionButton}
             onRedirect={handleAddTransaction}
             // onWillInitialize = {handleOnRedirect}
@@ -285,10 +290,16 @@ export default function ConfirmTransaction({navigation, route}) {
             )}
           />}
 
-          {submitting && <TouchableOpacity 
+          {hideButton && submitting && <TouchableOpacity 
             onPress={handleAddTransaction}
             style={styles.addTransactionButton}>
               <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+          </TouchableOpacity>}
+
+          {!hideButton && <TouchableOpacity 
+            onPress={() => navigation.navigate('Dashboard')}
+            style={styles.addTransactionButton}>
+              <Text style={styles.buttonText}>Go back</Text>
           </TouchableOpacity>}
         </View>
     </View>

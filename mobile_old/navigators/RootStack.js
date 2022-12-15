@@ -15,6 +15,7 @@ import Transaction from '../screens/Transaction';
 import PurchaseCredit from '../screens/PurchaseCredit';
 import ConfirmTransaction from '../screens/ConfirmTransaction';
 import Profile from '../screens/Profile';
+import AllTransactions from '../screens/AllTransactions';
 import DrawerContent from './DrawerContent';
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
@@ -43,7 +44,7 @@ function MyDrawer({navigation}){
                     
                 ),
                  headerStyle: {
-                                    backgroundColor: "#1b181f",
+                                    backgroundColor: "#3b60bd",
                                 },
                  
                 })} 
@@ -93,6 +94,7 @@ const RootStack = () => {
                                 />
                                 <Stack.Screen 
                                     options={{headerShown: true, 
+                                        
                                         headerTintColor: 'white', 
                                         headerStyle: {backgroundColor: "#1b181f",
                                         }, }}      
@@ -100,10 +102,19 @@ const RootStack = () => {
                                 />
                                 <Stack.Screen
                                     options={{headerShown: true, 
+                                        headerTitle:"Purchase Credit",
                                         headerTintColor: 'white', 
                                         headerStyle: {backgroundColor: "#1b181f",
                                         }, }} 
                                     name="PurchaseCredit" component={PurchaseCredit} 
+                                />
+                                 <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"All Your Transactions",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="AllTransactions" component={AllTransactions} 
                                 />
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="ConfirmTransaction" component={ConfirmTransaction} />
                             </>

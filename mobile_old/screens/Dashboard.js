@@ -1,7 +1,9 @@
-import React, {useContext} from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, {useContext, useEffect, useState} from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Colors, ExtraView, TextLink, TextLinkContent } from '../components/styles';
 import Constants from 'expo-constants';
+import  axios from 'axios'
+import {trimString} from '../services/';
 
 // Install These Packages
 // import SlidingUpPanel from 'rn-sliding-up-panel'
@@ -17,28 +19,62 @@ import {MaterialIcons} from '@expo/vector-icons'
 
 //Colors
 const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
-
-//icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
-
-//async storage
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
-//credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
 
-// import DrawerNavigator from '../navigators/DrawerNavigator';
 
 //you can get rid of navigation and route
 export default function Dashboard ({navigation, route}) {
-  // const {name, email} = route.params
-
   //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+  const [userTransactions, setUserTransactions] = useState()
+  const [balance, setBalance] = useState()
+  const [lockedTransaction, setLockedTransaction] = useState()
+  const [unLockedTransaction, setUnLockedTransaction] = useState()
 
   //context
   let {name, email, token,  photoUrl} = storedCredentials
+  // const {name, email} = route.params
+  useEffect(()=>{
+    var axios = require('axios');
+    var data = JSON.stringify({
+      "email": email,
+      "token": `Bearer ${token}`
+    });
+
+    var config = {
+      method: 'post',
+      url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': `Bearer ${token}`
+      },
+      data : data
+    };
+
+    axios(config)
+    .then(function (response) {
+      setUserTransactions(response.data.data)
+      const latestIndex = response.data.data.length
+      // const latest = response.data.data
+      const latestValue = response.data.data[latestIndex-1]
+      setBalance(latestValue.balance)
+      setLockedTransaction(latestValue.lockedTransaction)
+      setUnLockedTransaction(latestValue.unLockedTransaction)
+      // console.log(latestValue)
+      // console.log(JSON.stringify(response.data.data.length));
+      // console.log(userTransactions)
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+
+  },[]);
+
+  
   // console.log(token)
   //const AvatarImg = photoUrl ? {uri: photoUrl} : require('./../assets/img/img1')
 
@@ -67,44 +103,40 @@ export default function Dashboard ({navigation, route}) {
   return (
     <View style={styles.container}>
       <View style={styles.balanceView}>
-          <Text style={styles.balanceText}>Hello {name || 'Egboh Moses jjjj'}</Text>
+          <Text style={styles.balanceText}>Hello {name || 'Egboh Moses'}</Text>
           {/* <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text> */}
           {/* <Text style={styles.balanceText}>{token || 'token'}</Text> */}
           <Text style={styles.balanceText}>
               TOTAL BALANCE
           </Text>
           <Text style={styles.balanceValue}>
-              ₦0.00
+          {balance || '₦0.00'}
           </Text>
-          {/* <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
+          <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
               <Text>Logout</Text>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
       </View>
 
       <View style={styles.servicesIcons}>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
             <Octicons name="mail" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>escrow</Text>
+            <Text style={styles.billsText}>wallet</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('PurchaseCredit')}>
             <Octicons name="megaphone" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>phone</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="credit-card" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>cards</Text>
+            <Text style={styles.billsText}>airtime</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
             <Octicons name="arrow-both" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>transfer</Text>
+            <Text style={styles.billsText}>transfers</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
             <Octicons name="archive" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>save</Text>
+            <Text style={styles.billsText}>pay-tithes</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="arrow-both" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>wallet</Text>
+            <Octicons name="browser" size={18} color="#3B60BD" />
+            <Text style={styles.billsText}>data</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
             <Octicons name="zap" size={18} color="#3B60BD" />
@@ -115,20 +147,24 @@ export default function Dashboard ({navigation, route}) {
             <Text style={styles.billsText}>cable</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="browser" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>data</Text>
+            <Octicons name="graph" size={18} color="#3B60BD" />
+            <Text style={styles.billsText}>Tax</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="graph" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>government</Text>
+            <Octicons name="pulse" size={18} color="#3B60BD" />
+            <Text style={styles.billsText}>internet</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
+            <Octicons name="arrow-both" size={18} color="#3B60BD" />
+            <Text style={styles.billsText}>tolls</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
+            <Octicons name="credit-card" size={18} color="#3B60BD" />
+            <Text style={styles.billsText}>v-cards</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
             <Octicons name="north-star" size={18} color="#3B60BD" />
             <Text style={styles.billsText}>crypto</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="pulse" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>cash pickup</Text>
         </TouchableOpacity>
       </View>
 
@@ -139,7 +175,7 @@ export default function Dashboard ({navigation, route}) {
               LOCKED
             </Text>
             <Text style={styles.incomeValue}>
-              ₦0.00
+              ₦{lockedTransaction || 0.00}
             </Text>
           </View>
           <View style={styles.lockedIconBckground}>
@@ -152,7 +188,7 @@ export default function Dashboard ({navigation, route}) {
               UNLOCKED
             </Text>
             <Text style={styles.incomeValue}>
-              ₦0.00
+              ₦{unLockedTransaction || 0.00} 
             </Text>
           </View>
           <View style={styles.unlockedIconBckground}>
@@ -164,59 +200,37 @@ export default function Dashboard ({navigation, route}) {
       <View style={styles.recentTransactionHeading}>
           <Text style={styles.recentTransactionText}>Recent Transactions</Text>
           {/* <Text style={styles.viewAllText}>View All</Text> */}
-          <TextLink onPress={() => navigation.navigate('')}>
+          <TextLink onPress={() => navigation.navigate('AllTransactions', {email: email, token: token})}>
               <TextLinkContent>View All</TextLinkContent>
           </TextLink>
       </View>
 
       <ScrollView>
-        <View style={styles.singleTransaction}>
-          <View style={styles.singletTransactionIconView}>
-            <Octicons name="book" size={18} color="#3f9876" />
-          </View>
-          <View style={styles.transactionDetailRightSide}>
-            <View>
-              <Text style={styles.recentTransactionHeadingActual}>Metro Railway</Text>
-              <Text style={styles.transacitonDetail}>Transaction</Text>
-            </View>
-            <View style={styles.recentTransactionAmount}>
-              <Text style={styles.transacitonAmount}>+₦0.00</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.singleTransaction}>
-          <View style={styles.singletTransactionIconView}>
-            <Octicons name="book" size={18} color="#3f9876" />
-          </View>
-          <View style={styles.transactionDetailRightSide}>
-            <View>
-              <Text style={styles.recentTransactionHeadingActual}>Metro Railway</Text>
-              <Text style={styles.transacitonDetail}>Transaction</Text>
-            </View>
-            <View style={styles.recentTransactionAmount}>
-              <Text style={styles.transacitonAmount}>+₦0.00</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.singleTransaction}>
-          <View style={styles.singletTransactionIconView}>
-            <Octicons name="book" size={18} color="#3f9876" />
-          </View>
-          <View style={styles.transactionDetailRightSide}>
-            <View>
-              <Text style={styles.recentTransactionHeadingActual}>Metro Railway</Text>
-              <Text style={styles.transacitonDetail}>Transaction</Text>
-            </View>
-            <View style={styles.recentTransactionAmount}>
-              <Text style={styles.transacitonAmount}>+₦0.00</Text>
-            </View>
-          </View>
-        </View>
+          {/* {userTransactions ? 
+                userTransactions.slice(0, 5).map((item, index) => (
+                  
+                  <View key={item._id} style={styles.singleTransaction}>
+                    <View style={styles.singleTransactionRightSide}>
+                      <View style={styles.singletTransactionIconView}>
+                        <Octicons name="book" size={18} color="#3f9876" />
+                      </View>
+                      <View>
+                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details, 10)}</Text>
+                        <Text style={styles.transacitonDetail}>{item.transactionType}</Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.transactionDetailRightSide}>
+                      
+                      <View style={styles.recentTransactionAmount}>
+                        <Text style={styles.transacitonAmount}>+ {item.amount}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            } */}
       </ScrollView>
-
-      
 
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction')}>
           <Octicons name="plus" size={22} color="#fff" />
@@ -234,12 +248,12 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   balanceView: {
-    backgroundColor: '#1b181f',
+    backgroundColor: 'rgba(59, 96, 189, 0.2)',
     height: 130,
     width: '99%',
     flexDirection: 'column',
     alignSelf: 'center',
-    borderRadius: 3,
+    // borderRadius: 3,
     marginTop: 12,
     marginBottom: 10,
     justifyContent: 'center',
@@ -250,7 +264,8 @@ const styles = StyleSheet.create({
   },
   billsText: {
     color: "#3b60bd",
-    fontSize: 10
+    fontSize: 10,
+    fontWeight: '400',
   },
   balanceValue: {
     color: "white",
@@ -267,24 +282,25 @@ const styles = StyleSheet.create({
   },
   income: {
     height: '80%',
-    width: '48%',
-    backgroundColor: '#1b181f',
-    marginRight: 10,
+    width: '49.7%',
+    backgroundColor: 'rgba(59, 96, 189, 0.2)',
+    marginRight: 0,
     alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: 5
+    // borderRadius: 5
   },
   locked: {
     height: '100%',
-    width: '48%',
+    width: '49.7%',
     backgroundColor: '#1b181f',
     alignSelf: 'center',
   },
   servicesIcons: {
     flexDirection: 'row',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    JustifyContent: 'center',
   },
   lockedIconBckground: {
     height:40,
@@ -322,11 +338,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '95%',
     alignSelf: 'center',
-    paddingTop: 10,
+    paddingTop: 0,
   },
   recentTransactionText: {
     fontWeight: 'bold',
     color: "#fff",
+    // fontWeight: '400',
   },
   viewAllText: {
     fontWeight: 'bold',
@@ -334,11 +351,16 @@ const styles = StyleSheet.create({
   },
   singleTransaction: {
     flexDirection: 'row',
-    backgroundColor: "#1b181f",
+    backgroundColor: "rgba(59, 96, 189, 0.2)",
     height: 70,
     width: '98%',
-    marginTop: 10,
-    borderRadius: 5,
+    marginTop: 3,
+    justifyContent: 'space-between',
+    // borderRadius: 5,
+  },
+  singleTransactionRightSide: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   singletTransactionIconView: {
     backgroundColor: "#2f2b33",
@@ -346,16 +368,18 @@ const styles = StyleSheet.create({
     width: 50,
     margin: 10,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    flexDirection: 'row'
   },
   transactionDetailRightSide: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    // marginLeft: 0
   },
   recentTransactionAmount: {
     justifyContent: 'flex-end',
-    marginLeft: 150
+    margin: 10
   },
   transacitonAmount: {
     color: 'white',
@@ -379,7 +403,7 @@ const styles = StyleSheet.create({
   billPaymentIcon: {
     backgroundColor: 'rgba(59, 96, 189, 0.2)',
     height: 60,
-    width: 60,
+    width: '16.1%',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -387,5 +411,4 @@ const styles = StyleSheet.create({
     opacity: 5,
     marginRight: 2
   }
-
 });
