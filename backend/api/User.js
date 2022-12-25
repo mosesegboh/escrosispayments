@@ -7,7 +7,7 @@ const config = require('config')
 const User = require('./../models/User')
 const UserVerification = require('./../models/UserVerification')
 const UserOTPVerification = require('./../models/UserOTPVerification')
-const sendVerificationEmail = require('../services/index')
+const email = require('../services/index')
 const nodemailer = require('nodemailer')
 
 //unique string
@@ -106,11 +106,12 @@ router.post('/signup', (req, res) => {
                         const accessToken = jwt.sign(userparam,config.get("ACCESS_TOKEN_SECRET"),expiresIn)
 
                         //handle user verification
-                        // sendVerificationEmail.sendVerificationEmail(result, res)
+                        // email.sendVerificationEmail(result, res)
                         //sendVerification OTP
                         //THIS IS WHAT HANDLES THE VERIFICATION-COMMENTING IT FOR NOW FOREASY DEVELOPMENT
-                        // sendOTPVerificationEmail(result, res)
-
+                        sendOTPVerificationEmail(result, res)
+                        
+                        //DISABLE THIS WHEN USING EMAIL VERIFICATION FUNCTIONALITY
                         // res.json({
                         //     accessToken: accessToken,
                         //     status: "SUCCESS",
@@ -271,74 +272,73 @@ router.post('/resendOTPVerificationCode', async (req, res) => {
     }
 })
 
-
 //send verification email notification
-// const sendVerificationEmail = ({_id, email}, res) => {
-//     //url to be used in te email
-//     const currentUrl = 'http://localhost:3000/';
+const sendVerificationEmail = ({_id, email}, res) => {
+    //url to be used in te email
+    const currentUrl = 'http://localhost:3000/';
 
-//     const uniqueString = uuidv4() + _id;
+    const uniqueString = uuidv4() + _id;
 
-//     //mail
-//     const mailOPtions = {
-//         from: process.env.AUTH_EMAIL,
-//         to: email,
-//         subject: "Verify Your Email",
-//         html: `<p>Please verify your email address to complete the sign up process and login into your account.</p>
-//             <p>This link <b>expires in 6 hours</b>.</p><p>Click on the link: <a href=${currentUrl + 'user/verify/' + _id + '/' + uniqueString}>
-//             here<a/>to proceed.</p>`,
-//     }
+    //mail
+    const mailOPtions = {
+        from: process.env.AUTH_EMAIL,
+        to: email,
+        subject: "Verify Your Email",
+        html: `<p>Please verify your email address to complete the sign up process and login into your account.</p>
+            <p>This link <b>expires in 6 hours</b>.</p><p>Click on the link: <a href=${currentUrl + 'user/verify/' + _id + '/' + uniqueString}>
+            here<a/>to proceed.</p>`,
+    }
 
-//     //hash the string
-//     const saltRounds = 10;
-//     bcrypt
-//         .hash(uniqueString, saltRounds)
-//         .then((hashedUniqueString)=>{
-//             //set values in user verification record
-//             const newVerification = new UserVerification({
-//                 userId: _id,
-//                 uniqueString: hashedUniqueString,
-//                 createdAt: Date.now(),
-//                 expiresAt: Date.now() + 21600000
-//             })
+    //hash the string
+    const saltRounds = 10;
+    bcrypt
+        .hash(uniqueString, saltRounds)
+        .then((hashedUniqueString)=>{
+            //set values in user verification record
+            const newVerification = new UserVerification({
+                userId: _id,
+                uniqueString: hashedUniqueString,
+                createdAt: Date.now(),
+                expiresAt: Date.now() + 21600000
+            })
 
-//             newVerification
-//                 .save()
-//                 .then(()=>{
-//                     //send mail
-//                     transporter
-//                         .sendMail(mailOPtions)
-//                         .then(() => {
-//                             //email sent and verification record saved successfully
-//                             res.json({
-//                                 status: "PENDING",
-//                                 message: "Verification email sent!"
-//                             })
-//                         })
-//                         .catch((error)=>{
-//                             console.log(error)
-//                             res.json({
-//                                 status: "FAILED",
-//                                 message: "Verification email failed"
-//                             })
-//                         })
-//                 })
-//                 .catch((error) => {
-//                     console.log(error)
-//                     res.json({
-//                         status: "FAILED",
-//                         message: "Couldn't save verification email data!"
-//                     })
-//                 })
-//         })
-//         .catch(()=>{
-//             res.json({
-//                 status: "FAILED",
-//                 message: "An error occured while hashing email data"
-//             })
-//         })
+            newVerification
+                .save()
+                .then(()=>{
+                    //send mail
+                    transporter
+                        .sendMail(mailOPtions)
+                        .then(() => {
+                            //email sent and verification record saved successfully
+                            res.json({
+                                status: "PENDING",
+                                message: "Verification email sent!"
+                            })
+                        })
+                        .catch((error)=>{
+                            console.log(error)
+                            res.json({
+                                status: "FAILED",
+                                message: "Verification email failed"
+                            })
+                        })
+                })
+                .catch((error) => {
+                    console.log(error)
+                    res.json({
+                        status: "FAILED",
+                        message: "Couldn't save verification email data!"
+                    })
+                })
+        })
+        .catch(()=>{
+            res.json({
+                status: "FAILED",
+                message: "An error occured while hashing email data"
+            })
+        })
 
-// }
+}
 
 //verification email
 router.get('/verify/:userId/:uniqueString', (req, res) =>{
@@ -460,12 +460,12 @@ router.post('/signin', (req, res) => {
             if (data.length){
                 //THIS IS FOR THE VERIFICATION STATUS OF THE USER
                 //check for the verification status of the user
-                // if (!data[0].verified) {
-                //     res.json({
-                //         status: "FAILED",
-                //         message: "Email has not been verified. check your inbox",
-                //     })
-                // }else{
+                if (!data[0].verified) {
+                    res.json({
+                        status: "FAILED",
+                        message: "Email has not been verified. check your inbox",
+                    })
+                }else{
 
                      //User exists in the database
                     const hashedPassword = data[0].password
@@ -523,7 +523,7 @@ router.post('/signin', (req, res) => {
                             message: "An error has occurred"
                         })
                     })
-                //}
+                }
                                
             }else{
                 res.json({

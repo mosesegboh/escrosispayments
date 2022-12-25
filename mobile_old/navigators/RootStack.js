@@ -16,6 +16,7 @@ import PurchaseCredit from '../screens/PurchaseCredit';
 import ConfirmTransaction from '../screens/ConfirmTransaction';
 import Profile from '../screens/Profile';
 import AllTransactions from '../screens/AllTransactions';
+import OTPVerification from '../screens/OTPVerification';
 import DrawerContent from './DrawerContent';
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
@@ -50,6 +51,7 @@ function MyDrawer({navigation}){
                 })} 
             name="Dashboard" component={Dashboard} />
             <Drawer.Screen name="Profile" component={Profile} />
+            <Drawer.Screen name="OTPVerification" component={OTPVerification} />
             <Drawer.Screen name="Logout" component={Login} />
         </Drawer.Navigator>
     );
@@ -118,11 +120,18 @@ const RootStack = () => {
                                 />
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="ConfirmTransaction" component={ConfirmTransaction} />
                             </>
-                                 :
+                                :
                                 <>
                                     <Stack.Screen name="Login" component={Login} />
                                     <Stack.Screen name="SignUp" component={SignUp} />
-                                    
+                                    <Stack.Screen
+                                        options={{headerShown: true, 
+                                            headerTitle:"Verify Your Account",
+                                            headerTintColor: 'white', 
+                                            headerStyle: {backgroundColor: "#1b181f",
+                                            }, }} 
+                                        name="OTPVerification" component={OTPVerification} 
+                                    />
                                 </>
                             }
                         </Stack.Navigator>

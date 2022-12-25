@@ -9,21 +9,11 @@ import { Text,
         TouchableWithoutFeedback, 
         ActivityIndicator 
       } from 'react-native';
-// import { Colors, ExtraView } from './../components/styles';
-import Constants from 'expo-constants';
-//import constants file
-import { FLUTTERWAVE_SECRET_KEY } from '../services';
-// import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
-//api
+import { TEST_FLUTTERWAVE_PUBLIC_KEY } from '../services';
+import {testBaseUrl} from '../services/'
+import {liveBaseUrl} from '../services/'
 import  axios from 'axios'
-//DateTimePicker
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {Picker} from '@react-native-picker/picker';
-//services
-import {randomString} from '../services/';
-//flutterwave
 import {PayWithFlutterwave} from 'flutterwave-react-native';
-//credentaisl context
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
   StyledContainer,
@@ -91,11 +81,6 @@ export default function ConfirmTransaction({navigation, route}) {
   const [hideButton, setHideButton] = useState(true)
   
 
-//   useEffect(()=>{
-//     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-//     // setTransactionId(rString.toUpperCase());
-//   },[]);
-
   //Actual date of birth chosen by the user to be sent
   const [dob, setDob] = useState();
 
@@ -107,7 +92,7 @@ export default function ConfirmTransaction({navigation, route}) {
   const handleAddTransaction = () => {
       setSubmitting(true);
       handleMessage(null)
-      const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
+      const url = `${liveBaseUrl}/transaction/add-transaction`;
 
       let headers = 
       {
@@ -130,8 +115,6 @@ export default function ConfirmTransaction({navigation, route}) {
       }
 
       console.log(credentials);
-
-      
 
       axios.post(url, credentials, headers).then((response) => {
         // token = response.token
@@ -227,8 +210,7 @@ export default function ConfirmTransaction({navigation, route}) {
   // }
 
   const handleOnAbort = () => {
-    alert ('The transaction failed')
-    // navigation.navigate('')
+    alert ('The transaction failed. Try again later')
   }
 
   return (
@@ -270,7 +252,7 @@ export default function ConfirmTransaction({navigation, route}) {
             // onWillInitialize = {handleOnRedirect}
             options={{
               tx_ref: transactionId,
-              authorization: 'FLWPUBK_TEST-3f746dcb908cfa7a7c6088ed4e05388c-X',
+              authorization: TEST_FLUTTERWAVE_PUBLIC_KEY,
               customer: {
                 email: email
               },

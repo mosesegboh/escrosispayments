@@ -46,6 +46,12 @@ export const PageTitle = styled.Text`
     font-weight: bold; 
     color: ${myWhite};
     padding: 10px;
+
+    ${(props) => 
+      props.welcome &&
+      `
+         font-size: 35px;
+      `}
 `
 export const SubTitle = styled.Text`
     font-size: 18px;
@@ -150,6 +156,117 @@ export const TextLinkContent = styled.Text`
    color: ${myButton};
    font-size: 15px;
 
+   ${(props) => {
+      const {resendStatus} = props;
+      if (resendStatus === 'Failed!') {
+         return `color: ${Colors.red}`;
+      }else if (resendStatus === 'Sent!') {
+         return `color: ${Colors.green}`;
+      }
+   }}
+`
+
+//verification components
+export const TopHalf = styled.View`
+   flex: 1;
+   justify-content: center;
+   padding: 20px;
+`
+
+export const IconBg = styled.View`
+   width: 250px;
+   height: 250px;
+   background-color: ${Colors.myGreen};
+   border-radius: 250px;
+   justify-content: center;
+   align-items: center;
+`
+
+export const BottomHalf = styled(TopHalf)`
+   justify-content: space-around;
+`
+
+export const InfoText = styled.Text`
+   color: white;
+   font-size: 15px;
+   text-align: center;
+`
+
+export const EmphasizeText = styled.Text`
+   font-weight: bold;
+   font-style: italic;
+`
+
+export const CodeInputSection = styled.View`
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      margin-vertical: 30px;
+`
+// position: absolute;
+//       width: 1px;
+//       height: 1px;
+//       opacity: 0;
+export const HiddenTextInput = styled.Text`
+      border-color: ${green};
+      border-width: 2px;
+      border-radius: 5px;
+      padding: 12px;
+      margin-top: 15px;
+      width: 300px;
+      color: ${myWhite};
+`
+
+export const CodeInputContainer = styled.Pressable`
+   width: 70%;
+   flex-direction: row;
+   justify-content: space-between;
+`
+
+export const CodeInput = styled.View`
+   border-color:${Colors.green};
+   min-width: 15%;
+   border-width: 2px;
+   border-radius: 5px;
+   padding: 12px;
+`
+
+export const CodeInputText = styled.Text`
+   font-size: 22px;
+   font-weight: bold;
+   text-align; center;
+   color: ${Colors.brand};
+`
+
+export const CodeInputFocused = styled(CodeInput)`
+   border-color: ${Colors.green}
+`
+
+export const InlineGroup = styled.View`
+   flex-direction: row;
+   padding: 10px;
+   justify-content: center;
+   align-items: center;
+`
+
+export const ModalContainer = styled(StyledContainer)`
+   justify-content: center;
+   align-items: center;
+   background-color: rgba(0, 0, 0, 0.7);
+`
+
+export const ModalView = styled.View`
+   margin: 20px;
+   background-color: white;
+   border-radius: 20px;
+   padding: 35px;
+   align-items: center;
+   elevation: 5;
+   shadow-color: #000;
+   shadow-offset: 0px 2px;
+   shadow-opacity: 0.25;
+   shadow-radius: 4px;
+   width: 100%;
 `
 
 

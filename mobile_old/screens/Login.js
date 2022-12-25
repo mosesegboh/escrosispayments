@@ -1,22 +1,12 @@
 import React, {useState, useEffect, useContext} from 'react';
 import {StatusBar} from 'expo-status-bar';
-// import { View } from 'formik';
-
-//formik
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google'; 
 import {Formik} from  'formik';
-
-//icons
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
-
-//KeyboardAvoidingWrapper
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
-
-//api
 import  axios from 'axios'
-
-//google sign-in
 import * as GoogleSignIn from 'expo-google-sign-in';
-
 import {
     StyledContainer,
     InnerContainer,
@@ -38,18 +28,14 @@ import {
     TextLink,
     TextLinkContent
 } from '../components/styles'
-
 import {View, ActivityIndicator, Platform} from 'react-native'
-
-const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors
-
-//async storage
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
-//credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
 
+WebBrowser.maybeCompleteAuthSession();
 
+
+const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors
 
 const Login = ({navigation}) => {
     //context
@@ -59,8 +45,13 @@ const Login = ({navigation}) => {
     const [message, setMessage] = useState()
     const [messageType, setMessageType] = useState()
     const [googleSubmitting, setGoogleSubmitting] = useState(false)
-
-    //
+    const [accessToken, setAccessToken] = useState(null)
+    const [user, setUser] = useState(null)
+    const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+        clientId: "334602610846-0cuqj82v9lg1eea4b8vpgstik6nk68ts.apps.googleusercontent.com",
+        iosClientId: "334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com",
+        androidClientId: "334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com"
+    })
 
     const handleLogin = (credentials,setSubmitting) => {
         console.log()
@@ -95,8 +86,28 @@ const Login = ({navigation}) => {
 
     //initialize google sign in
     useEffect(() => {
-        initAsync()
-    })
+        //from the former google sign in
+        // initAsync()
+        //new google sign in feature
+        if (response?.type === "success") {
+            setAccessToken(response.authentication.accessToken);
+            accessToken && fetchUserInfo();
+        }
+    }, [response, accessToken])
+
+    async function fetchUserInfo() {
+        let response = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+            headers: {Authorization: `Bearer ${accessToken}`}
+        })
+
+        const useInfo = await response.json();
+        setUser(useInfo);
+        console.log(useInfo)
+
+        //I added this
+        setGoogleSubmitting(false)
+        user && persistLogin({...useInfo}, "Gooogle Sign in succesful", 'success')
+    }
 
     const androidClientId = '334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com'
     const iosClientId = '334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com'
@@ -204,7 +215,7 @@ const Login = ({navigation}) => {
                     <Line />
                     {
                         !googleSubmitting && (
-                            <StyledButton google={true} onPress={handleGoogleSignIn}>
+                            <StyledButton google={true} onPress={() => {promptAsync()}}>
                                 <Fontisto name="google" color={primary} size={25}/>
                                 {/* <ButtonText google={true}> Sign in with Google </ButtonText> */}
                             </StyledButton>
