@@ -189,6 +189,9 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
         }
 
         if (newLockedTransactionBalanceValue[3]) {
+            setTimeout(function(){
+                        console.log("Hello World");
+                    }, 3000);
             Transaction.findOneAndUpdate(filter, update, {
                 new: true
                 }).then(result => {

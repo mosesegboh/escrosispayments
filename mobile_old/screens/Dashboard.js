@@ -4,6 +4,7 @@ import { Colors, ExtraView, TextLink, TextLinkContent } from '../components/styl
 import Constants from 'expo-constants';
 import  axios from 'axios'
 import {trimString} from '../services/';
+import { useIsFocused } from '@react-navigation/native'
 
 // Install These Packages
 // import SlidingUpPanel from 'rn-sliding-up-panel'
@@ -33,6 +34,9 @@ export default function Dashboard ({navigation, route}) {
   const [balance, setBalance] = useState()
   const [lockedTransaction, setLockedTransaction] = useState()
   const [unLockedTransaction, setUnLockedTransaction] = useState()
+  const [transactionName, setTransactionName] = useState()
+
+  const isFocused = useIsFocused()
 
   //context
   let {name, email, token,  photoUrl} = storedCredentials
@@ -59,11 +63,11 @@ export default function Dashboard ({navigation, route}) {
       setUserTransactions(response.data.data)
       console.log(response.data.data)
       const latestIndex = response.data.data.length
-      console.log(latestIndex, 'this is the index')
+      // console.log(latestIndex, 'this is the index')
       // const latest = response.data.data
       const latestValue = response.data.data[latestIndex-1]
       setBalance(latestValue.balance)
-      console.log(latestValue.balance, 'thiis the balance')
+      // console.log(latestValue.balance, 'thiis the balance')
       setLockedTransaction(latestValue.lockedTransaction)
       setUnLockedTransaction(latestValue.unLockedTransaction)
       // console.log(latestValue)
@@ -75,14 +79,14 @@ export default function Dashboard ({navigation, route}) {
     });
 
 
-  },[]);
+  },[isFocused]);
 
   
   // console.log(token)
   //const AvatarImg = photoUrl ? {uri: photoUrl} : require('./../assets/img/img1')
 
   //for google sign in
-  name = name ? name : displayName
+  // name = name ? name : displayName
 
   const clearLogin = async () => {
     try {
@@ -209,7 +213,7 @@ export default function Dashboard ({navigation, route}) {
       </View>
 
       <ScrollView>
-          {/* {userTransactions ? 
+          {userTransactions ? 
                 userTransactions.slice(0, 5).map((item, index) => (
                   
                   <View key={item._id} style={styles.singleTransaction}>
@@ -218,8 +222,8 @@ export default function Dashboard ({navigation, route}) {
                         <Octicons name="book" size={18} color="#3f9876" />
                       </View>
                       <View>
-                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details, 10)}</Text>
-                        <Text style={styles.transacitonDetail}>{item.transactionType}</Text>
+                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 10)}</Text>
+                        <Text style={styles.transactionDetail}>{item.transactionType}</Text>
                       </View>
                     </View>
                     
@@ -232,7 +236,7 @@ export default function Dashboard ({navigation, route}) {
                   </View>
                 ))
                 : <ActivityIndicator size="large" color={primary}/>
-            } */}
+            }
       </ScrollView>
 
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>

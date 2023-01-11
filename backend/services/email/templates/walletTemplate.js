@@ -7,8 +7,7 @@ const walletTransactionSuccess = ({transactionId,  amount,  transactionType, tra
     <p>The details of the transaction is below:</p>
     <p><b>Transaction ID: ${transactionId}</b></p>
     <p><b>Amount: ${amount}</b></p>
-    <p><b>Transaction Redemption Date: ${transactionType}</b></p>
-    <p><b> Transaction Leg: ${transactionDate}</b></p>
+    <p><b>Transaction Date: ${transactionDate}</b></p>
     <p><b> Details: ${details}</b></p>
     <p>Thank You for transacting with us</p>
     <p>Warm Regards</p>`
@@ -24,8 +23,7 @@ const walletTransactionSuccess = ({transactionId,  amount,  transactionType, tra
     <p>The details of the transaction is below:</p>
     <p><b>Transaction ID: ${transactionId}</b></p>
     <p><b>Amount: ${amount}</b></p>
-    <p><b>Transaction Redemption Date: ${transactionType}</b></p>
-    <p><b> Transaction Leg: ${transactionDate}</b></p>
+    <p><b>Transaction Date: ${transactionDate}</b></p>
     <p><b> Details: ${details}</b></p>
     <p>Kindly try again later</p>
     <p>Warm Regards</p>`

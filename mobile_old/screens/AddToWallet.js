@@ -4,11 +4,13 @@ import { Text,
         StyleSheet, 
         TouchableOpacity,
         TextInput, 
-        Modal,
+        ActivityIndicator
       } from 'react-native';
+import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {randomString} from '../services/';
 import { CredentialsContext } from '../components/CredentialsContext';
+import Dialog from "react-native-dialog";
 import {
   LeftIcon,
   StyledInputLabel,
@@ -18,8 +20,10 @@ import {
   MsgBox,
 } from '../components/styles';
 import {Octicons, Ionicons} from '@expo/vector-icons';
-import WalletConfirmModal from '../components/WalletConfirmModal';
-
+import {BaseUrl} from '../services/'
+import {PayWithFlutterwave} from 'flutterwave-react-native';
+import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
+const {primary} = Colors;
 const {myButton, myPlaceHolderTextColor, darkLight} = Colors;
 
 
@@ -27,28 +31,23 @@ export default function AddToWallet({navigation}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
 
-  const [selectedValue, setSelectedValue] = useState("FirstLeg");
   const [choseData, setChoseData] = useState()
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
-  const [hideButton, setHideButton] = useState(true)
-  // const [details, setDetails] = useState();
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
+  const [submittingConfirm, setSubmittingConfirm] = useState(false)
   const [messageType, setMessageType] = useState()
-  const [isModalVisible, setIsModalVisible] = useState(false)
   const [dob, setDob] = useState();
+  const [visible, setVisible] = useState(false)
+  
   
   useEffect(()=>{
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
   },[]);
-
-  const setData = (data) => {
-    setChoseData(data)
-  }
 
   const onChange = (event, selectedDate) => {
       const currentDate = selectedDate || date;
@@ -57,14 +56,70 @@ export default function AddToWallet({navigation}) {
       setDob(currentDate);
   }
 
-  const changeModalVisible = (bool) => {
+  const handleAddTransaction = () => {
+    setSubmittingConfirm(true);
+    handleMessage(null)
+    const url = `${BaseUrl}/transaction/add-transaction`;
+
+    let headers = 
+    {
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    }
+
+    const transactionData = {
+      email: email,
+      transactionId: transactionId,
+      amount: inputValueAmount,
+      transactionType: "wallet",
+      transactionName: "wallet",
+      date: dob,
+      transactionDate:  new Date(),
+      details: "Add Funds To Wallet",
+      token: `Bearer ${token}`
+    }
+
+    console.log(transactionData);
+
+    axios.post(url, transactionData, headers).then((response) => {
+      // token = response.token
+      const result = response.data;
+      console.log(result)
+      const {message, status} = result
+     
+      if(status == 'SUCCESS'){
+        setSubmitting(false)
+        handleMessage(message, status)
+
+        //set the form to null
+        setInputValueAmount(null)
+        setHideButton(false)
+        setVisible(false)
+        setDob(null)
+      }else{
+        setSubmitting(false)
+        handleMessage("An error occured")
+        setVisible(false)
+      }
+      // navigation.navigate('AddTransaction')
+    }).catch((error) => {
+        console.log(error)
+        setSubmitting(false)
+        setVisible(false)
+        handleMessage("An error occured and this transaction is not completed, check your network and try again")
+    })
+}
+
+  const confirmTransaction = () => {
     if ( inputValueAmount == null || dob == null || transactionId == null ){
-      // setSubmitting(false)
       handleMessage("Please enter all fields")
       alert("Please enter all fields")
       return
     }
-      setIsModalVisible(bool)
+    setSubmitting(true);
+    setVisible(true)
   }
 
   const handleMessage = (message,type="FAILED") => {
@@ -76,40 +131,14 @@ export default function AddToWallet({navigation}) {
       setShow(true);
   }
 
-  const transactionData = {
-    email: email,
-    transactionId: transactionId,
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    transactionName: "wallet",
-    date: dob,
-    details: "Add Funds To Wallet",
-    token: `Bearer ${token}`
-  }
-
-  const navigateConfirmTransaction = () => {
-    if ( email == '' || inputValueAmount == '' || dob == '' || transactionId == '' || details == '' ) {
-        setSubmitting(false)
-        handleMessage("Please enter all fields")
-        alert("Please enter all fields")
-        return
-    }
-    
-    navigation.navigate('ConfirmTransaction', {
-    transactionId: transactionId,
-    email: email,
-    // transactionDate: new Date(),
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    date: dob,
-    details: details,
-    secondLegTransactionId: secondLeg,
-    token: `Bearer ${token}`
-  })}
-
   const handleOnAbort = () => {
     alert ('The transaction failed. Try again later')
     return
+  }
+
+  const handleCancel = () => {
+    setSubmitting(false)
+    setVisible(false)
   }
 
   return (
@@ -155,23 +184,57 @@ export default function AddToWallet({navigation}) {
 
             <MsgBox type={messageType}>{message}</MsgBox>
 
-            <TouchableOpacity 
-              onPress={() => changeModalVisible(true)}
+            {!submitting && <TouchableOpacity 
+              onPress={() => confirmTransaction()}
               style={styles.addTransactionButton}>
                 <Text style={styles.buttonText}>Confirm</Text>
-            </TouchableOpacity>
-            <Modal
-              transparent={true}
-              animationType='fade'
-              visible={isModalVisible}
-              onRequestClose={() => changeModalVisible(false)}
-            >
-            <WalletConfirmModal 
-              changeModalVisible={changeModalVisible}
-              setData={setData}
-              transactionData = {transactionData}
-            />
-          </Modal>
+            </TouchableOpacity>}
+
+            {submitting && <TouchableOpacity 
+            onPress={() => selectPaymentOption}
+            style={styles.addTransactionButton}>
+              <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+          </TouchableOpacity>}
+
+            <Dialog.Container visible={visible}>
+              <Dialog.Title>Fund Wallet</Dialog.Title>
+              <Dialog.Description>
+                Do you want to proceed?
+              </Dialog.Description>
+              {!submittingConfirm && <PayWithFlutterwave
+                // style={styles.addTransactionButton}
+                onRedirect={handleAddTransaction}
+                // onWillInitialize = {handleOnRedirect}
+                options={{
+                  tx_ref: transactionId,
+                  authorization: FLUTTERWAVE_PUBLIC_KEY,
+                  customer: {
+                    email: email
+                  },
+                  amount: Number(inputValueAmount),
+                  currency: 'NGN',
+                  payment_options: 'card',
+                  onAbort: {handleOnAbort}
+                }}
+                customButton={(props) => (
+                  <TouchableOpacity
+                    style={styles.addTransactionButton}
+                    onPress={props.onPress}
+                    isBusy={props.isInitializing}
+                    >
+                      <Text style={styles.buttonText}>Make Payment</Text>
+                  </TouchableOpacity>
+                )}
+              />}
+
+              {submittingConfirm && <TouchableOpacity 
+                onPress={handleAddTransaction}
+                style={styles.addTransactionButton}>
+                  <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+              </TouchableOpacity>}
+
+              <Dialog.Button label="Cancel" onPress={handleCancel}/>
+            </Dialog.Container>
         </View>
 
     </View>
