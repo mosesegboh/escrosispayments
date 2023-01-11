@@ -28,7 +28,7 @@ import {
     TextLink,
     TextLinkContent
 } from '../components/styles'
-import {View, ActivityIndicator, Platform} from 'react-native'
+import {View, ActivityIndicator, Platform, Image} from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CredentialsContext } from '../components/CredentialsContext';
 
@@ -162,9 +162,13 @@ const Login = ({navigation}) => {
             <StyledContainer>
             <StatusBar style="dark"/>
             <InnerContainer>
-                {/* <PageLogo resizeMode="cover" source={require('./../assets/img/img1.png')} /> */}
-                <PageTitle>Escrosis </PageTitle>
-                <SubTitle>Login </SubTitle>
+                {/* <PageLogo resizeMode="cover" source={require('./../assets/img/escrosis-logo.png')} /> */}
+                <Image 
+                    source={require('./../assets/img/escrosis-low-trans-bg.png')}
+                    style={{height:20, width:210, marginTop:100}}
+                />
+                {/* <PageTitle>Escrosis </PageTitle> */}
+                {/* <SubTitle>Login </SubTitle> */}
 
                 <Formik 
                     initialValues={{email: '', password: ''}}

@@ -18,11 +18,12 @@ import Profile from '../screens/Profile';
 import AllTransactions from '../screens/AllTransactions';
 import OTPVerification from '../screens/OTPVerification';
 import DrawerContent from './DrawerContent';
+import SideBar from './customDrawer';
+import AddToWallet from '../screens/AddToWallet';
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 
 // import DrawerNavigator from '../navigators/DrawerNavigator';
 const Drawer = createDrawerNavigator();
-
 const Stack = createNativeStackNavigator();
 
 //credentials context
@@ -33,26 +34,26 @@ function MyDrawer({navigation}){
        
         <Drawer.Navigator 
             initialRouteName="Dashboard"
-            // drawerContent={props => <DrawerContent {...props}/>}
+            drawerContent={props => <SideBar {...props}/>}
         >
             <Drawer.Screen 
-            options={({navigation})=>({
-                headerLeft: () => (
-                    <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
-                        <Ionicons name='menu' size={25} color='white'
-                        />
-                    </TouchableOpacity>
+                options={({navigation})=>({
+                    headerLeft: () => (
+                        <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+                            <Ionicons name='menu' size={25} color='white'
+                            />
+                        </TouchableOpacity>
+                        
+                    ),
+                    headerStyle: {
+                        backgroundColor: "#3b60bd",
+                    },
                     
-                ),
-                 headerStyle: {
-                                    backgroundColor: "#3b60bd",
-                                },
-                 
-                })} 
-            name="Dashboard" component={Dashboard} />
+                    })} 
+                name="Dashboard" component={Dashboard} 
+            />
             <Drawer.Screen name="Profile" component={Profile} />
             <Drawer.Screen name="OTPVerification" component={OTPVerification} />
-            <Drawer.Screen name="Logout" component={Login} />
         </Drawer.Navigator>
     );
   }
@@ -110,7 +111,7 @@ const RootStack = () => {
                                         }, }} 
                                     name="PurchaseCredit" component={PurchaseCredit} 
                                 />
-                                 <Stack.Screen
+                                <Stack.Screen
                                     options={{headerShown: true, 
                                         headerTitle:"All Your Transactions",
                                         headerTintColor: 'white', 
@@ -118,21 +119,29 @@ const RootStack = () => {
                                         }, }} 
                                     name="AllTransactions" component={AllTransactions} 
                                 />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Add To Your Wallet",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="AddToWallet" component={AddToWallet} 
+                                />
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="ConfirmTransaction" component={ConfirmTransaction} />
                             </>
-                                :
-                                <>
-                                    <Stack.Screen name="Login" component={Login} />
-                                    <Stack.Screen name="SignUp" component={SignUp} />
-                                    <Stack.Screen
-                                        options={{headerShown: true, 
-                                            headerTitle:"Verify Your Account",
-                                            headerTintColor: 'white', 
-                                            headerStyle: {backgroundColor: "#1b181f",
-                                            }, }} 
-                                        name="OTPVerification" component={OTPVerification} 
-                                    />
-                                </>
+                            :
+                            <>
+                                <Stack.Screen name="Login" component={Login} />
+                                <Stack.Screen name="SignUp" component={SignUp} />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Verify Your Account",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="OTPVerification" component={OTPVerification} 
+                                />
+                            </>
                             }
                         </Stack.Navigator>
                     </NavigationContainer>

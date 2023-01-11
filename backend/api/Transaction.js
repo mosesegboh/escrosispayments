@@ -5,17 +5,35 @@ const authMiddleware = require("../middleware/authMiddleware")
 const authenticateTokenMiddleware = require("../middleware/authenticateTokenMiddleware")
 const emailFunction = require('../services');
 const updateCustomerLockedBalance = require('../functions/transactions/Transactions')
-const nodemailer = require('nodemailer')
 
-//sign up
 router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware, async  (req, res) => {
     
-    let {email, transactionId, transactionDate, amount, transactionType, date, details, secondLegTransactionId, lockedTransaction, unLockedTransaction, status} = req.body
+    let {email, 
+        transactionId,
+        transactionDate, 
+        amount, 
+        transactionType, 
+        date, 
+        details, 
+        secondLegTransactionId, 
+        lockedTransaction, 
+        unLockedTransaction, 
+        status,
+        transactionName,
+    } = req.body
 
-    if (email == null || transactionDate == null, transactionId == null || amount == null || transactionType == null || date==null || details == null){
+    if (email == null 
+        || transactionDate == null 
+        || transactionId == null 
+        || amount == null 
+        || transactionType == null 
+        || date == null 
+        || details == null 
+        || transactionName == null
+        ){
         res.json({
             status: "FAILED",
-            message: "Empty input fields"
+            message: "Please enter all input fields"
         })
     }
 
@@ -26,6 +44,7 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
     transactionType = transactionType.trim()
     date = date.trim()
     details = details.trim()
+    transactionName = transactionName.trim()
     if (secondLegTransactionId) {
         secondLegTransactionId = secondLegTransactionId.trim()
     }
@@ -38,8 +57,7 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
     if (status) {
         status = status.trim()
     }
-    
-    //validation
+
     if (!new Date(transactionDate).getTime()) {
         res.json({
             status: "FAILED",
@@ -75,222 +93,149 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
             status: "FAILED",
             message: "Invalid details"
         })
-    } else if (secondLegTransactionId && !/^[a-zA-Z0-9 ]*$/.test(secondLegTransactionId) && secondLegTransactionId == null) {
+    } else if (!/^[a-zA-Z ]*$/.test(transactionName)) {
+        res.json({
+            status: "FAILED",
+            message: "Invalid details"
+        })
+    }  else if (secondLegTransactionId && !/^[a-zA-Z0-9 ]*$/.test(secondLegTransactionId) && secondLegTransactionId == null) {
         res.json({
             status: "FAILED",
             message: "Invalid second transaction Id"
         })
-    } else {    //get the latest balance for this particular user
-        const newLockedTransactionBalanceValue = await Transaction.find({}).sort({_id: -1}).limit(1)
-        .then((transaction)=>{
-            const currentlockedTransactionBalance = transaction[0].lockedTransaction ? transaction[0].lockedTransaction : 0.00
-            const currentUnlockedTransactionBalance = transaction[0].unLockedTransaction ?  transaction[0].unLockedTransaction : 0.00
-            const currentBalance = transaction[0].balance ? transaction[0].balance : 0.00
-            return [currentlockedTransactionBalance, currentUnlockedTransactionBalance, currentBalance]
-        })
+    } else { 
+            const newLockedTransactionBalanceValue = await Transaction.find({"Transaction.email": email}).sort({_id: -1}).limit(2)
+            .then((transaction)=>{
+                const currentlockedTransactionBalance = transaction[1].lockedTransaction ? transaction[1].lockedTransaction : 0.00
+                const currentUnlockedTransactionBalance = transaction[1].unLockedTransaction ?  transaction[1].unLockedTransaction : 0.00
+                const currentBalance = transaction[1].balance ? transaction[1].balance : 0.00
 
-        // if (transactionType == "Secondleg"){
-        //     var transactionToUpdate = await Transaction.find({"Transaction.transactionId": secondLegTransactionId})
-        //     .then((result) => { 
-        //         const newTransactionToUpdate = result[0] ? result[0]  : 0.00
-        //         return newTransactionToUpdate
-        //     })
-        // }
-
-        // if(transactionType == "Secondleg" && transactionToUpdate.status == "locked") {
-        //     return res.json({
-        //         status: "FAILED",
-        //         message: "the transaction has already being locked"
-        //     })
-        // }
-        // console.log(newLockedTransactionBalanceValue[1])
-        // return res.json({
-        //     status: "FAILED",
-        //     message: "debug error"
-        // })
-        //if validation passed proceed by checking if the user already exist in the database
-        // Transaction.find({ transactionId }).then(result => {
-            // if(result.length){
-                    // res.json({
-                    //     status: "FAILED",
-                    //     message: "Transaction Already exists in the database"
-                    // })
-                // }else{
-                if (transactionType == "FirstLeg"){
-                    unLockedTransaction = updateCustomerLockedBalance.updateCustomerLockedBalance(newLockedTransactionBalanceValue[1], amount)
-                    lockedTransaction = newLockedTransactionBalanceValue[0]
-                    status = 'open'
-
-                    console.log(lockedTransaction, unLockedTransaction, 'this is the locked and unlocked transaction')
-                    const balance = newLockedTransactionBalanceValue[2]
-
-                    const filter = { transactionId:  transactionId};
-                    const update = { 
-                        lockedTransaction: lockedTransaction,
-                        unLockedTransaction: unLockedTransaction,
-                        transactionDate: transactionDate,
-                        transactionType: transactionType,
-                        transactionLeg: transactionType,
-                        details: details,
-                        // secondLegTransactionId: secondLegTransactionId,
-                        balance: balance
-                    };
-
-                    Transaction.findOneAndUpdate(filter, update, {
-                        new: true
-                      }).then(result => {
-                        console.log(result, 'this is the found result')
-                        if(result){
-                            const status = "success"
-                            //send email
-                            emailFunction.sendTransactionCompleteEmail(result, res, status)
-                            //return response
-                            res.json({
-                                status: "SUCCESS",
-                                message: "The transaction has been saved successfully"
-                            })
-                        }
-                    }).catch(err => {
-                        const status = "failed"
-                        emailFunction.sendTransactionCompleteEmail(result, res, 'failed')
-                        console.log(err)
-                        res.json({
-                            status: "FAILED",
-                            message: "An error occured, while completing the transaction"
-                        })
+                if (currentBalance == 0 && transactionName !== "wallet") {
+                    var proceed = false
+                    res.json({
+                        status: "FAILED",
+                        message: "You do not have enough funds to carry out this transaction. Please add funcds to your wallet"
                     })
+                }else{
+                    var proceed = true
                 }
+                return [currentlockedTransactionBalance, currentUnlockedTransactionBalance, currentBalance, proceed]
+            })
+        
 
-                if (transactionType == "SecondLeg"){
+        if (transactionType == "FirstLeg"){
+            //get variables to update
+            unLockedTransaction = updateCustomerLockedBalance.updateCustomerLockedBalance(newLockedTransactionBalanceValue[1], amount)
+            lockedTransaction = newLockedTransactionBalanceValue[0]
+            status = 'open'
+            const balance = newLockedTransactionBalanceValue[2]
 
-                    var transactionToUpdate = await Transaction.find({"Transaction.transactionId": secondLegTransactionId})
-                    .then((result) => { 
-                        const newTransactionToUpdate = result[0] ? result[0]  : 0.00
-                        return newTransactionToUpdate
-                    }).catch((err) => {
-                        console.log(err)
-                    })
+            //filter variables
+            var filter = { transactionId:  transactionId};
+            var update = { 
+                lockedTransaction: lockedTransaction,
+                unLockedTransaction: unLockedTransaction,
+                transactionDate: transactionDate,
+                transactionType: transactionType,
+                transactionLeg: transactionType,
+                details: details,
+                status: status,
+                balance: +balance - +amount
+            };
+        }
 
-                    if( transactionToUpdate.status == "locked") {
-                        return res.json({
-                            status: "FAILED",
-                            message: "the transaction has already being locked"
-                        })
+        if (transactionType == "SecondLeg"){
+            //get update variables
+            var transactionToUpdate = await Transaction.find({transactionId: secondLegTransactionId})
+            .then((result) => { 
+                const newTransactionToUpdate = result[0] ? result[0]  : 0.00
+                return newTransactionToUpdate
+            }).catch((err) => {
+                console.log(err)
+            })
+
+            const balance = newLockedTransactionBalanceValue[2]
+            if( transactionToUpdate.status == "locked") {
+                return res.json({
+                    status: "FAILED",
+                    message: "the transaction has already being locked"
+                })
+            }
+
+            //filter variable
+            var filter = { transactionId: secondLegTransactionId };
+            var update = { 
+                transactionId: transactionId,
+                status: 'locked',
+                lockedTransaction: +amount + +transactionToUpdate.lockedTransaction,
+                unLockedTransaction: +transactionToUpdate.unLockedTransaction - +amount,
+                secondLegTransactionId: secondLegTransactionId,
+                transactionName: transactionName,
+                transactionType: transactionName,
+                balance: +balance - +amount
+            };
+        }
+
+        if (transactionName == 'wallet') {
+            //filter variable
+            const balance = newLockedTransactionBalanceValue[2]
+            var filter = { transactionId: transactionId };
+            var update = { 
+                balance: +balance + +amount,
+                transactionName: transactionName,
+                amount: amount,
+                details: "Add funds To Wallet"
+            };    
+        }
+
+        if (newLockedTransactionBalanceValue[3]) {
+            Transaction.findOneAndUpdate(filter, update, {
+                new: true
+                }).then(result => {
+                if (result){
+                    const status = "success"
+
+                    if (transactionType == "FirstLeg") {
+                        emailFunction.sendTransactionCompleteEmail(result, res, status)
+                        var message = "The transaction has been saved successfully"
                     }
 
+                    if (transactionType == "SecondLeg") {
+                        emailFunction.sendTransactionLockedEmail(result, res, status)
+                        var message = "The transaction has been locked successfully"
+                    }
 
-                    const filter = { transactionId: secondLegTransactionId };
-                    const update = { 
-                                    status: 'locked',
-                                    lockedTransaction: +amount + +transactionToUpdate.lockedTransaction,
-                                    unLockedTransaction: +transactionToUpdate.unLockedTransaction - +amount,
-                                    secondLegTransactionId: secondLegTransactionId
-                                };
-                    //update the transaction and exit
-                    Transaction.findOneAndUpdate(filter, update).then(result => {
-                        if(result){
-                            const status = "success"
-                            //send email
-                            emailFunction.sendTransactionLockedEmail(result, res, status)
-                            //return response
-                            res.json({
-                                status: "SUCCESS",
-                                message: "The transaction has been locked successfully"
-                            })
-                        }
-                    }).catch(err => {
-                        const status = "failed"
-                            //send email
-                            emailFunction.sendTransactionLockedEmail(result, res, status)
-                        console.log(err)
-                        res.json({
-                            status: "FAILED",
-                            message: "An error occured, while locking the transaction"
-                        })
+                    if (transactionType == "wallet") {
+                        emailFunction.sendAddWalletSuccessfulEmail(result, res, status)
+                        var message = "Wallet has been updated successfully"
+                    }
+                    
+                    res.json({
+                        status: "SUCCESS",
+                        message: message
+                    })
+                }else{
+                    res.json({
+                        status: "FAILED",
+                        message: "The transaction could not be completed - API"
                     })
                 }
+            }).catch(err => {
+                const status = "failed"
+                var result = {}
+        
+                emailFunction.sendTransactionLockedEmail(result, res, status)
+                console.log(err)
+                res.json({
+                    status: "FAILED",
+                    message: "An error occured, while locking the transaction"
+                })
+            })
+        }
                 
-                // else{
-                //     //i need to make an update here
-                //     balance = newLockedTransactionBalanceValue[2]
-
-                //     const filter = { transactionId:  transactionId};
-                //     const update = { 
-                //         lockedTransaction: lockedTransaction,
-                //         unLockedTransaction: unLockedTransaction,
-                //         transactionDate: transactionDate,
-                //         transactionType: transactionType,
-                //         details: details,
-                //         secondLegTransactionId: secondLegTransactionId,
-                //         balance
-                //     };
-
-                //     Transaction.findOneAndUpdate(filter, update).then(result => {
-                //         console.log()
-                //         if(result){
-                //             const status = "success"
-                //             //send email
-                //             emailFunction.sendTransactionLockedEmail(result, res, status)
-                //             //return response
-                //             res.json({
-                //                 status: "SUCCESS",
-                //                 message: "The transaction has been saved successfully"
-                //             })
-                //         }
-                //     }).catch(err => {
-                //         const status = "failed"
-                //         emailFunction.sendTransactionCompleteEmail(result, res, 'failed')
-                //         console.log(err)
-                //         res.json({
-                //             status: "FAILED",
-                //             message: "An error occured, while completing the transaction"
-                //         })
-                //     })
-                //     // balance = newLockedTransactionBalanceValue[2]
-               
-                //     // const newTransaction = new Transaction({
-                //     //     email,
-                //     //     transactionDate,
-                //     //     transactionId,
-                //     //     amount,
-                //     //     transactionType,
-                //     //     date,
-                //     //     details,
-                //     //     status,
-                //     //     secondLegTransactionId,
-                //     //     lockedTransaction,
-                //     //     unLockedTransaction,
-                //     //     balance
-                //     // })
-
-                //     // newTransaction.save().then(result => {
-                //     //     const status = "success"
-                //     //     emailFunction.sendTransactionCompleteEmail(result, res, status)
-                //     //     res.json({
-                //     //         status: "SUCCESS",
-                //     //         message: "Transaction saved successfully",
-                //     //         data: result
-                //     //     })
-                //     // }).catch(err => {
-                //     //     emailFunction.sendTransactionCompleteEmail(result, res, 'failed')
-                //     //     res.json({
-                //     //         status: "FAILED",
-                //     //         message: "An error occured while saving transaction"
-                //     //     })
-                //     // })
-                // }
-            // }
-        // }).catch(err => {
-        //     console.log(err)
-        //     res.json({
-        //         status: "FAILED",
-        //         message: "An error occured"
-        //     })
-        // })
     }
 })
 
-//sign in
 router.post('/get-transactions', authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware, (req, res) => {
     
     let {email} = req.body
@@ -324,7 +269,6 @@ router.post('/get-transactions', authMiddleware.authMiddleware, authenticateToke
     }
 })
 
-//get transaction
 router.get('/get-transaction', authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware, (req, res) => {
     
     let {email, transactionId} = req.body

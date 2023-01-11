@@ -1,5 +1,7 @@
+const walletTemplate = require('./email/templates/walletTemplate')
+const escrowTemplate = require('./email/templates/escrowTemplate')
+const verificationEmailTemplate = require('./email/templates/verificationEmailTemplate')
 const jwt = require('jsonwebtoken');
-//email handlers
 const nodemailer = require('nodemailer')
 
 //unique string
@@ -12,37 +14,35 @@ const generateAccessToken = (req,res,next) => {
 }
 
 let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-          user: process.env.AUTH_EMAIL,
-          pass: process.env.AUTH_PASSWORD,
-      }
-  })
+    service: 'gmail',
+    auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASSWORD,
+    }
+})
   
-  //testing the transporter successfully
-  transporter.verify((error, success) => {
-      if(error) {
-          console.log(error)
-      }else{
-          console.log('ready for messages')
-          console.log(success)
-      }
-  })
+//testing the transporter successfully
+transporter.verify((error, success) => {
+    if(error) {
+        console.log(error)
+    }else{
+        console.log('ready for messages')
+        console.log(success)
+    }
+})
 
  const sendVerificationEmail = ({_id, email}, res) => {
       //url to be used in te email
-      const currentUrl = 'http://localhost:3000/';
+      const currentUrl = process.env.CURRENT_URL
   
       const uniqueString = uuidv4() + _id;
   
       //mail
       const mailOPtions = {
-          from: process.env.AUTH_EMAIL,
-          to: email,
-          subject: "Verify Your Email",
-          html: `<p>Please verify your email address to complete the sign up process and login into your account.</p>
-              <p>This link <b>expires in 6 hours</b>.</p><p>Click on the link: <a href=${currentUrl + 'user/verify/' + _id + '/' + uniqueString}>
-              here<a/>to proceed.</p>`,
+        from: process.env.AUTH_EMAIL,
+        to: email,
+        subject: verificationEmailTemplate.verificationEmailSuccess({currentUrl,  uniqueString,  _id})[0],
+        html:  verificationEmailTemplate.verificationEmailSuccess({currentUrl,  uniqueString,  _id})[1],
       }
   
       //hash the string
@@ -95,89 +95,100 @@ let transporter = nodemailer.createTransport({
           })
   }
 
-  const sendTransactionCompleteEmail = async ({email, transactionId, transactionDate, amount, transactionType, details}, res, status) => {
-      
-      try {
-          if (status == "success"){
-              //mail options
-              var mailOPtions = { 
-                  from : process.env.AUTH_EMAIL,
-                  to: email,
-                  subject: "Your transaction was successful",
-                  html: `<p>Hello</p><p>This is to notify you that your transaction has been completed</p>
-                  <p>Here are the details of you transaction:</p>
-                  <p><b>Transaction ID: ${transactionId}</b></p>
-                  <p><b>Amount: ${amount}</b></p>
-                  <p><b>Transaction Redemption Date: ${transactionType}</b></p>
-                  <p><b> Transaction Leg: ${transactionDate}</b></p>
-                  <p><b> Details: ${details}</b></p>
-                  <p>Thank you for trusting us, your transaction is in safe hands.</p>
-                  <p>Warm Regards</p>`,
-              }
-          }
-  
-          if (status == "failed") {
-              var mailOPtions = { 
-                  from : process.env.AUTH_EMAIL,
-                  to: email,
-                  subject: "Your transaction failed",
-                  html: `<p>Hello</p><p>This is to notify you that your transaction with details below failed</p>
-                  <p>Warm Regards</p>`,
-              }
-          }
-          
-          await transporter.sendMail(mailOPtions)
-  
-      } catch (error) {
-          res.json({
-              status: "FAILED",
-              message: error.message,
-          })
-      }
-  }
+const sendTransactionCompleteEmail = async ({email, transactionId, transactionDate, amount, transactionType, details}, res, status) => {
+    try {
+        if (status == "success"){
+            var mailOPtions = { 
+                from : process.env.AUTH_EMAIL,
+                to: email,
+                subject: escrowTemplate.firstLegTransactionSuccess({email, transactionId, transactionDate, amount, transactionType, details})[0],
+                html:  escrowTemplate.firstLegTransactionSuccess({email, transactionId, transactionDate, amount, transactionType, details})[1],
+            }
+        }
 
-  const sendTransactionLockedEmail = async ({email, transactionId, transactionDate, amount, transactionType, details, secondLegTransactionId}, res, status) => {
-      
-      try {
-          if (status == "success"){
-              //mail options
-              var mailOPtions = { 
-                  from : process.env.AUTH_EMAIL,
-                  to: email,
-                  subject: "Your transaction Is Now Locked",
-                  html: `<p>Hello</p><p>This is to notify you that your transaction has been completed</p>
-                  <p>Here are the details of you transaction:</p>
-                  <p><b>Transaction ID: ${transactionId}</b></p>
-                  <p><b>Amount: ${amount}</b></p>
-                  <p><b> Second Leg Transaction Id: ${secondLegTransactionId}</b></p>
-                  <p><b>Transaction Redemption Date: ${transactionDate}</b></p>
-                  <p><b> Transaction Leg: ${transactionType}</b></p>
-                  <p><b> Details: ${details}</b></p>
-                  <p>Thank you for trusting us, your transaction is in safe hands.</p>
-                  <p>Warm Regards</p>`,
-              }
-          }
-  
-          if (status == "failed") {
-              var mailOPtions = { 
-                  from : process.env.AUTH_EMAIL,
-                  to: email,
-                  subject: "Your transaction failed",
-                  html: `<p>Hello</p><p>This is to notify you that your transaction with details below failed</p>
-                  <p>Warm Regards</p>`,
-              }
-          }
-          
-          await transporter.sendMail(mailOPtions)
-  
-      } catch (error) {
-          res.json({
-              status: "FAILED",
-              message: error.message,
-          })
-      }
-  }
+        if (status == "failed") {
+            var mailOPtions = { 
+                from : process.env.AUTH_EMAIL,
+                to: email,
+                subject: escrowTemplate.firstLegTransactionFailed({email, transactionId, transactionDate, amount, transactionType, details})[0],
+                html: escrowTemplate.firstLegTransactionFailed({email, transactionId, transactionDate, amount, transactionType, details})[1],
+            }
+        }
+        
+        await transporter.sendMail(mailOPtions)
 
- 
+    } catch (error) {
+        res.json({
+            status: "FAILED",
+            message: error.message,
+        })
+    }
+}
 
-module.exports = {generateAccessToken, sendVerificationEmail, sendTransactionCompleteEmail, sendTransactionLockedEmail}
+const sendTransactionLockedEmail = async ({email, transactionId, transactionDate, amount, transactionType, details, secondLegTransactionId}, res, status) => {
+    try {
+        if (status == "success"){
+            var mailOPtions = { 
+                from : process.env.AUTH_EMAIL,
+                to: email,
+                subject: escrowTemplate.secondLegTransactionSuccess({email, transactionId, transactionDate, amount, transactionType, details, secondLegTransactionId})[0],
+                html:  escrowTemplate.secondLegTransactionSuccess({email, transactionId, transactionDate, amount, transactionType, details, secondLegTransactionId})[1],
+            }
+        }
+
+        if (status == "failed") {
+            var mailOPtions = { 
+                from : process.env.AUTH_EMAIL,
+                to: email,
+                subject: escrowTemplate.secondLegTransactionFailed({email, transactionId, transactionDate, amount, transactionType, details, secondLegTransactionId})[0],
+                html:  escrowTemplate.secondLegTransactionFailed({email, transactionId, transactionDate, amount, transactionType, details, secondLegTransactionId})[1],
+            }
+        }
+        
+        await transporter.sendMail(mailOPtions)
+
+    } catch (error) {
+        res.json({
+            status: "FAILED",
+            message: error.message,
+        })
+    }
+}
+
+const sendAddWalletSuccessfulEmail = async ({email, transactionId, transactionDate, amount, transactionType, details}, res, status) => {
+    try {
+        if (status == "success"){
+            var mailOPtions = { 
+                from : process.env.AUTH_EMAIL,
+                to: email,
+                subject: walletTemplate.walletTransactionSuccess({email, transactionId, transactionDate, amount, transactionType, details})[0],
+                html: walletTemplate.walletTransactionSuccess({email, transactionId, transactionDate, amount, transactionType, details})[1],
+            }
+        }
+
+        if (status == "failed") {
+            var mailOPtions = { 
+                from : process.env.AUTH_EMAIL,
+                to: email,
+                subject: walletTemplate.walletTransactionFailed({email, transactionId, transactionDate, amount, transactionType, details})[0],
+                html: walletTemplate.walletTransactionFailed({email, transactionId, transactionDate, amount, transactionType, details})[1],
+            }
+        }
+        
+        await transporter.sendMail(mailOPtions)
+
+    } catch (error) {
+        res.json({
+            status: "FAILED",
+            message: error.message,
+        })
+    }
+}
+
+function getRandom(length) {
+    return Math.floor(
+        Math.pow(10, length - 1) + Math.random() * 9 * Math.pow(10, length - 1)
+    );
+}
+
+module.exports = {generateAccessToken, sendVerificationEmail, sendTransactionCompleteEmail, sendTransactionLockedEmail, getRandom, sendAddWalletSuccessfulEmail}

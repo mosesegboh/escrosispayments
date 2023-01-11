@@ -29,15 +29,7 @@ const redeemTransaciton = async (transactionId, dateToredeem ) => {
 
     // if (todaysDate == dateToredeem) {
     //     //Go through all transactions where status is locked update the transaction and end email address debit the client wallet and creadot te ther parties wallet.
-        
-    // }
-
-}
-
-// const switchFromUnlockedToLocked = (from, to, amount) => {
-//   return +from - 
-// }
-//send peform tje relevant transaction when the redemption dates starts
+  }
 
 
 module.exports = {updateCustomerLockedBalance, redeemTransaciton}

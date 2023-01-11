@@ -1,55 +1,27 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Text, 
         View, 
         StyleSheet, 
         TouchableOpacity,
-        TextInput, 
-        Button, 
-        SafeAreaView, 
-        TouchableWithoutFeedback, 
         ActivityIndicator 
       } from 'react-native';
-import { TEST_FLUTTERWAVE_PUBLIC_KEY } from '../services';
-import {testBaseUrl} from '../services/'
-import {liveBaseUrl} from '../services/'
+import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
+import {BaseUrl} from '../services/'
 import  axios from 'axios'
 import {PayWithFlutterwave} from 'flutterwave-react-native';
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
-  StyledContainer,
-  InnerContainer,
-  PageLogo,
-  PageTitle,
-  SubTitle,
-  StyledFormArea,
-  LeftIcon,
-  StyledInputLabel,
-  StyledTextInput,
-  StyledButton,
-  ButtonText,
-  RightIcon,
   Colors,
   MsgBox,
-  Line,
-  ExtraView,
-  ExtraText,
-  TextLink,
-  TextLinkContent,
-  FlatList,
-  Pressable,
 } from '../components/styles';
-//Colors
-const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
-//icons
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
-import {Autocomplete} from 'react-native-autocomplete-input';
+
+const {primary} = Colors;
+
 export default function ConfirmTransaction({navigation, route}) {
-  //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
   //context
   let {email, token} = storedCredentials
-
   let transactionDate = new Date().toString();
 
   const {
@@ -62,16 +34,10 @@ export default function ConfirmTransaction({navigation, route}) {
         secondLegTransactionId,
     } = route.params
 
-    // let transactionDate = new Date();
-
   const [selectedValue, setSelectedValue] = useState("FirstLeg");
   const [show, setShow] = useState(false);
-//   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
-//   const [transactionId, setTransactionId] = useState();
-//   const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
-//   const [details, setDetails] = useState();
   const [input, setInput] = useState();
   const [data, setData] = useState([]);
   const [message, setMessage] = useState()
@@ -79,9 +45,6 @@ export default function ConfirmTransaction({navigation, route}) {
   const [messageType, setMessageType] = useState()
   const [disabled, setDisabled] = useState(false)
   const [hideButton, setHideButton] = useState(true)
-  
-
-  //Actual date of birth chosen by the user to be sent
   const [dob, setDob] = useState();
 
   const handleMessage = (message,type="FAILED") => {
@@ -92,7 +55,7 @@ export default function ConfirmTransaction({navigation, route}) {
   const handleAddTransaction = () => {
       setSubmitting(true);
       handleMessage(null)
-      const url = `${liveBaseUrl}/transaction/add-transaction`;
+      const url = `${BaseUrl}/transaction/add-transaction`;
 
       let headers = 
       {
@@ -211,6 +174,7 @@ export default function ConfirmTransaction({navigation, route}) {
 
   const handleOnAbort = () => {
     alert ('The transaction failed. Try again later')
+    return
   }
 
   return (
@@ -252,7 +216,7 @@ export default function ConfirmTransaction({navigation, route}) {
             // onWillInitialize = {handleOnRedirect}
             options={{
               tx_ref: transactionId,
-              authorization: TEST_FLUTTERWAVE_PUBLIC_KEY,
+              authorization: FLUTTERWAVE_PUBLIC_KEY,
               customer: {
                 email: email
               },

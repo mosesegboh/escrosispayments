@@ -24,7 +24,7 @@ import {
     TextLink,
     TextLinkContent
 } from '../components/styles';
-import {View, TouchableOpacity, ActivityIndicator} from 'react-native';
+import {View, TouchableOpacity, ActivityIndicator, Image} from 'react-native';
 const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios'
@@ -111,8 +111,12 @@ const SignUp = ({navigation}) => {
                 <StatusBar style="dark"/>
                 <InnerContainer>
                     
-                    <PageTitle>Escrosis</PageTitle>
-                    <SubTitle>Account SignUp</SubTitle>
+                    {/* <PageTitle>Escrosis</PageTitle>
+                    <SubTitle>Account SignUp</SubTitle> */}
+                    <Image 
+                    source={require('./../assets/img/escrosis-low-trans-bg.png')}
+                    style={{height:20, width:210, marginTop:100}}
+                />
 
                     {show && (
                         <DateTimePicker
@@ -205,7 +209,7 @@ const SignUp = ({navigation}) => {
 
                         {!isSubmitting && <StyledButton onPress={handleSubmit}>
                         <ButtonText>
-                            Login
+                            Sign Up
                         </ButtonText>
                         </StyledButton>}
 
@@ -213,17 +217,17 @@ const SignUp = ({navigation}) => {
                             <ActivityIndicator size="large" color={primary}/>
                         </StyledButton>}
 
-                        <StyledButton onPress={handleSubmit}>
+                        {/* <StyledButton onPress={handleSubmit}>
                             <ButtonText>
                                 Sign Up
                             </ButtonText>
-                        </StyledButton>
+                        </StyledButton> */}
                         <Line />
                         
                         <ExtraView>
                             <ExtraText>Already have an account?</ExtraText>
                             <TextLink onPress={() => navigation.navigate('Login')}>
-                                <TextLinkContent>Login</TextLinkContent>
+                                <TextLinkContent>  Login</TextLinkContent>
                             </TextLink>
                         </ExtraView>
                     </StyledFormArea>)}

@@ -1,12 +1,12 @@
 import React, {useContext, useEffect, useState} from 'react'
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native'
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
+import {Octicons} from '@expo/vector-icons';
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Colors, ExtraView, TextLink, TextLinkContent } from '../components/styles';
+import { Colors } from '../components/styles';
 import {trimString} from '../services/';
 
-const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
+const {primary} = Colors;
 
 export default function AllTransactions({navigation, route}) {
     const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)

@@ -57,10 +57,13 @@ export default function Dashboard ({navigation, route}) {
     axios(config)
     .then(function (response) {
       setUserTransactions(response.data.data)
+      console.log(response.data.data)
       const latestIndex = response.data.data.length
+      console.log(latestIndex, 'this is the index')
       // const latest = response.data.data
       const latestValue = response.data.data[latestIndex-1]
       setBalance(latestValue.balance)
+      console.log(latestValue.balance, 'thiis the balance')
       setLockedTransaction(latestValue.lockedTransaction)
       setUnLockedTransaction(latestValue.unLockedTransaction)
       // console.log(latestValue)
@@ -112,13 +115,13 @@ export default function Dashboard ({navigation, route}) {
           <Text style={styles.balanceValue}>
           {balance || '₦0.00'}
           </Text>
-          <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
+          {/* <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
               <Text>Logout</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
       </View>
 
       <View style={styles.servicesIcons}>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance})}>
             <Octicons name="mail" size={18} color="#3B60BD" />
             <Text style={styles.billsText}>wallet</Text>
         </TouchableOpacity>
@@ -232,7 +235,7 @@ export default function Dashboard ({navigation, route}) {
             } */}
       </ScrollView>
 
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction')}>
+      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>
           <Octicons name="plus" size={22} color="#fff" />
       </TouchableOpacity>
       

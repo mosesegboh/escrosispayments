@@ -10,7 +10,8 @@ const TransactionSchema = new Schema({
     date: Date,
     details: String,
     status: String,
-    balance: Number,
+    balance: { type: Number, default: 0 },
+    transactionName: String,
     lockedTransaction:  {
         type: Number,
         required: false,

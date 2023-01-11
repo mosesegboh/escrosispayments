@@ -47,11 +47,9 @@ export const PageTitle = styled.Text`
     color: ${myWhite};
     padding: 10px;
 
-    ${(props) => 
-      props.welcome &&
-      `
-         font-size: 35px;
-      `}
+    ${(props) => props.welcome &&`
+      font-size: 35px;
+   `}
 `
 export const SubTitle = styled.Text`
     font-size: 18px;
@@ -59,6 +57,11 @@ export const SubTitle = styled.Text`
     letter-spacing: 1px;
     font-weight: bold;
     color: ${myWhite};
+
+    ${(props) => props.welcome &&`
+      margin-bottom: 5px;
+      font-weight: normal;
+   `}
 `
 export const StyledFormArea = styled.View`
     width: 90%;
@@ -267,6 +270,28 @@ export const ModalView = styled.View`
    shadow-opacity: 0.25;
    shadow-radius: 4px;
    width: 100%;
+`
+
+export const WelcomeContainer = styled(InnerContainer)`
+   padding: 25px;
+   padding-top: 10px;
+   justify-content: center;
+`;
+
+export const Avatar = styled.Image`
+   width: 100px
+   height: 100px;
+   margin: auto;
+   border-radius: 50px;
+   border-width: 2px;
+   border-color: ${secondary};
+   margin-bottom: 10px
+   margint-top: 10px;
+`
+
+export const WelcomeImage = styled.Image`
+   height: 50%;
+   min-width: 100%;
 `
 
 
