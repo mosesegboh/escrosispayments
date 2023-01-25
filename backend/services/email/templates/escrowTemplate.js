@@ -31,7 +31,7 @@ const firstLegTransactionSuccess = ({transactionId,  amount,  transactionType, t
     return [subject, body]
 }
 
-const secondLegTransactionSuccess = ({transactionId,  amount,  transactionType, transactionDate, details}) => {
+const secondLegTransactionSuccess = ({transactionId,  amount,  transactionType, transactionDate, details, secondLegTransactionId}) => {
         
     const subject = `Your transaction Is Now Locked`
 

@@ -1,12 +1,8 @@
 import React from 'react';
-//react navigation
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-
-import {View, TouchableHighlight, TouchableOpacity, Platform} from 'react-native'
-
-//components
+import {TouchableOpacity} from 'react-native'
 import Login from '../screens/Login';
 import SignUp from '../screens/SignUp';
 import Dashboard from '../screens/Dashboard';
@@ -20,7 +16,8 @@ import OTPVerification from '../screens/OTPVerification';
 import DrawerContent from './DrawerContent';
 import SideBar from './customDrawer';
 import AddToWallet from '../screens/AddToWallet';
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
+import Transfer from '../screens/Transfer';
+import {Ionicons} from '@expo/vector-icons';
 
 // import DrawerNavigator from '../navigators/DrawerNavigator';
 const Drawer = createDrawerNavigator();
@@ -89,6 +86,7 @@ const RootStack = () => {
                                 />
                                 <Stack.Screen 
                                     options={{headerShown: true, 
+                                        headerTitle:"Add An Escrow Transaction",
                                     headerTintColor: 'white', 
                                     headerStyle: {backgroundColor: "#1b181f",
                                     }, }}  
@@ -97,7 +95,6 @@ const RootStack = () => {
                                 />
                                 <Stack.Screen 
                                     options={{headerShown: true, 
-                                        
                                         headerTintColor: 'white', 
                                         headerStyle: {backgroundColor: "#1b181f",
                                         }, }}      
@@ -126,6 +123,14 @@ const RootStack = () => {
                                         headerStyle: {backgroundColor: "#1b181f",
                                         }, }} 
                                     name="AddToWallet" component={AddToWallet} 
+                                />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Make A Transfer",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="Transfer" component={Transfer} 
                                 />
                                 <Stack.Screen options={{headerTintColor: 'white'}} name="ConfirmTransaction" component={ConfirmTransaction} />
                             </>

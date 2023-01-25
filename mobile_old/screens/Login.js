@@ -10,9 +10,6 @@ import * as GoogleSignIn from 'expo-google-sign-in';
 import {
     StyledContainer,
     InnerContainer,
-    PageLogo, 
-    PageTitle,
-    SubTitle,
     StyledFormArea,
     LeftIcon,
     StyledInputLabel,
@@ -34,11 +31,9 @@ import { CredentialsContext } from '../components/CredentialsContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
-
 const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors
 
 const Login = ({navigation}) => {
-    //context
     const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
     const [hidePassword, setHidePassword] = useState(true)
@@ -90,7 +85,9 @@ const Login = ({navigation}) => {
         // initAsync()
         //new google sign in feature
         if (response?.type === "success") {
+            console.log(response)
             setAccessToken(response.authentication.accessToken);
+            // setAccessToken(response.params.id_token);
             accessToken && fetchUserInfo();
         }
     }, [response, accessToken])

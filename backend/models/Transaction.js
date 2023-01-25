@@ -23,6 +23,38 @@ const TransactionSchema = new Schema({
     secondLegTransactionId: {
         type: String,
         required: false,
+    },
+    transactFromWallet: {
+        type: String,
+        required: false,
+    },
+    transactFromAddedFunds: {
+        type: String,
+        required: false,
+    },
+    accountNumber: {
+        type: Number,
+        required: false,
+    },
+    accountBank: {
+        type: Number,
+        required: false,
+    },
+    currency: {
+        type: String,
+        required: false,
+    },
+    reference: {
+        type: String,
+        required: false
+    },
+    callbackUrl: {
+        type: String,
+        required: false
+    },
+    debitCurrency: {
+        type: String,
+        required: false
     }
 })
 

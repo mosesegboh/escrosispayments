@@ -6,9 +6,6 @@ import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 import {
     StyledContainer,
     InnerContainer,
-    PageLogo,
-    PageTitle,
-    SubTitle,
     StyledFormArea,
     LeftIcon,
     StyledInputLabel,

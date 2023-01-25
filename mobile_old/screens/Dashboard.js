@@ -1,44 +1,23 @@
 import React, {useContext, useEffect, useState} from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Colors, ExtraView, TextLink, TextLinkContent } from '../components/styles';
-import Constants from 'expo-constants';
-import  axios from 'axios'
+import { Colors, TextLink, TextLinkContent } from '../components/styles';
 import {trimString} from '../services/';
 import { useIsFocused } from '@react-navigation/native'
-
-// Install These Packages
-// import SlidingUpPanel from 'rn-sliding-up-panel'
-import Carousel from 'react-native-snap-carousel'
-
-// From Expo
-import {MaterialIcons} from '@expo/vector-icons'
-
-// Add this in your component file
-// require('react-dom');
-// window.React2 = require('react');
-// console.log(window.React1 === window.React2);
-
-//Colors
-const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
+import {Octicons} from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
-
+const { primary} = Colors;
 
 //you can get rid of navigation and route
 export default function Dashboard ({navigation, route}) {
-  //context
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   const [userTransactions, setUserTransactions] = useState()
   const [balance, setBalance] = useState()
   const [lockedTransaction, setLockedTransaction] = useState()
   const [unLockedTransaction, setUnLockedTransaction] = useState()
-  const [transactionName, setTransactionName] = useState()
-
   const isFocused = useIsFocused()
 
-  //context
   let {name, email, token,  photoUrl} = storedCredentials
   // const {name, email} = route.params
   useEffect(()=>{
@@ -60,25 +39,23 @@ export default function Dashboard ({navigation, route}) {
 
     axios(config)
     .then(function (response) {
-      setUserTransactions(response.data.data)
-      console.log(response.data.data)
-      const latestIndex = response.data.data.length
-      // console.log(latestIndex, 'this is the index')
-      // const latest = response.data.data
-      const latestValue = response.data.data[latestIndex-1]
-      setBalance(latestValue.balance)
-      // console.log(latestValue.balance, 'thiis the balance')
-      setLockedTransaction(latestValue.lockedTransaction)
-      setUnLockedTransaction(latestValue.unLockedTransaction)
-      // console.log(latestValue)
-      // console.log(JSON.stringify(response.data.data.length));
-      // console.log(userTransactions)
+      if (response.data.status == "SUCCESS") {
+        setUserTransactions(response.data.data)
+        console.log(response.data.status)
+        const latestIndex = response.data.data.length
+        const latestValue = response.data.data[latestIndex-1]
+        setBalance(latestValue.balance)
+        setLockedTransaction(latestValue.lockedTransaction)
+        setUnLockedTransaction(latestValue.unLockedTransaction)
+      }else{
+        alert('kindly login again')
+        clearLogin()
+        navigation.navigate('Login')
+      }
     })
     .catch(function (error) {
       console.log(error);
     });
-
-
   },[isFocused]);
 
   
@@ -129,11 +106,11 @@ export default function Dashboard ({navigation, route}) {
             <Octicons name="mail" size={18} color="#3B60BD" />
             <Text style={styles.billsText}>wallet</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('PurchaseCredit')}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('PurchaseCredit', {email: email, token: token, balance: balance})}>
             <Octicons name="megaphone" size={18} color="#3B60BD" />
             <Text style={styles.billsText}>airtime</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance})}>
             <Octicons name="arrow-both" size={18} color="#3B60BD" />
             <Text style={styles.billsText}>transfers</Text>
         </TouchableOpacity>
@@ -206,7 +183,6 @@ export default function Dashboard ({navigation, route}) {
 
       <View style={styles.recentTransactionHeading}>
           <Text style={styles.recentTransactionText}>Recent Transactions</Text>
-          {/* <Text style={styles.viewAllText}>View All</Text> */}
           <TextLink onPress={() => navigation.navigate('AllTransactions', {email: email, token: token})}>
               <TextLinkContent>View All</TextLinkContent>
           </TextLink>
@@ -223,7 +199,7 @@ export default function Dashboard ({navigation, route}) {
                       </View>
                       <View>
                         <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 10)}</Text>
-                        <Text style={styles.transactionDetail}>{item.transactionType}</Text>
+                        <Text style={styles.transacitonDetail}>{item.transactionType}</Text>
                       </View>
                     </View>
                     
@@ -254,6 +230,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#131112',
     padding: 8,
   },
+    transacitonDetail: {
+      color: 'white',
+  },
   balanceView: {
     backgroundColor: 'rgba(59, 96, 189, 0.2)',
     height: 130,
@@ -267,17 +246,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   balanceText: {
-    color: "white"
+    color: "white",
+    fontFamily: 'arial'
   },
   billsText: {
     color: "#3b60bd",
     fontSize: 10,
     fontWeight: '400',
+    fontFamily: 'arial'
   },
   balanceValue: {
     color: "white",
     fontWeight: 'bold',
     fontSize: 25,
+    fontFamily: 'arial'
   },
   inflows: {
     height: 150,
@@ -320,17 +302,20 @@ const styles = StyleSheet.create({
   incomeText: {
     color: "#fff",
     fontWeight: 'bold', 
-    marginTop: 50 
+    marginTop: 50,
+    fontFamily: 'arial'
   },
   incomeValue: {
     color: "#fff",
     fontWeight: 'bold', 
-    fontSize: 20, 
+    fontSize: 20,
+    fontFamily: 'arial'
   },
   unlockedText: {
     color: "#fff",
     fontWeight: 'bold', 
-    marginTop: 50 
+    marginTop: 50,
+    fontFamily: 'arial'
   },
   unlockedIconBckground: {
     height:40,

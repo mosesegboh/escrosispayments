@@ -92,6 +92,7 @@ export default function AddToWallet({navigation}) {
       if(status == 'SUCCESS'){
         setSubmitting(false)
         handleMessage(message, status)
+        alert('Funds was successfully Added to your account')
 
         //set the form to null
         setInputValueAmount(null)

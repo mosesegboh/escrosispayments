@@ -4,7 +4,6 @@ import { Text,
         StyleSheet, 
         TouchableOpacity,
         TextInput,
-        Alert, 
         ActivityIndicator,
       } from 'react-native';
 import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
@@ -15,7 +14,6 @@ import {randomString} from '../services/';
 import {BaseUrl} from '../services/'
 import {PayWithFlutterwave} from 'flutterwave-react-native';
 import Dialog from "react-native-dialog";
-// import ConfirmTransaction from './ConfirmTransaction';
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
   LeftIcon,
@@ -26,11 +24,11 @@ import {
   MsgBox,
 } from '../components/styles';
 const {myButton, myPlaceHolderTextColor, darkLight, primary} = Colors;
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
+import {Octicons, Ionicons} from '@expo/vector-icons';
 // import {Autocomplete} from 'react-native-autocomplete-input';
 
 export default function AddTransaction({navigation, route}) {
-  const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+  const {storedCredentials} = useContext(CredentialsContext)
 
   let {email, token} = storedCredentials
   const {balance} = route.params
@@ -40,33 +38,26 @@ export default function AddTransaction({navigation, route}) {
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
-  const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
+  const [secondLegTransactionId, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
   const [details, setDetails] = useState();
-  const [hideButton, setHideButton] = useState(true)
-  const [showAddDirectButton,setShowAddDirectButton] = useState(false);
-  // const [input, setInput] = useState();
   const [data, setData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
+  const [submittingConfirm, setSubmittingConfirm] = useState(false)
   const [messageType, setMessageType] = useState()
-  // const [disabled, setDisabled] = useState(false)
   const [showSecondLeg, setShowSecondLeg] = useState(false)
   const [visible, setVisible] = useState(false)
   const [showOptions, setShowOptions] = useState(false)
   const [showNormal, setShowNormal] = useState(true)
+  const [dob, setDob] = useState();
   
-
   useEffect(()=>{
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
-    // console.log(balance, 'this is new balance')
   },[]);
 
-  //Actual date of birth chosen by the user to be sent
-  const [dob, setDob] = useState();
-
-  const onChange = (event, selectedDate) => {
+  const onChange = (event,selectedDate) => {
       const currentDate = selectedDate || date;
       setShow(false);
       setDate(currentDate);
@@ -83,10 +74,12 @@ export default function AddTransaction({navigation, route}) {
   }
 
   const selectPaymentOption = () => {
+    setSubmitting(true)
     console.log(balance)
     if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ) {
       setSubmitting(false)
       handleMessage("Please enter all fields")
+      alert("Please enter all fields")
       return
     }
     
@@ -101,30 +94,22 @@ export default function AddTransaction({navigation, route}) {
       setShowOptions(true)
     }
   }
+   
+  const handleFromWallet = () => {
+    var transactFromWallet = "yes";
+    var transactFromAddedFunds = "no"
+    handleAddTransaction(transactFromWallet, transactFromAddedFunds)
+  }
 
-  const navigateConfirmTransaction = () => {
-    if ( email == '' || inputValueAmount == '' || dob == '' || transactionId == '' || details == '' ){
-        setSubmitting(false)
-        handleMessage("Please enter all fields", "FAILED")
-        // alert("Please enter all fields")
-        return
-    }
-    
-    navigation.navigate('ConfirmTransaction', {
-    transactionId: transactionId,
-    email: email,
-    // transactionDate: new Date(),
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    date: dob,
-    details: details,
-    secondLegTransactionId: secondLeg,
-    token: `Bearer ${token}`
-  })}
+  const handleFromAddedFunds = () => {
+    var transactFromWallet = "no";
+    var transactFromAddedFunds = "yes"
+    handleAddTransaction(transactFromWallet, transactFromAddedFunds)
+  }
 
-
-const handleAddTransaction = () => {
+const handleAddTransaction = (transactFromWallet, transactFromAddedFunds) => {
   setSubmitting(true);
+  setSubmittingConfirm(true)
   handleMessage(null)
   const url = `${BaseUrl}/transaction/add-transaction`;
 
@@ -137,14 +122,16 @@ const handleAddTransaction = () => {
 
   const credentials = {
     email: email,
-    transactionDate: transactionDate,
+    transactionDate: dob,
     transactionId: transactionId,
-    amount: amount,
+    amount: inputValueAmount,
     transactionType: selectedValue,
     date: date,
     transactionName: selectedValue,
     details: details,
-    secondLegTransactionId: secondLegTransactionId,
+    transactFromWallet: transactFromWallet,
+    transactFromAddedFunds: transactFromAddedFunds,
+    secondLegTransactionId: secondLeg ? secondLeg : 0.00,
     token: `Bearer ${token}`
   }
 
@@ -159,8 +146,10 @@ const handleAddTransaction = () => {
     if (status == 'SUCCESS') {
       setVisible(false)
       setSubmitting(false)
+      setSubmittingConfirm(false)
       // navigation.navigate('AddTransaction')
       handleMessage(message, status)
+      alert('Your transaction was successful')
 
       //set the form to null
       setInputValueAmount(null)
@@ -168,13 +157,24 @@ const handleAddTransaction = () => {
       setDetails(null)
       setData([])
       setInputValueAmount(null)
-      setHideButton(false)
+    }else{
+      handleMessage('An error Occured')
+      setSubmitting(false)
+      setSubmittingConfirm(false)
+      setVisible(false)
     }
   }).catch((error) => {
-      console.log(error)
+      console.log(error, '-error from axios')
       setSubmitting(false)
+      setSubmittingConfirm(false)
+      setVisible(false)
       handleMessage("An error occured and this transaction is not completed, check your network and try again")
   })
+}
+
+const handleCancel = () => {
+  setSubmitting(false)
+  setVisible(false)
 }
 
   const searchTransactionId = (text) => {
@@ -243,12 +243,12 @@ const handleAddTransaction = () => {
         <View>
           {show && (
               <DateTimePicker
-                  testID="dateTimePicker"
-                  value={date}
-                  mode='date'
-                  is24Hour={true}
-                  display="default"
-                  onChange={onChange}
+                testID="dateTimePicker"
+                value={date}
+                mode='date'
+                is24Hour={true}
+                display="default"
+                onChange={onChange}
               />
           )}
 
@@ -336,42 +336,43 @@ const handleAddTransaction = () => {
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
-          {/* <TouchableOpacity 
-            // onPress={navigateConfirmTransaction}
-            onPress={selectPaymentOption}
+          {!submitting && 
+            <TouchableOpacity 
+            onPress={() => selectPaymentOption()}
             style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}>Add Funds</Text>
-          </TouchableOpacity> */}
+              <Text style={styles.buttonText}>Make Payment</Text>
+          </TouchableOpacity>}
 
-          {hideButton && !submitting && 
-          <TouchableOpacity 
-          onPress={() => selectPaymentOption()}
-          style={styles.addTransactionButton}>
-            <Text style={styles.buttonText}>Make Payment</Text>
-        </TouchableOpacity>}
-
-          {hideButton && submitting && <TouchableOpacity 
-            onPress={() => selectPaymentOption}
+          {submitting && <TouchableOpacity 
+            // onPress={() => selectPaymentOption}
             style={styles.addTransactionButton}>
               <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
           </TouchableOpacity>}
 
-          {showNormal && <View>
+          {showNormal  && <View>
             <Dialog.Container visible={visible}>
               <Dialog.Title>Attention!!!</Dialog.Title>
               <Dialog.Description>
                 Please select the paymet type you desire?
               </Dialog.Description>
-              <Dialog.Button label="Cancel" onPress={() => setVisible(false)}/>
-              {showOptions && <TouchableOpacity
+              <Dialog.Button label="Cancel" onPress={handleCancel}/>
+
+              {showOptions && !submittingConfirm && <TouchableOpacity
                 style={styles.addTransactionButton}
-                onPress={handleAddTransaction}
+                onPress={handleFromWallet}
                 >
                   <Text style={styles.buttonText}>From Wallet</Text>
               </TouchableOpacity>}
-              <PayWithFlutterwave
+
+              {submittingConfirm && <TouchableOpacity 
+                // onPress={handleFromWallet}
+                style={styles.addTransactionButton}>
+                  <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+              </TouchableOpacity>}
+
+              {!submittingConfirm && <PayWithFlutterwave
                 // style={styles.addTransactionButton}
-                onRedirect={handleAddTransaction}
+                onRedirect={handleFromAddedFunds}
                 // onWillInitialize = {handleOnRedirect}
                 options={{
                   tx_ref: transactionId,
@@ -393,7 +394,8 @@ const handleAddTransaction = () => {
                       <Text style={styles.buttonText}>Add Funds</Text>
                   </TouchableOpacity>
                 )}
-              />
+              />}
+
             </Dialog.Container>
           </View>}
         </View>

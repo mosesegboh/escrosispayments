@@ -36,7 +36,7 @@ function SideBar({...props}){
         // }).catch(err => {
         //   console.error(err)
         // })
-      }
+    }
 
     return(
         <View style={{flex: 1, backgroundColor: "black"}}>
