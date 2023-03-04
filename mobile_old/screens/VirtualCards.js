@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Text, 
         View, 
         StyleSheet, 
         TouchableOpacity,
         TextInput, 
-        ActivityIndicator
+        ActivityIndicator,
+        TouchableWithoutFeedback,
+        Dimensions,
+        Image,
+        Animated,
+        FlatList
       } from 'react-native';
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -15,6 +20,9 @@ import {Octicons, Ionicons} from '@expo/vector-icons';
 import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
 import { CredentialsContext } from '../components/CredentialsContext';
+import SlidingUpPanel from 'rn-sliding-up-panel'
+import Carousel from 'react-native-snap-carousel'
+import { MaterialIcons } from '@expo/vector-icons';
 import {
   LeftIcon,
   StyledInputLabel,
@@ -25,7 +33,7 @@ import {
 } from '../components/styles';
 
 
-export default function PurchaseCredit({navigation, route}) {
+export default function VirtualCard({navigation, route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
   const {balance} = route.params
@@ -74,6 +82,45 @@ export default function PurchaseCredit({navigation, route}) {
     //     handleMessage('An error occured while getting services', 'FAILED')
     // })
   },[]);
+
+  // Carousel data
+  const Images= [
+    {
+      image: require('../assets/img/card2.png'),
+    },
+    {
+      image: require('../assets/img/card1.png'),
+    },
+    {
+      image: require('../assets/img/card3.png'),
+    },
+    {
+      image: require('../assets/img/card4.png'),
+    },
+  ];
+
+  const {width,height} = Dimensions.get('window')
+  const carouselRef = useRef(null)
+
+  const RenderItem = ({item}) => {
+    return(
+      <TouchableWithoutFeedback>
+        <Image source={item.image} style={{width: 310, height: 180, borderRadius: 10}} />
+      </TouchableWithoutFeedback>
+    )
+  }
+
+
+  // SLIDING PANEL
+
+  const [dragRange,setDragRange] = useState({
+    top:height - 80,
+    bottom: 160
+  })
+
+  const _draggedValue = new Animated.Value(180);
+
+  const ModalRef = useRef(null);
 
   //Actual date of birth chosen by the user to be sent
   const [dob, setDob] = useState();
@@ -316,8 +363,33 @@ export default function PurchaseCredit({navigation, route}) {
     });      
   }
 
+
+
+
+
   return (
     <View style={styles.container}>
+
+            <View  style={{ alignItems: 'center', justifyContent: 'center', }}>
+                <Carousel 
+                layout={"tinder"}
+                ref={carouselRef}
+                data={Images}
+                renderItem={RenderItem}
+                sliderWidth={width}
+                itemWidth={width - 10}
+                swipeThreshold={100}
+                layoutCardOffset={-12}
+                inactiveSlideOpacity={0.4}
+                containerCustomStyle={{
+                overflow: 'visible',
+                marginVertical: 0
+                }}
+                contentContainerCustomStyle={{
+                paddingTop: 10
+                }}
+                />
+            </View>
         <View>
           {show && (
               <DateTimePicker
@@ -396,6 +468,36 @@ export default function PurchaseCredit({navigation, route}) {
               <Text style={styles.buttonText}>Purchase Airtime</Text>
           </TouchableOpacity>}
         </View>
+
+
+        <View style={{flex: 1}}>
+            <SlidingUpPanel 
+            ref={ModalRef}
+            draggableRange={dragRange}
+            animatedValue={_draggedValue}
+            backdropOpacity={0}
+            snappingPoints={[360]}
+            height={height + 20}
+            friction={0.9}
+            >
+
+            <View style={{flex: 1, backgroundColor: '#0c0c0c', borderRadius: 24, padding: 14}}>
+              <View style={styles.PanelHandle}></View>
+              <View>
+                <Text style={{marginVertical: 16, color: '#fff'}}>Add A Card</Text>
+                <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            placeholderTextColor="#949197" 
+            type="number"
+            // keyboardType={'numeric'}
+            onChangeText={phone => setInputValuePhone(phone)}
+            value={inputValuePhone}
+          />
+              </View>
+            </View>
+            </SlidingUpPanel>
+        </View>
     </View>
   );
 }
@@ -462,5 +564,41 @@ const styles = StyleSheet.create({
     options: {
       flex: 1,
       flexDirection: 'column',
-    }
+    },
+    PanelButton: {
+        padding:14,
+        width: 200,
+        justifyContent: 'center',
+        backgroundColor: '#1c1c1c',
+        borderRadius: 10
+      },
+      PanelButtonText: {
+        fontSize: 16,
+        color: '#fff',
+        alignSelf: 'center'
+      },
+      PanelHandle: {
+        height: 6,
+        width: 50,
+        backgroundColor: '#666',
+        borderRadius: 6,
+        alignSelf: 'center',
+        marginTop: 6
+      },
+      PanelItemContainer: {
+        borderWidth: 0.4,
+        borderColor: '#131112',
+        padding: 14,
+        borderRadius: 6,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20
+      },
+      PanelImage: {
+        width: 30,
+        height: 30,
+        backgroundColor: '#000',
+        borderRadius: 40
+      },
 });

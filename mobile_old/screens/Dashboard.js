@@ -4,6 +4,10 @@ import { Colors, TextLink, TextLinkContent } from '../components/styles';
 import {trimString} from '../services/';
 import { useIsFocused } from '@react-navigation/native'
 import {Octicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons'; 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -19,6 +23,7 @@ export default function Dashboard ({navigation, route}) {
   const isFocused = useIsFocused()
 
   let {name, email, token,  photoUrl} = storedCredentials
+  // console.log(storedCredentials, 'this is the stored credentials')
   // const {name, email} = route.params
   useEffect(()=>{
     var axios = require('axios');
@@ -40,17 +45,21 @@ export default function Dashboard ({navigation, route}) {
     axios(config)
     .then(function (response) {
       if (response.data.status == "SUCCESS") {
-        setUserTransactions(response.data.data)
+        
+        var transactions = response.data.data;
+        // console.log(transactions, '--transactions')
         console.log(response.data.status)
-        const latestIndex = response.data.data.length
-        const latestValue = response.data.data[latestIndex-1]
+      
+        const latestIndex = transactions.length
+        const latestValue = transactions[latestIndex-1]
         setBalance(latestValue.balance)
         setLockedTransaction(latestValue.lockedTransaction)
         setUnLockedTransaction(latestValue.unLockedTransaction)
+        setUserTransactions(response.data.data.reverse())
       }else{
         alert('kindly login again')
         clearLogin()
-        navigation.navigate('Login')
+        // navigation.navigate('Login')
       }
     })
     .catch(function (error) {
@@ -94,7 +103,7 @@ export default function Dashboard ({navigation, route}) {
               TOTAL BALANCE
           </Text>
           <Text style={styles.balanceValue}>
-          {balance || '₦0.00'}
+          ₦{balance || '0.00'}
           </Text>
           {/* <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
               <Text>Logout</Text>
@@ -103,53 +112,53 @@ export default function Dashboard ({navigation, route}) {
 
       <View style={styles.servicesIcons}>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance})}>
-            <Octicons name="mail" size={18} color="#3B60BD" />
+            <Ionicons name='wallet' size={24} color='green' />
             <Text style={styles.billsText}>wallet</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('PurchaseCredit', {email: email, token: token, balance: balance})}>
-            <Octicons name="megaphone" size={18} color="#3B60BD" />
+            <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
             <Text style={styles.billsText}>airtime</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance})}>
-            <Octicons name="arrow-both" size={18} color="#3B60BD" />
+          <MaterialCommunityIcons name="bank-transfer-out" size={32} color="green" />
             <Text style={styles.billsText}>transfers</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="archive" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>pay-tithes</Text>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'electricity'})}>
+          <Octicons name="zap" size={22} color="green" />
+          <Text style={styles.billsText}>electricity</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="browser" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>data</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="zap" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>electricity</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="device-desktop" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>cable</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="graph" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>Tax</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="pulse" size={18} color="#3B60BD" />
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'internet'})}>
+          <Octicons name="browser" size={22} color="green" />
             <Text style={styles.billsText}>internet</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="arrow-both" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>tolls</Text>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance,  bill: 'data'})}>
+          <MaterialIcons name="signal-cellular-connected-no-internet-4-bar" size={24} color="green" />
+          <Text style={styles.billsText}>data</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="credit-card" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>v-cards</Text>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tithe'})}>
+          <FontAwesome5 name="church" size={24} color="green" />
+          <Text style={styles.billsText}>pay tithes</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddTransaction')}>
-            <Octicons name="north-star" size={18} color="#3B60BD" />
-            <Text style={styles.billsText}>crypto</Text>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'cable'})}>
+            <Ionicons name="tv" size={24} color="green" />
+            <Text style={styles.billsText}>cable</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tax'})}>
+            <MaterialIcons name="payments" size={24} color="green" />
+            <Text style={styles.billsText}>pay tax</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'dhl'})}>
+          <MaterialCommunityIcons name="cash" size={26} color="green" />
+          <Text style={styles.billsText}>shipping</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('ComingSoon', {email: email, token: token, balance: balance})}>
+          <MaterialCommunityIcons name="earth-arrow-right" size={20} color="green" />
+          <Text style={styles.billsText}>int. transfer</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance})}>
+          <Ionicons name="card" size={24} color="green" />
+          <Text style={styles.billsText}>v-cards</Text>
+        </TouchableOpacity> 
       </View>
 
       <View style={styles.inflows}>
@@ -176,7 +185,7 @@ export default function Dashboard ({navigation, route}) {
             </Text>
           </View>
           <View style={styles.unlockedIconBckground}>
-            <Octicons name="arrow-down" size={22} color="#3f9876" />
+            <Octicons name="unlock" size={22} color="#3f9876" />
           </View>
         </View>
       </View>
@@ -192,26 +201,33 @@ export default function Dashboard ({navigation, route}) {
           {userTransactions ? 
                 userTransactions.slice(0, 5).map((item, index) => (
                   
-                  <View key={item._id} style={styles.singleTransaction}>
+                  <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
                     <View style={styles.singleTransactionRightSide}>
                       <View style={styles.singletTransactionIconView}>
                         <Octicons name="book" size={18} color="#3f9876" />
                       </View>
                       <View>
                         <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 10)}</Text>
-                        <Text style={styles.transacitonDetail}>{item.transactionType}</Text>
+                        <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
                       </View>
                     </View>
                     
                     <View style={styles.transactionDetailRightSide}>
                       
                       <View style={styles.recentTransactionAmount}>
-                        <Text style={styles.transacitonAmount}>+ {item.amount}</Text>
+                        <Text style={styles.transacitonAmount}>{item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}</Text>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))
-                : <ActivityIndicator size="large" color={primary}/>
+                : userTransactions == null ? 
+                <ActivityIndicator size="large" color={primary}/> 
+                :
+                <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+                  <MaterialIcons name="hourglass-empty" size={36} color="green" />
+                  <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+                </View>
+                
             }
       </ScrollView>
 
@@ -230,8 +246,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#131112',
     padding: 8,
   },
-    transacitonDetail: {
+  transacitonDetail: {
       color: 'white',
+      textTransform: 'capitalize'
   },
   balanceView: {
     backgroundColor: 'rgba(59, 96, 189, 0.2)',
@@ -247,19 +264,20 @@ const styles = StyleSheet.create({
   },
   balanceText: {
     color: "white",
-    fontFamily: 'arial'
+    fontFamily: 'Nunito',
+    fontSize: 15,
   },
   billsText: {
     color: "#3b60bd",
     fontSize: 10,
     fontWeight: '400',
-    fontFamily: 'arial'
+    fontFamily: 'Nunito'
   },
   balanceValue: {
     color: "white",
     fontWeight: 'bold',
     fontSize: 25,
-    fontFamily: 'arial'
+    fontFamily: 'Nunito'
   },
   inflows: {
     height: 150,
@@ -301,21 +319,21 @@ const styles = StyleSheet.create({
   },
   incomeText: {
     color: "#fff",
-    fontWeight: 'bold', 
+    // fontWeight: 'bold', 
     marginTop: 50,
-    fontFamily: 'arial'
+    fontFamily: 'Nunito'
   },
   incomeValue: {
     color: "#fff",
     fontWeight: 'bold', 
     fontSize: 20,
-    fontFamily: 'arial'
+    fontFamily: 'Nunito'
   },
   unlockedText: {
     color: "#fff",
-    fontWeight: 'bold', 
+    // fontWeight: 'bold', 
     marginTop: 50,
-    fontFamily: 'arial'
+    fontFamily: 'Nunito'
   },
   unlockedIconBckground: {
     height:40,
@@ -371,16 +389,21 @@ const styles = StyleSheet.create({
   },
   recentTransactionAmount: {
     justifyContent: 'flex-end',
-    margin: 10
+    margin: 10,
+    fontWeight: 'bold',
+    fontFamily: 'Nunito',
   },
   transacitonAmount: {
     color: 'white',
   },
   recentTransactionHeadingActual: {
     color: 'white',
+    fontFamily: 'Nunito',
+    textTransform: 'capitalize'
   },
   transacitonDetail: {
       color: 'white',
+      fontFamily: 'Nunito'
   },
   addButton: {
     backgroundColor: '#3b60bd',
@@ -390,7 +413,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 30,
     marginLeft:310,
-    marginTop: 10
+    marginTop: -60,
+    elevation: 5
   },
   billPaymentIcon: {
     backgroundColor: 'rgba(59, 96, 189, 0.2)',

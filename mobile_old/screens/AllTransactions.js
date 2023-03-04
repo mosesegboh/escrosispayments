@@ -32,9 +32,8 @@ export default function AllTransactions({navigation, route}) {
     
         axios(config)
         .then(function (response) {
-          setUserTransactions(response.data.data)
-        //   console.log(JSON.stringify(response.data.data));
-        //   console.log(userTransactions)
+          const transactions = response.data.data.reverse()
+          setUserTransactions(transactions)
         })
         .catch(function (error) {
           console.log(error);
@@ -56,14 +55,14 @@ export default function AllTransactions({navigation, route}) {
                       </View>
                       <View>
                         <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details, 10)}</Text>
-                        <Text style={styles.transacitonDetail}>{item.transactionType}</Text>
+                        <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
                       </View>
                     </View>
                     
                     <View style={styles.transactionDetailRightSide}>
                       
                       <View style={styles.recentTransactionAmount}>
-                        <Text style={styles.transacitonAmount}>+ {item.amount}</Text>
+                        <Text style={styles.transacitonAmount}>{item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}</Text>
                       </View>
                     </View>
                   </View>
@@ -106,6 +105,7 @@ const styles = StyleSheet.create({
         color: "white",
         fontWeight: 'bold',
         fontSize: 25,
+        fontFamily: 'Nunito'
       },
       inflows: {
         height: 150,
@@ -214,16 +214,21 @@ const styles = StyleSheet.create({
       },
       recentTransactionAmount: {
         justifyContent: 'flex-end',
-        margin: 10
+        margin: 10,
+        fontFamily: 'Nunito'
       },
       transacitonAmount: {
         color: 'white',
+        fontFamily: 'Nunito'
       },
       recentTransactionHeadingActual: {
         color: 'white',
+        fontFamily: 'Nunito',
+        textTransform: 'capitalize'
       },
       transacitonDetail: {
           color: 'white',
+          fontFamily: 'Nunito'
       },
       addButton: {
         backgroundColor: '#3b60bd',

@@ -13,10 +13,11 @@ import {
     StyledButton,
     ButtonText
 } from '../components/styles'
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
+import {Octicons, Ionicons} from '@expo/vector-icons';
 import CodeInputField from '../components/CodeInputField';
 import ResendTimer from '../components/ResendTimer';
 import VerificationModal from '../components/VeirficationModal';
+import { Fontisto } from '@expo/vector-icons'; 
 import axios from 'axios';
 // import {testBaseUrl} from '../services'
 import {BaseUrl} from '../services'
@@ -153,16 +154,21 @@ export default function OTPVerification({route}) {
 
   return (
     <KeyboardAvoidingWrapper>
-        <StyledContainer 
-            style={{ 
-                alignItems: 'center',
-            }}
+        <View style={styles.container}
+            // style={{ 
+            //     alignItems: 'center',
+            // }}
         >
             <TopHalf>
-                <IconBg>
+                {/* <IconBg> */}
                     <StatusBar style="dark" />
-                    <Octicons name="lock" size={125} />
-                </IconBg>
+                    <View style={styles.iconBg}>
+                        <Fontisto name="locked" size={280} color="green" />
+                    </View>
+                    
+                    {/* <Octicons name="lock" size={125} color="green" /> */}
+                {/* </IconBg> */}
+                
 
             </TopHalf>
 
@@ -258,11 +264,11 @@ export default function OTPVerification({route}) {
                 
                
                 {!verifying && pinReady && (
-                        <StyledButton style={{
-                            backgroundColor: 'green',
-                            flexDirection: 'row'
-                        }}
-                        onPress={submitOTPVerification}
+                    <StyledButton style={{
+                        backgroundColor: 'green',
+                        flexDirection: 'row'
+                    }}
+                    onPress={submitOTPVerification}
                 >
                     <ButtonText>Verify</ButtonText>
                     <Ionicons name="checkmark-circle" size={20} color={primary}/>
@@ -270,25 +276,25 @@ export default function OTPVerification({route}) {
                 )}
 
                 {!verifying && !pinReady && (
-                        <StyledButton 
-                            disabled={true}
-                            style={{
-                            backgroundColor: 'grey',
-                            flexDirection: 'row'
-                        }}
+                    <StyledButton 
+                        disabled={true}
+                        style={{
+                        backgroundColor: 'grey',
+                        flexDirection: 'row'
+                    }}
                 >
-                    <ButtonText style={{color: grey}}>Verify</ButtonText>
+                    <ButtonText style={{color: grey}}>Verify  </ButtonText>
                     <Ionicons name="checkmark-circle" size={20} color={primary}/>
                 </StyledButton>
                 )}
 
                 {verifying && (
-                        <StyledButton 
-                            disabled={true}
-                            style={{
-                            backgroundColor: 'grey',
-                            flexDirection: 'row'
-                        }}
+                    <StyledButton 
+                        disabled={true}
+                        style={{
+                        backgroundColor: 'grey',
+                        flexDirection: 'row'
+                    }}
                 >
                     <ActivityIndicator size="large" color={primary} />
                 </StyledButton>
@@ -312,12 +318,21 @@ export default function OTPVerification({route}) {
                 requestMessage={requestMessage}
                 persistLoginAfterOTPVerification={persistLoginAfterOTPVerification}
             />
-        </StyledContainer>
+        </View>
     </KeyboardAvoidingWrapper>
   )
 }
 
 const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingTop: 0,
+      backgroundColor: 'rgba(59, 96, 189, 0.2)',
+      padding: 8,
+      justifyContent: "center",
+      alignItems: "center",
+      height: '100%'
+    },
     TextInputView:{
         borderBottomWidth: 1,
         width: 50,
@@ -329,5 +344,10 @@ const styles = StyleSheet.create({
     TextInputText: {
         fontSize: 30,
         color: "#fff",
+        fontFamily: 'Nunito'
+    },
+    iconBg: {
+        marginTop: 50,
+        marginBottom: 0
     }
 })

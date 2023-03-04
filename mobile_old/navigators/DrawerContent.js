@@ -1,26 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet } from 'react-native';
-// import {
-//     Avatar,
-//     Title,
-//     Caption,
-//     Paragraph,
-//     Drawer,
-//     TouchableRipple,
-//     Switch,
-// } from 'react-native-paper'
-// import {
-//     DrawerContentScrollView,
-//     DrawerItem
-// } from '@react-navigation/drawer'
+import { View, StyleSheet } from 'react-native';
 
 
 export default function DrawerContent(props) {
   return (
    <View style={{flex:1}}>
-        {/* <DrawerContentScrollView>
-
-        </DrawerContentScrollView> */}
    </View>
   )
 }

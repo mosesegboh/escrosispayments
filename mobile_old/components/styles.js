@@ -41,7 +41,7 @@ export const PageLogo = styled.Image`
     height: 200px;
 `
 export const PageTitle = styled.Text`
-    font-size: 30px;
+    font-size: 15px;
     text-align: center;
     font-weight: bold; 
     color: ${myWhite};
@@ -71,11 +71,13 @@ export const StyledTextInput = styled.TextInput`
    padding: 15px;
    padding-left: 55px;
    padding-right: 55px;
-   border-radius: 5px;
+   border-radius: 0px;
+   border-bottom-width: 1px;
+   border-bottom-color: '#949197;
    font-size: 16px;
    height: 60px;
-   margin-vertical: 3px;
-   margin-bottom: 10px;
+   margin-vertical: 0px;
+   margin-bottom: 0px;
    color: ${myWhite}
    border-bottom-color: ${myWhite}
 `
@@ -83,6 +85,7 @@ export const StyledInputLabel = styled.Text`
    color: ${tertiary};
    font-size: 13px;
    text-align: left;
+   font-family: 'Nunito';
 `
 export const LeftIcon = styled.View`
    left: 15px;
@@ -97,12 +100,12 @@ export const RightIcon = styled.TouchableOpacity`
    z-index: 1;
 `
 export const StyledButton = styled.TouchableOpacity`
-   padding: 15px;
+   padding: 10px;
    background-color: ${myButton};
    justify-content: center;
    align-items: center;
-   border-radius: 5px;
-   margin-vertical: 5px;
+   border-radius: 0px;
+   margin-vertical: 0px;
    height: 60px;
 
    ${(props) => props.google == true && `
@@ -148,6 +151,7 @@ export const ExtraText = styled.Text`
    align-content: center;
    color: ${myWhite};
    font-size: 15px;
+   font-family: 'Nunito';
 `
 
 export const TextLink = styled.TouchableOpacity`
@@ -158,6 +162,7 @@ export const TextLink = styled.TouchableOpacity`
 export const TextLinkContent = styled.Text`
    color: ${myButton};
    font-size: 15px;
+   font-family: 'Nunito';
 
    ${(props) => {
       const {resendStatus} = props;
@@ -177,12 +182,13 @@ export const TopHalf = styled.View`
 `
 
 export const IconBg = styled.View`
-   width: 250px;
-   height: 250px;
+   width: 300px;
+   height: 300px;
    background-color: ${Colors.myGreen};
    border-radius: 250px;
    justify-content: center;
    align-items: center;
+   margin-top: 30px;
 `
 
 export const BottomHalf = styled(TopHalf)`
@@ -193,11 +199,13 @@ export const InfoText = styled.Text`
    color: white;
    font-size: 15px;
    text-align: center;
+   font-family: Nunito;
 `
 
 export const EmphasizeText = styled.Text`
    font-weight: bold;
    font-style: italic;
+   font-family: 'Nunito';
 `
 
 export const CodeInputSection = styled.View`
@@ -279,8 +287,8 @@ export const WelcomeContainer = styled(InnerContainer)`
 `;
 
 export const Avatar = styled.Image`
-   width: 100px
-   height: 100px;
+   width: 80px
+   height: 80px;
    margin: auto;
    border-radius: 50px;
    border-width: 2px;

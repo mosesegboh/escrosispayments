@@ -14,9 +14,14 @@ import Profile from '../screens/Profile';
 import AllTransactions from '../screens/AllTransactions';
 import OTPVerification from '../screens/OTPVerification';
 import DrawerContent from './DrawerContent';
+import SingleTransaction from '../screens/SingleTransaction';
 import SideBar from './customDrawer';
 import AddToWallet from '../screens/AddToWallet';
+import BillPayment from '../screens/BillPayment';
 import Transfer from '../screens/Transfer';
+import ComingSoon from '../screens/ComingSoon';
+import VirtualCard from '../screens/VirtualCards';
+import InternationalTransfer from '../screens/InternationalTransfer';
 import {Ionicons} from '@expo/vector-icons';
 
 // import DrawerNavigator from '../navigators/DrawerNavigator';
@@ -35,12 +40,12 @@ function MyDrawer({navigation}){
         >
             <Drawer.Screen 
                 options={({navigation})=>({
-                    headerLeft: () => (
+                    headerLeft: () => 
+                    (
                         <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
                             <Ionicons name='menu' size={25} color='white'
                             />
-                        </TouchableOpacity>
-                        
+                        </TouchableOpacity> 
                     ),
                     headerStyle: {
                         backgroundColor: "#3b60bd",
@@ -49,8 +54,9 @@ function MyDrawer({navigation}){
                     })} 
                 name="Dashboard" component={Dashboard} 
             />
-            <Drawer.Screen name="Profile" component={Profile} />
-            <Drawer.Screen name="OTPVerification" component={OTPVerification} />
+            {/* <Drawer.Screen name="Profile" component={Profile} /> */}
+            {/* <Drawer.Screen name="SingleTransaction" component={SingleTransaction} /> */}
+            {/* <Drawer.Screen name="OTPVerification" component={OTPVerification} /> */}
         </Drawer.Navigator>
     );
   }
@@ -132,7 +138,63 @@ const RootStack = () => {
                                         }, }} 
                                     name="Transfer" component={Transfer} 
                                 />
-                                <Stack.Screen options={{headerTintColor: 'white'}} name="ConfirmTransaction" component={ConfirmTransaction} />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"View Your Transaction",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="SingleTransaction" component={SingleTransaction}
+                                />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"View Your Profile",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="Profile" component={Profile}
+                                />
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Caution",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="ComingSoon" component={ComingSoon}
+                                />
+
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Make a Bill Payment",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="BillPayment" component={BillPayment}
+                                />
+
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Manage Your Cards",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="VirtualCard" component={VirtualCard}
+                                />
+
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"International Transfer",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="InternationalTransfer" component={InternationalTransfer}
+                                />
+                                
+                                <Stack.Screen 
+                                    options={{headerTintColor: 'white'}} 
+                                    name="ConfirmTransaction" 
+                                    component={ConfirmTransaction} 
+                                />
                             </>
                             :
                             <>

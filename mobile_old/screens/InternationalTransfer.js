@@ -14,6 +14,7 @@ const {myButton, darkLight, primary} = Colors;
 import {Octicons, Ionicons} from '@expo/vector-icons';
 import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
+import {BaseUrl} from '../services/';
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
   LeftIcon,
@@ -25,58 +26,65 @@ import {
 } from '../components/styles';
 
 
-export default function PurchaseCredit({navigation, route}) {
+export default function InternationalTransfer({navigation, route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
   const {balance} = route.params
 
   const [selectedValue, setSelectedValue] = useState("ONCE");
-  const [selectedValueRecurrence, setSelectedValueRecurrence] = useState();
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
-  const [inputValuePhone, setInputValuePhone] = useState();
+  const [inputValueAccount, setInputValueAccount] = useState();
   const [transactionId, setTransactionId] = useState();
-  const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
-  const [details, setDetails] = useState();
+  const [narration, setNarration] = useState(false);
   const [input, setInput] = useState();
   const [data, setData] = useState([]);
   const [billData, setbillData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
-  const [disabled, setDisabled] = useState(false)
+  const [banks, setBanks] = useState()
+  const [countries, setCountries] = useState()
+  const [dob, setDob] = useState()
+  const [currency, setCurrency] = useState();
   
   useEffect(()=>{
+    const countries = ['NG', 'GH', 'KE', 'UG', 'ZA', 'TZ']
+    setCountries(['NG', 'GH', 'KE', 'UG', 'ZA', 'TZ'])
     //generate transaction ID
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
 
-    //make api call to get all the available bill services
-    // const url = 'https://api.flutterwave.com/v3/bill-categories?airtime=1';
-    // const token = FLUTTERWAVE_SECRET_KEY;
+    //make api call to get all the available banks
+    var axios = require('axios');
+    var data = '';
 
-    // axios.get(url, { headers: { Authorization: token } }).then((response) => {
-    // //   console.log(response, 'this is the response')
-    //   const {message, status, data} = response.data
+    var config = {
+    method: 'get',
+    url: `${FLUTTERWAVE_API_URL}/banks/${countries[0]}`,
+    headers: { 
+        'Authorization': FLUTTERWAVE_SECRET_KEY, 
+        'Content-Type': 'application/json'
+    },
+    data : data
+    };
 
-    //   console.log(data, 'this is data')
-     
-    //   if(status == 'success'){
-    //     console.log('it was successful')
-    //     setbillData(data)
-    //   }else{
-    //     handleMessage('An error occured while getting services', 'FAILED')
-    //   }
-    // }).catch((error) => {
-    //     console.log(error)
-    //     handleMessage('An error occured while getting services', 'FAILED')
-    // })
+    // console.log(config)
+
+    axios(config)
+    .then(function (response) {
+    // console.log(JSON.stringify(response.data));
+    setBanks(response.data.data);
+    })
+    .catch(function (error) {
+    console.log(error);
+    });
   },[]);
 
   //Actual date of birth chosen by the user to be sent
-  const [dob, setDob] = useState();
+  
 
   const onChange = (event, selectedDate) => {
       const currentDate = selectedDate || date;
@@ -202,12 +210,12 @@ export default function PurchaseCredit({navigation, route}) {
   }
 
   const handleSelectedValue  = (text) => {
-    setSelectedValue(text)
+    setCurrency(text) 
+    // console.log(currency)
   }
 
-  const handleAirtimePurchase = (text) => {
-    console.log(selectedValue, 'selected value')
-    if ( email == null || inputValueAmount == null || inputValuePhone == null || selectedValue == null || transactionId == null ) {
+  const handleTransfer = (text) => {
+    if ( email == null || inputValueAmount == null || inputValueAccount == null || selectedValue == null || transactionId == null ) {
       setSubmitting(false)
       handleMessage("Please enter all fields")
       alert("Please enter all fields")
@@ -217,27 +225,30 @@ export default function PurchaseCredit({navigation, route}) {
     if (inputValueAmount > balance) {
       console.log('i was clicked!')
       setSubmitting(false)
-      handleMessage("You have insufficient balance to complete this transaction")
-      alert("You have insufficient balance to complete this transaction")
+      handleMessage("You have insufficient balance to complete this transaction, Kindly add funds to your wallet")
+      alert("You have insufficient balance to complete this transaction, Kindly add funds to your wallet")
       return
     }
 
     setSubmitting(true)
 
-    var data = JSON.stringify({
-      country: 'NG',
-      customer: inputValuePhone,
-      amount: inputValueAmount,
-      recurrence: selectedValue,
-      type: 'AIRTIME',
-      reference: transactionId,
-    });
+    var data = {
+        account_bank: selectedValue,
+        account_number: inputValueAccount,
+        amount: inputValueAmount,
+        narration: narration,
+        currency: currency,
+        reference: transactionId,
+        callback_url: `${BaseUrl}/webhook/feedback`,
+        debit_currency: currency,
+    };
 
     console.log(data, 'this is the data')
+    // return
           
     var config = {
       method: 'post',
-      url: `${FLUTTERWAVE_API_URL}/bills`,
+      url: `${FLUTTERWAVE_API_URL}/transfers`,
       headers: { 
         'Authorization': FLUTTERWAVE_SECRET_KEY, 
         'Content-Type': 'application/json'
@@ -247,16 +258,21 @@ export default function PurchaseCredit({navigation, route}) {
           
     axios(config)
     .then(function (response) {
-      // console.log(JSON.stringify(response.data));
-      // const result = JSON.stringify(response.data)
+      // console.log(JSON.stringify(response.data.data));
       const result = response.data
+
+      // console.log(result, 'this is result')
       const { status, message} = result;
+
+      // console.log(status, '--status')
       
-      if(status === 'success') {
+      if (status === 'success') {
+        // console.log('i got inside here')
+        
         data.email = email
-        data.transactionType = 'airtime'
-        data.transactionName = 'airtime'
-        data.details = 'airtime purchase'
+        data.transactionType = 'transfer'
+        data.transactionName = 'transfer'
+        data.details = narration
         data.date = new Date()
         data.transactionId = transactionId
         data.transactFromAddedFunds = "none"
@@ -264,7 +280,8 @@ export default function PurchaseCredit({navigation, route}) {
         data.currency = currency
         data.token = `Bearer ${token}`
 
-        //make another api call to update client account
+        // console.log(data, '--this is success')
+        // return
         var config = {
           method: 'post',
           url: `${BaseUrl}/transaction/add-transaction`,
@@ -278,7 +295,6 @@ export default function PurchaseCredit({navigation, route}) {
         axios(config)
         .then(function (response) {
           // console.log(JSON.stringify(response.data), 'response from acios');
-          // const result = JSON.stringify(response.data)
           const result = response.data
     
           const { status, message} = result;
@@ -291,7 +307,6 @@ export default function PurchaseCredit({navigation, route}) {
           }else{
             handleMessage("An error occured", 'FAILED')
             setSubmitting(false)
-            alert(error.message)
           }
         })
         .catch(function (error) {
@@ -306,11 +321,11 @@ export default function PurchaseCredit({navigation, route}) {
         setSubmitting(false)
       }
       
-      console.log(response, 'response from 11');
+      // console.log(response, 'response from 11');
     })
     .catch(function (error) {
-      console.log(error.response.data.message, 'response fom api call');
-      handleMessage(error.response.data.message, 'FAILED')
+      // console.log(error.response.data.message, 'response fom api call');
+      // handleMessage(error.response.data.message, 'FAILED')
       alert(error.message)
       setSubmitting(false)
     });      
@@ -319,82 +334,92 @@ export default function PurchaseCredit({navigation, route}) {
   return (
     <View style={styles.container}>
         <View>
-          {show && (
-              <DateTimePicker
-                  testID="dateTimePicker"
-                  value={date}
-                  mode='date'
-                  is24Hour={true}
-                  display="default"
-                  onChange={onChange}
-              />
-          )}
+            {show && (
+                <DateTimePicker
+                    testID="dateTimePicker"
+                    value={date}
+                    mode='date'
+                    is24Hour={true}
+                    display="default"
+                    onChange={onChange}
+                />
+            )}
 
-          <TextInput
-            style={styles.input}
-            value = {transactionId}
-            editable={false}
-          />
+            <TextInput
+                style={styles.input}
+                value = {transactionId}
+                editable={false}
+            />
 
-          {/* <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(text)
-                (itemValue)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.short_name} value={item.short_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker> */}
+            <Picker
+                selectedValue={selectedValue}
+                style={styles.picker}
+                onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
+            >
+                {banks ? 
+                    banks.map((item, index) => (
+                        <Picker.Item key={item.id} label={item.name} value={item.code} />
+                    ))
+                    : <ActivityIndicator size="large" color={primary}/>
+                }
+            </Picker>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Amount"
-            placeholderTextColor="#949197" 
-            type="number"
-            keyboardType={'numeric'}
-            onChangeText={amount => setInputValueAmount(amount)}
-            value={inputValueAmount}
-          />
+            <TextInput
+                style={styles.input}
+                placeholder="Amount"
+                placeholderTextColor="#949197" 
+                type="number"
+                keyboardType={'numeric'}
+                onChangeText={amount => setInputValueAmount(amount)}
+                value={inputValueAmount}
+            />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            placeholderTextColor="#949197" 
-            type="number"
-            // keyboardType={'numeric'}
-            onChangeText={phone => setInputValuePhone(phone)}
-            value={inputValuePhone}
-          />
 
-          <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
-          >
-            <Picker.Item label="ONCE" value="ONCE" />
-            <Picker.Item label="HOURLY" value="HOURLY" />
-            <Picker.Item label="WEEKLY" value="WEEKLY" />
-            <Picker.Item label="DAILY" value="DAILY" />
-            <Picker.Item label="MONTHLY" value="MONTHLY" />
-          </Picker>
+            <TextInput
+                style={styles.input}
+                placeholder="Recipient Account Number"
+                placeholderTextColor="#949197" 
+                type="number"
+                keyboardType={'numeric'}
+                onChangeText={account => setInputValueAccount(account)}
+                value={inputValueAccount}
+            />
 
-          <MsgBox type={messageType}>{message}</MsgBox>
+            <TextInput
+                style={styles.input}
+                placeholder="Narration"
+                placeholderTextColor="#949197" 
+                type="text"
+                onChangeText={narration => setNarration(narration)}
+                value={narration}
+            />
 
-           {submitting && <TouchableOpacity 
-            onPress={handleAirtimePurchase}
-            style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
-          </TouchableOpacity>}
+            <Picker
+                selectedValue={currency}
+                style={styles.picker}
+                onValueChange={(currency, itemIndex) => handleSelectedValue(currency)}
+            >
+                {countries ? 
+                    countries.map((item, index) => (
+                        <Picker.Item key={index} label={item} value={item} />
+                    ))
+                    : <ActivityIndicator size="large" color={primary}/>
+                }
+            </Picker>
 
-          {!submitting &&<TouchableOpacity 
-            onPress={handleAirtimePurchase}
-            style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}>Purchase Airtime</Text>
-          </TouchableOpacity>}
+            <MsgBox type={messageType}>{message}</MsgBox>
+
+            {submitting && <TouchableOpacity 
+                onPress={handleTransfer}
+                style={styles.addTransactionButton}>
+                <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+            </TouchableOpacity>}
+
+            {!submitting &&<TouchableOpacity 
+                onPress={handleTransfer}
+                style={styles.addTransactionButton}>
+                <Text style={styles.buttonText}>Transfer</Text>
+            </TouchableOpacity>}
         </View>
     </View>
   );

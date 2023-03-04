@@ -38,6 +38,7 @@ export default function AddTransaction({navigation, route}) {
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
+  const [transactionParty, setTransactionParty] = useState();
   const [secondLegTransactionId, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
   const [details, setDetails] = useState();
@@ -129,6 +130,7 @@ const handleAddTransaction = (transactFromWallet, transactFromAddedFunds) => {
     date: date,
     transactionName: selectedValue,
     details: details,
+    transactionParty: transactionParty,
     transactFromWallet: transactFromWallet,
     transactFromAddedFunds: transactFromAddedFunds,
     secondLegTransactionId: secondLeg ? secondLeg : 0.00,
@@ -275,6 +277,15 @@ const handleCancel = () => {
           >
             <Picker.Item label="FirstLeg" value="FirstLeg" />
             <Picker.Item label="SecondLeg" value="SecondLeg" />
+          </Picker>
+
+          <Picker
+            selectedValue={transactionParty}
+            style={styles.picker}
+            onValueChange={(itemValue, itemIndex) => setTransactionParty(itemValue)}
+          >
+            <Picker.Item label="Buyer" value="Buyer" />
+            <Picker.Item label="Seller" value="Seller" />
           </Picker>
 
           <MyTextInput 

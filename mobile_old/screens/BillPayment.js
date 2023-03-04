@@ -9,11 +9,12 @@ import { Text,
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Picker} from '@react-native-picker/picker';
-import {randomString} from '../services/';
+import {randomString} from '../services';
 const {myButton, darkLight, primary} = Colors;
 import {Octicons, Ionicons} from '@expo/vector-icons';
 import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
+import  {handleBillPayment}  from '../services/index';
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
   LeftIcon,
@@ -25,58 +26,84 @@ import {
 } from '../components/styles';
 
 
-export default function PurchaseCredit({navigation, route}) {
+export default function BillPayment({navigation, route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
-  const {balance} = route.params
+  const {balance, bill} = route.params
 
   const [selectedValue, setSelectedValue] = useState("ONCE");
-  const [selectedValueRecurrence, setSelectedValueRecurrence] = useState();
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
   const [inputValuePhone, setInputValuePhone] = useState();
-  const [transactionId, setTransactionId] = useState();
-  const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
-  const [secondLeg, setSecondLeg] = useState();
+  const [transactionId, setTransactionId] = useState(); 
   const [details, setDetails] = useState();
-  const [input, setInput] = useState();
-  const [data, setData] = useState([]);
   const [billData, setbillData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
-  const [disabled, setDisabled] = useState(false)
+  const [billSelected, setBillSelected] = useState()
+  const [dob, setDob] = useState();
+
   
   useEffect(()=>{
-    //generate transaction ID
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
 
     //make api call to get all the available bill services
-    // const url = 'https://api.flutterwave.com/v3/bill-categories?airtime=1';
-    // const token = FLUTTERWAVE_SECRET_KEY;
+    const urlParameter = (bill == 'electricity') ? 'power' 
+                      : (bill == 'internet') ? 'internet' 
+                      :  (bill == 'data') ? 'data_bundle' 
+                      :  (bill == 'dhl') ? 'dhl' 
+                      : ''
+      const url = (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'toll' || bill == 'dhl') 
+      ? `${FLUTTERWAVE_API_URL}/bill-categories`  
+      : `${FLUTTERWAVE_API_URL}/bill-categories?${urlParameter}=1`;
+      const token = FLUTTERWAVE_SECRET_KEY;
 
-    // axios.get(url, { headers: { Authorization: token } }).then((response) => {
-    // //   console.log(response, 'this is the response')
-    //   const {message, status, data} = response.data
+      axios.get(url, { headers: { Authorization: token } }).then((response) => {
+        const {message, status, data} = response.data
+        // console.log(data, '--data')
+        // console.log(typeof(data), '--response data')
+        if (bill == 'tithe' || bill == 'cable' || bill == 'tax') {
+          const processedResponse = response.data.data
 
-    //   console.log(data, 'this is data')
-     
-    //   if(status == 'success'){
-    //     console.log('it was successful')
-    //     setbillData(data)
-    //   }else{
-    //     handleMessage('An error occured while getting services', 'FAILED')
-    //   }
-    // }).catch((error) => {
-    //     console.log(error)
-    //     handleMessage('An error occured while getting services', 'FAILED')
-    // })
+          var unCategorizedBillData = []
+          // console.log(processedResponse, '--response data')
+          processedResponse.forEach(myFunction);
+          function myFunction(element) {
+            if ( element.id >= 169 && element.id <= 188 && bill == 'tithe') {
+              unCategorizedBillData.push(element)
+            }
+            if ( element.id >= 34 && element.id <= 38  && bill == 'cable') {
+              unCategorizedBillData.push(element)
+            }
+            if ( element.id >= 165 && element.id <= 166 && bill == 'tax') {
+              unCategorizedBillData.push(element)
+            }
+            if ( element.id = 165 && bill == 'dhl') {
+              unCategorizedBillData.push(element)
+            }
+          }
+          // console.log(unCategorizedBillData, 'this is uncatego')
+        }
+        
+        if (status == 'success'){
+          // console.log('it was successful')
+          if (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'dhl'){
+            setbillData(unCategorizedBillData)
+          }else{
+            setbillData(data)
+          }
+          
+        }else{
+          handleMessage('An error occured while getting services', 'FAILED')
+        }
+      }).catch((error) => {
+          console.log(error)
+          handleMessage('An error occured while getting services', 'FAILED')
+      })
   },[]);
-
-  //Actual date of birth chosen by the user to be sent
-  const [dob, setDob] = useState();
 
   const onChange = (event, selectedDate) => {
       const currentDate = selectedDate || date;
@@ -110,102 +137,16 @@ export default function PurchaseCredit({navigation, route}) {
     transactionType: selectedValue,
     date: dob,
     details: details,
-    secondLegTransactionId: secondLeg,
+    // secondLegTransactionId: secondLeg,
     token: `Bearer ${token}`
   })}
 
-  const handleAddTransaction = () => {
-    // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    // if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
-    //     setSubmitting(false)
-    //     handleMessage("Please enter all fields")
-    // }
-      setSubmitting(true);
-      handleMessage(null)
-      const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
-
-      let headers = 
-      {
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      }
-
-      const credentials = {
-        email: email,
-        transactionDate: new Date(),
-        transactionId: transactionId,
-        amount: inputValueAmount,
-        transactionType: selectedValue,
-        date: dob,
-        details: details,
-        secondLegTransactionId: secondLeg,
-        token: `Bearer ${token}`
-      }
-
-      axios.post(url, credentials, headers).then((response) => {
-        // token = response.token
-        const result = response.data;
-        console.log(result)
-        const {message, status} = result
-       
-        if(status == 'SUCCESS'){
-          setSubmitting(false)
-          handleMessage(message, status)
-
-          //set the form to null
-          setInputValueAmount(null)
-          setSecondLeg(null)
-          setDetails(null)
-          setData([])
-          setInputValueAmount(null)
-          setDate(null)
-        }
-      }).catch((error) => {
-          console.log(error)
-          setSubmitting(false)
-          handleMessage("An error occured, check your network and try again")
-      })
-  }
-
-  const searchTransactionId = (text) => {
-      setSecondLegTransactionInput(text);
-      // console.log('get data')
-      if (text.length > 2) {
-
-        const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions'
-
-        headers = {
-          'Authorization': `String text ${token}`
-        }
-
-        credentials = {
-          email: email,
-        }
-
-        axios.post(url, credentials,headers ).then((response) => {
-          // token = response.token
-          const result = response.data;
-          console.log(result)
-          if(result.length > 0) setData(result);
-          
-      
-          setSubmitting(false)
-        }).catch((error) => {
-            console.log(error)
-            setSubmitting(false)
-            handleMessage("An error occured, check your network and try again")
-        })
-        
-      }
-  }
 
   const handleSelectedValue  = (text) => {
     setSelectedValue(text)
   }
 
-  const handleAirtimePurchase = (text) => {
+  const handleBillPurchase = (text) => {
     console.log(selectedValue, 'selected value')
     if ( email == null || inputValueAmount == null || inputValuePhone == null || selectedValue == null || transactionId == null ) {
       setSubmitting(false)
@@ -229,11 +170,12 @@ export default function PurchaseCredit({navigation, route}) {
       customer: inputValuePhone,
       amount: inputValueAmount,
       recurrence: selectedValue,
-      type: 'AIRTIME',
+      type: billSelected,
       reference: transactionId,
     });
 
     console.log(data, 'this is the data')
+    // return
           
     var config = {
       method: 'post',
@@ -254,15 +196,24 @@ export default function PurchaseCredit({navigation, route}) {
       
       if(status === 'success') {
         data.email = email
-        data.transactionType = 'airtime'
-        data.transactionName = 'airtime'
-        data.details = 'airtime purchase'
+        data.transactionType = (bill == 'electricity') ? 'power' 
+                                : (bill == 'internet') ? 'internet' 
+                                : (bill == 'data') ? 'data_bundle' 
+                                : (bill == 'tithe') ? 'tithe'
+                                : (bill == 'cable') ? 'cable'
+                                : (bill == 'tax') ? 'tax'
+                                : (bill == 'dhl') ? 'dhl'
+                                : ''
+        data.transactionName = 'billPayment' 
+        data.details = `${bill} bill purchase`
         data.date = new Date()
         data.transactionId = transactionId
         data.transactFromAddedFunds = "none"
         data.transactFromWallet = "yes"
         data.currency = currency
         data.token = `Bearer ${token}`
+
+        console.log(data, 'i got inside here oh')
 
         //make another api call to update client account
         var config = {
@@ -311,10 +262,29 @@ export default function PurchaseCredit({navigation, route}) {
     .catch(function (error) {
       console.log(error.response.data.message, 'response fom api call');
       handleMessage(error.response.data.message, 'FAILED')
-      alert(error.message)
+      // alert(error.message)
       setSubmitting(false)
     });      
   }
+
+  const handleSelectBillerName  = (text) => {
+    if(bill == 'data') {
+      var dataBundleAmount = text.split(',')
+      setBillSelected(dataBundleAmount[0]) 
+      setInputValueAmount(dataBundleAmount[1])
+      // console.log(billSelected, inputValueAmount)
+    }else{
+      setBillSelected(text) 
+    }
+  }
+
+  // const handleSetAmount  = (text, amount) => {
+  //   setBillSelected(text) 
+  //   setInputValueAmount(amount)
+  //   console.log(amount)
+  //   // setInputValueAmount(amount)
+  //   // console.log(currency)
+  // }
 
   return (
     <View style={styles.container}>
@@ -336,19 +306,100 @@ export default function PurchaseCredit({navigation, route}) {
             editable={false}
           />
 
-          {/* <Picker
-            selectedValue={selectedValue}
+          {(bill == 'electricity') && <Picker
+            selectedValue={billSelected}
             style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(text)
-                (itemValue)}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
           >
             {billData ? 
                 billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.short_name} value={item.short_name} />
+                    <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
                 ))
                 : <ActivityIndicator size="large" color={primary}/>
             }
-          </Picker> */}
+          </Picker>}
+
+          {(bill == 'internet') && <Picker
+            selectedValue={billSelected}
+            style={styles.picker}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker>}
+
+          {(bill == 'data') && <Picker
+            selectedValue={billSelected}
+            style={styles.picker}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={item.biller_name} value={ ` ${item.biller_name},${item.amount} `} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker>}
+
+          {(bill == 'tithe') && <Picker
+            selectedValue={billSelected}
+            style={styles.picker}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker>}
+
+          {(bill == 'cable') && <Picker
+            selectedValue={billSelected}
+            style={styles.picker}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker>}
+
+          {(bill == 'tax') && <Picker
+            selectedValue={billSelected}
+            style={styles.picker}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker>}
+
+          {(bill == 'dhl') && <Picker
+            selectedValue={billSelected}
+            style={styles.picker}
+            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+          >
+            {billData ? 
+                billData.map((item, index) => (
+                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+                ))
+                : <ActivityIndicator size="large" color={primary}/>
+            }
+          </Picker>}
+
+          
+
+          
 
           <TextInput
             style={styles.input}
@@ -362,7 +413,12 @@ export default function PurchaseCredit({navigation, route}) {
 
           <TextInput
             style={styles.input}
-            placeholder="Phone Number"
+            placeholder =  { (bill == 'electricity') ? 'Meter Number' 
+                        : (bill == 'internet') ? 'Customer Number' 
+                        : (bill == 'electricity') ? 'Meter Number' 
+                        : (bill == 'data') ? 'Phone Number' 
+                        : (bill == 'dhl') ? 'Label Number' 
+                        :  'Customer Number'}
             placeholderTextColor="#949197" 
             type="number"
             // keyboardType={'numeric'}
@@ -385,15 +441,26 @@ export default function PurchaseCredit({navigation, route}) {
           <MsgBox type={messageType}>{message}</MsgBox>
 
            {submitting && <TouchableOpacity 
-            onPress={handleAirtimePurchase}
+            onPress={handleBillPurchase}
             style={styles.addTransactionButton}>
               <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
           </TouchableOpacity>}
 
           {!submitting &&<TouchableOpacity 
-            onPress={handleAirtimePurchase}
+            onPress={handleBillPurchase}
             style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}>Purchase Airtime</Text>
+              <Text style={styles.buttonText}>
+                {
+                  (bill == 'electricity') ? 'Buy Electricity' 
+                  : (bill == 'internet') ? 'Pay For Internet'
+                  : (bill == 'data') ? 'Pay For Data Bundle'
+                  : (bill == 'tithe') ? 'Pay For Tithe' 
+                  : (bill == 'cable') ? 'Pay For Cable TV'
+                  : (bill == 'tax') ? 'Pay For Tax'
+                  : (bill == 'tax') ? 'Pay For Shipping'  
+                  : ''
+                }
+              </Text>
           </TouchableOpacity>}
         </View>
     </View>

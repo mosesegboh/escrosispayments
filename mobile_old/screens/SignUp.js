@@ -52,28 +52,35 @@ const SignUp = ({navigation}) => {
     }
 
     const handleSignUp = async (credentials,setSubmitting) => {
+        console.log(credentials, '--credentials')
         handleMessage(null)
         const url = `${BaseUrl}/user/signup`;
 
         axios.post(url, credentials).then((response) => {
+            
             const result = response.data;
             const {message, status, data} = result
 
             // if(status !== 'SUCCESS') {
             if(status !== 'PENDING') {
+                console.log('inside pending')
                 handleMessage(message, status)
             }else{
+                
                 // navigation.navigate('Dashboard', {...data})
                 //former one
                 // persistLogin({...data}, message, status)
+                // console.log(email, '--email')
                 temporaryUserPersist({email, name, dateOfBirth} = credentials)
+                // temporaryUserPersist(credentials)
+                console.log(email, 'inside elseemail')
                 navigation.navigate('OTPVerification', {...data})
             }
             setSubmitting(false)
         }).catch((error) => {
-            console.log(error)
+            console.log(error, '--this is the axio error')
             setSubmitting(false)
-            handleMessage("An error occured, check your network and try again")
+            handleMessage("An error occured, check your network and try again.")
         })
     }
 
@@ -214,15 +221,10 @@ const SignUp = ({navigation}) => {
                             <ActivityIndicator size="large" color={primary}/>
                         </StyledButton>}
 
-                        {/* <StyledButton onPress={handleSubmit}>
-                            <ButtonText>
-                                Sign Up
-                            </ButtonText>
-                        </StyledButton> */}
                         <Line />
                         
                         <ExtraView>
-                            <ExtraText>Already have an account?</ExtraText>
+                            <ExtraText>Already have an account ? </ExtraText>
                             <TextLink onPress={() => navigation.navigate('Login')}>
                                 <TextLinkContent>  Login</TextLinkContent>
                             </TextLink>
