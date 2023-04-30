@@ -5,8 +5,9 @@ import { useFonts } from 'expo-font';
 import Apploading from 'expo-app-loading'
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { CredentialsContext } from './components/CredentialsContext';
+import { CredentialsContext } from './components/CredentialsContext'
 import RootStack from './navigators/RootStack'
+import { ScrollView } from 'react-native';
 
 //screens
 // import Login from './screens/Login';

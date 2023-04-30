@@ -11,6 +11,8 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
+import { AntDesign } from '@expo/vector-icons'; 
+import { BaseUrl } from '../services/';
 const { primary} = Colors;
 
 //you can get rid of navigation and route
@@ -34,7 +36,7 @@ export default function Dashboard ({navigation, route}) {
 
     var config = {
       method: 'post',
-      url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
+    url: `${BaseUrl}/transaction/get-transactions`,
       headers: { 
         'Content-Type': 'application/json', 
         'Authorization': `Bearer ${token}`
@@ -199,38 +201,38 @@ export default function Dashboard ({navigation, route}) {
 
       <ScrollView>
           {userTransactions ? 
-                userTransactions.slice(0, 5).map((item, index) => (
-                  
-                  <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
-                    <View style={styles.singleTransactionRightSide}>
-                      <View style={styles.singletTransactionIconView}>
-                        <Octicons name="book" size={18} color="#3f9876" />
-                      </View>
-                      <View>
-                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 10)}</Text>
-                        <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.transactionDetailRightSide}>
-                      
-                      <View style={styles.recentTransactionAmount}>
-                        <Text style={styles.transacitonAmount}>{item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))
-                : userTransactions == null ? 
-                <ActivityIndicator size="large" color={primary}/> 
-                :
-                <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
-                  <MaterialIcons name="hourglass-empty" size={36} color="green" />
-                  <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+            userTransactions.slice(0, 5).map((item, index) => (
+              <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
+                <View style={styles.singleTransactionRightSide}>
+                  <View style={styles.singletTransactionIconView}>
+                    <Octicons name="book" size={18} color="#3f9876" />
+                  </View>
+                  <View>
+                    <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 10)}</Text>
+                    <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
+                  </View>
                 </View>
                 
+                <View style={styles.transactionDetailRightSide}>
+                    
+                  <View style={styles.recentTransactionAmount}>
+                    <Text style={styles.transacitonAmount}>
+                      {item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}  
+                    </Text>
+                  </View>
+                  <AntDesign name="checkcircle" size={13} color="green" />
+                </View>
+              </TouchableOpacity>
+            ))
+              : userTransactions == null ? 
+              <ActivityIndicator size="large" color={primary}/> 
+              :
+              <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+                <MaterialIcons name="hourglass-empty" size={36} color="green" />
+                <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+              </View>
             }
       </ScrollView>
-
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>
           <Octicons name="plus" size={22} color="#fff" />
       </TouchableOpacity>

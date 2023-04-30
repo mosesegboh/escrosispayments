@@ -52,7 +52,7 @@ const Login = ({navigation}) => {
         console.log()
         handleMessage(null)
         const url = 'https://boiling-everglades-35416.herokuapp.com/user/signin';
-        // const url = 'http://localhost:3000/user/signin';
+        // const url = 'http://10.0.2.2:3000/user/signin';
 
         axios.post(url, credentials).then((response) => {
             // token = response.token

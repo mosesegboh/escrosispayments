@@ -239,8 +239,7 @@ const SignUp = ({navigation}) => {
 
 const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword, 
     isDate, showDatePicker,...props}) => {
-    return (
-        <View>
+    return (<View>
             <LeftIcon>
                 <Octicons name={icon} size={30} color={myButton} />
             </LeftIcon>
@@ -254,8 +253,7 @@ const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword,
                     <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
                 </RightIcon>
             )}
-        </View>
-    )
+        </View>)
 }
 
 export default SignUp;

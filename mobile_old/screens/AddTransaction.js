@@ -25,13 +25,14 @@ import {
 } from '../components/styles';
 const {myButton, myPlaceHolderTextColor, darkLight, primary} = Colors;
 import {Octicons, Ionicons} from '@expo/vector-icons';
-// import {Autocomplete} from 'react-native-autocomplete-input';
+import SelectDropdown from 'react-native-select-dropdown' 
 
 export default function AddTransaction({navigation, route}) {
   const {storedCredentials} = useContext(CredentialsContext)
 
   let {email, token} = storedCredentials
   const {balance} = route.params
+  const countries = ["Egypt", "Canada", "Australia", "Ireland"]
 
   const [selectedValue, setSelectedValue] = useState("FirstLeg");
   const [show, setShow] = useState(false);
@@ -240,6 +241,12 @@ const handleCancel = () => {
     return
   }
 
+  const renderDropdownIcon = () => {
+    return(
+      <Octicons name="triangle-down" size={22} color="black" />
+  )
+  }
+
   return (
     <View style={styles.container}>
         <View>
@@ -298,6 +305,7 @@ const handleCancel = () => {
               isDate={true}
               editable = {false}
               showDatePicker = {showDatePicker}
+              style={styles.input}
           />
 
           <TextInput
@@ -308,13 +316,72 @@ const handleCancel = () => {
             value={details} 
           />
 
-          {showSecondLeg && <TextInput
+          {/* {showSecondLeg && <TextInput
             style={styles.input}
             placeholder="Second Leg Transaction"
             placeholderTextColor="#949197"
             onChangeText={secondLeg => setSecondLeg(secondLeg)}
             value={secondLeg} 
-          />}
+          />} */}
+
+          <SelectDropdown
+            data={countries}
+            search={true}
+            onSelect={(selectedItem, index) => {
+              console.log(selectedItem, index)
+              // setDestinationCurrency(selectedItem)
+              // console.log(destinationCurrency)
+              // handleSelectedCountry(selectedItem)
+              // setCountrySelected(selectedItem)
+            }}
+            
+            defaultButtonText="countries"
+              buttonStyle={{
+              paddingTop: 30,
+              backgroundColor: '#1b181f',
+              borderBottomColor: '#949197',
+              borderBottomWidth: 1,
+              borderRadius: 3,
+              color: '#fff',
+              margin: 10,
+              width: '95%',
+              paddingTop: 10,
+              fontFamily: 'Nunito',
+              fontSize: 5
+            }}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{
+              fontSize: 5,
+              fontFamily: 'Nunito',
+              // marginLeft: -5,
+              // marginRight: 280,
+            }}
+            buttonTextStyle={{
+              color: '#fff',
+              marginLeft: -10,
+              marginRight: 280,
+              fontFamily: 'Nunito',
+              fontSize: 14,
+
+              // justifyContent: 'left',
+            }}
+            rowTextStyle={{
+              // alignItems: 'left'
+              marginLeft: 0
+            }}
+            buttonTextAfterSelection={(selectedItem, index) => {
+              // text represented after item is selected
+              // if data array is an array of objects then return selectedItem.property to render after item is selected
+              // console.log(selectedItem)
+              // handleSelectedTransfer(selectedItem)
+              return selectedItem
+            }}
+            rowTextForSelection={(item, index) => {
+              // text represented for each item in dropdown
+              // if data array is an array of objects then return item.property to represent item in dropdown
+              return item
+            }}
+          />
 
         {/* <Autocomplete
               // data={data}
