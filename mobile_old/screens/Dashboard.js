@@ -18,13 +18,15 @@ const { primary} = Colors;
 //you can get rid of navigation and route
 export default function Dashboard ({navigation, route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
-  const [userTransactions, setUserTransactions] = useState()
+  const [userTransactions, setUserTransactions] = useState([])
+  const [isUserTransactions, setIsUserTransactions] = useState()
   const [balance, setBalance] = useState()
   const [lockedTransaction, setLockedTransaction] = useState()
   const [unLockedTransaction, setUnLockedTransaction] = useState()
   const isFocused = useIsFocused()
 
   let {name, email, token,  photoUrl} = storedCredentials
+  // console.log(name, email, token, 'Name and email')
   // console.log(storedCredentials, 'this is the stored credentials')
   // const {name, email} = route.params
   useEffect(()=>{
@@ -44,19 +46,26 @@ export default function Dashboard ({navigation, route}) {
       data : data
     };
 
+    // console.log(config, '--config')
+    // return
+
     axios(config)
     .then(function (response) {
+      // console.log(response)
       if (response.data.status == "SUCCESS") {
         
         var transactions = response.data.data;
         // console.log(transactions, '--transactions')
-        console.log(response.data.status)
-      
+        // return
+        // console.log(response.data.data)
+        // return
         const latestIndex = transactions.length
         const latestValue = transactions[latestIndex-1]
-        setBalance(latestValue.balance)
-        setLockedTransaction(latestValue.lockedTransaction)
-        setUnLockedTransaction(latestValue.unLockedTransaction)
+        setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
+        setLockedTransaction(transactions.length > 0 ? latestValue.lockedTransaction : 0.00)
+        setUnLockedTransaction(transactions.length > 0 ? latestValue.unLockedTransaction : 0.00)
+        console.log(response.data.data.length === 0)
+        setIsUserTransactions(response.data.data.length === 0)
         setUserTransactions(response.data.data.reverse())
       }else{
         alert('kindly login again')
@@ -114,16 +123,16 @@ export default function Dashboard ({navigation, route}) {
 
       <View style={styles.servicesIcons}>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance})}>
-            <Ionicons name='wallet' size={24} color='green' />
-            <Text style={styles.billsText}>wallet</Text>
+          <Ionicons name='wallet' size={24} color='green' />
+          <Text style={styles.billsText}>wallet</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('PurchaseCredit', {email: email, token: token, balance: balance})}>
-            <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
-            <Text style={styles.billsText}>airtime</Text>
+          <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
+          <Text style={styles.billsText}>airtime</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance})}>
           <MaterialCommunityIcons name="bank-transfer-out" size={32} color="green" />
-            <Text style={styles.billsText}>transfers</Text>
+          <Text style={styles.billsText}>transfers</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'electricity'})}>
           <Octicons name="zap" size={22} color="green" />
@@ -131,7 +140,7 @@ export default function Dashboard ({navigation, route}) {
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'internet'})}>
           <Octicons name="browser" size={22} color="green" />
-            <Text style={styles.billsText}>internet</Text>
+          <Text style={styles.billsText}>internet</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance,  bill: 'data'})}>
           <MaterialIcons name="signal-cellular-connected-no-internet-4-bar" size={24} color="green" />
@@ -142,12 +151,12 @@ export default function Dashboard ({navigation, route}) {
           <Text style={styles.billsText}>pay tithes</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'cable'})}>
-            <Ionicons name="tv" size={24} color="green" />
-            <Text style={styles.billsText}>cable</Text>
+          <Ionicons name="tv" size={24} color="green" />
+          <Text style={styles.billsText}>cable</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tax'})}>
-            <MaterialIcons name="payments" size={24} color="green" />
-            <Text style={styles.billsText}>pay tax</Text>
+          <MaterialIcons name="payments" size={24} color="green" />
+          <Text style={styles.billsText}>pay tax</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'dhl'})}>
           <MaterialCommunityIcons name="cash" size={26} color="green" />
@@ -193,14 +202,14 @@ export default function Dashboard ({navigation, route}) {
       </View>
 
       <View style={styles.recentTransactionHeading}>
-          <Text style={styles.recentTransactionText}>Recent Transactions</Text>
-          <TextLink onPress={() => navigation.navigate('AllTransactions', {email: email, token: token})}>
-              <TextLinkContent>View All</TextLinkContent>
-          </TextLink>
+        <Text style={styles.recentTransactionText}>Recent Transactions</Text>
+        <TextLink onPress={() => navigation.navigate('AllTransactions', {email: email, token: token})}>
+            <TextLinkContent>View All</TextLinkContent>
+        </TextLink>
       </View>
 
       <ScrollView>
-          {userTransactions ? 
+          {userTransactions.length > 0 ? 
             userTransactions.slice(0, 5).map((item, index) => (
               <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
                 <View style={styles.singleTransactionRightSide}>
@@ -224,13 +233,13 @@ export default function Dashboard ({navigation, route}) {
                 </View>
               </TouchableOpacity>
             ))
-              : userTransactions == null ? 
-              <ActivityIndicator size="large" color={primary}/> 
-              :
+              : (isUserTransactions) ?  
               <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
                 <MaterialIcons name="hourglass-empty" size={36} color="green" />
                 <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
               </View>
+              :
+              <ActivityIndicator size="large" color={primary}/> 
             }
       </ScrollView>
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>

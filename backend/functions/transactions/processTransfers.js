@@ -21,6 +21,7 @@ const processTransfers = async (data, res) => {
         reference,
         callbackUrl,
         debitCurrency,
+        transferType
     } = data
 
     // console.log('i got here');
@@ -28,7 +29,7 @@ const processTransfers = async (data, res) => {
     const userCurrentDetails = await Transaction.find({"Transaction.email": email}).sort({_id: -1}).limit(2)
     .then((transaction)=>{
         var currentBalance = transaction[1].balance ? transaction[1].balance : 0.00
-        if(transactFromWallet == "yes"){
+        if (transactFromWallet == "yes"){
             var currentBalance = transaction[0].balance ? transaction[0].balance : 0.00
         }
 
@@ -53,6 +54,7 @@ const processTransfers = async (data, res) => {
         transactionId: transactionId,
         transactionName: transactionName,
         transactionType: transactionType,
+        //wait till after webook before deducting - so just leave the old balance for now or you can credit it back after being successfull
         balance: +userCurrentDetails[0] - +amount,
         amount: amount,
         email: email,
@@ -64,7 +66,27 @@ const processTransfers = async (data, res) => {
         currency: currency,
         reference: reference,
         callbackUrl: callbackUrl,
-        debitCurrency: debitCurrency
+        debitCurrency: debitCurrency,
+        status: 'pending',
+        
+        //additional meta fields for international transfers
+        ...((transferType == "isLocalDomiciliaryandisFcmbDorm") ? { meta: [{
+            beneficiaryEmail: data.beneficiaryEmail,
+            beneficiary_country: data.beneficiaryCountry,
+            beneficiary_occupation: data.beneficiaryOccupation,
+            recipient_address: data.recipientAddress,
+            mobile_number: beneficiaryMobile,
+            sender: sender,
+            sender_country: senderCountry,
+            sender_id_number: senderIdNumber,
+            sender_id_type: senderIdType,
+            sender_id_expiry: senderIdExpiryDate,
+            sender_mobile_number: senderMobile,
+            sender_address: senderAddress,
+            sender_occupation: senderOccupation,
+            sender_beneficiary_relationship: senderBeneficiaryRelationship,
+            transfer_purpose: transferPurpose
+          }] } : {}),
     };
 
     if (transactFromAddedFunds == "no"){
@@ -89,7 +111,7 @@ const processTransfers = async (data, res) => {
         return
     } 
 
-    if (transactFromWallet == "yes"){    
+    if (transactFromWallet == "yes") {    
         const newTransaction = new Transaction(update)
         newTransaction.save()
         .then(result => {

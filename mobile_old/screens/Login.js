@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useContext} from 'react';
+import {Text} from 'react-native';
 import {StatusBar} from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google'; 
@@ -6,7 +7,9 @@ import {Formik} from  'formik';
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 import  axios from 'axios'
-import * as GoogleSignIn from 'expo-google-sign-in';
+import { BaseUrl } from '../services/';
+// import * as GoogleSignIn from 'expo-google-sign-in';
+//web: 334602610846-0cuqj82v9lg1eea4b8vpgstik6nk68ts.apps.googleusercontent.com
 import {
     StyledContainer,
     InnerContainer,
@@ -42,14 +45,78 @@ const Login = ({navigation}) => {
     const [googleSubmitting, setGoogleSubmitting] = useState(false)
     const [accessToken, setAccessToken] = useState(null)
     const [user, setUser] = useState(null)
-    const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    const [userInfo, setUserInfo] = useState(null)
+    const [request, response, promptAsync] = Google.useAuthRequest({
         clientId: "334602610846-0cuqj82v9lg1eea4b8vpgstik6nk68ts.apps.googleusercontent.com",
         iosClientId: "334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com",
         androidClientId: "334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com"
     })
 
-    const handleLogin = (credentials,setSubmitting) => {
+    const handleGoogleSignIn = async () => {
+        const user = await AsyncStorage.getItem("escrosisCredentials");
+        if(!user){
+            if (response?.type === "success") {
+                // console.log(response)
+                // setAccessToken(response.authentication.accessToken);
+                // accessToken && fetchUserInfo();
+                await fetchUserInfo(response.authentication.accessToken);
+            }
+            
+        }else{
+            setUserInfo(JSON.parse(user));
+        }
+    }
+
+    async function fetchUserInfo(accessToken) {
+        if(!accessToken) return;
+        try {
+            let response = await fetch(
+                "https://www.googleapis.com/userinfo/v2/me", 
+                {
+                    headers: {Authorization: `Bearer ${accessToken}`}
+                }
+            )
+    
+            const useInfo = await response.json();
+
+            useInfo.isGoogleSignIn = true;
+
+            // console.log(useInfo, 'user info')
+            // return
+            await AsyncStorage.setItem("escrosisCredentials", JSON.stringify(useInfo))
+            setUser(useInfo);
+            setUserInfo(useInfo)
+            handleSignUp(useInfo)
+            // console.log(useInfo)
+            //I added this
+
+        setGoogleSubmitting(false)
+        //persisting the login
+        // persistLogin({...useInfo}, "Gooogle Sign in succesful", 'success')
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    
+
+    const persistLogin = (credentials, message, status) => {
+        // console.log(credentials, '--credentials')
+        // return
+        AsyncStorage.setItem('escrosisCredentials', JSON.stringify(credentials)).then(() => {
+            handleMessage(message, status)
+            setStoredCredentials(credentials)
+            // console.log(credentials)
+        }).catch(error => {
+            console.log(error)
+            handleMessage('Persisting Login Failed')
+        })
+
         console.log()
+    }
+
+    const handleLogin = (credentials,setSubmitting) => {
+        // console.log()
         handleMessage(null)
         const url = 'https://boiling-everglades-35416.herokuapp.com/user/signin';
         // const url = 'http://10.0.2.2:3000/user/signin';
@@ -59,7 +126,7 @@ const Login = ({navigation}) => {
             const result = response.data;
             const {message, status, data} = result
 
-            if(status !== 'SUCCESS') {
+            if (status !== 'SUCCESS') {
                 handleMessage(message, status)
             }else{
                 //navigation.navigate('Dashboard', {...data[0]})
@@ -79,80 +146,110 @@ const Login = ({navigation}) => {
         setMessageType(type)
     }
 
+    const handleSignUp = async (credentials) => {
+        // console.log(credentials, '--credentials')
+        // handleMessage(null)
+        const url = `${BaseUrl}/user/signup`;
+
+        axios.post(url, credentials).then((response) => {
+            
+            const result = response.data;
+            const {message, status, data} = result
+
+            console.log(message,'mesage')
+
+            // if(status !== 'SUCCESS') {
+            if(status !== 'PENDING') {
+                // console.log('inside pending')
+                persistLogin({...data}, "Gooogle Sign in succesful", 'success')
+                handleMessage(message, status)
+            }else{
+                // navigation.navigate('Dashboard', {...data})
+                //former one
+                // persistLogin({...data}, message, status)
+                // console.log(email, '--email')
+                temporaryUserPersist({email, name, dateOfBirth} = credentials)
+                // temporaryUserPersist(credentials)
+                console.log(email, 'inside elseemail')
+                navigation.navigate('OTPVerification', {...data})
+            }
+            // setGoogleSubmitting(false)
+        }).catch((error) => {
+            console.log(error, '--this is the axio error')
+            // setGoogleSubmitting(false)
+            handleMessage("An error occured, check your network and try again.")
+        })
+    }
+
     //initialize google sign in
     useEffect(() => {
         //from the former google sign in
         // initAsync()
+
+
         //new google sign in feature
-        if (response?.type === "success") {
-            console.log(response)
-            setAccessToken(response.authentication.accessToken);
-            // setAccessToken(response.params.id_token);
-            accessToken && fetchUserInfo();
-        }
+        // if (response?.type === "success") {
+        //     console.log(response)
+        //     setAccessToken(response.authentication.accessToken);
+        //     accessToken && fetchUserInfo();
+        // }
+        handleGoogleSignIn()
     }, [response, accessToken])
 
-    async function fetchUserInfo() {
-        let response = await fetch("https://www.googleapis.com/userinfo/v2/me", {
-            headers: {Authorization: `Bearer ${accessToken}`}
-        })
+    // async function fetchUserInfo(accessToken) {
+    //     // console.log(accessToken, 'access token')
+    //     // return
+    //     let response = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+    //         headers: {Authorization: `Bearer ${accessToken}`}
+    //     })
 
-        const useInfo = await response.json();
-        setUser(useInfo);
-        console.log(useInfo)
+    //     const useInfo = await response.json();
+    //     setUser(useInfo);
+    //     // console.log(useInfo, '<--user info')
 
-        //I added this
-        setGoogleSubmitting(false)
-        user && persistLogin({...useInfo}, "Gooogle Sign in succesful", 'success')
-    }
+    //     //I added this
+    //     setGoogleSubmitting(false)
+    //     user && persistLogin({...useInfo}, "Gooogle Sign in succesful", 'success')
+    // }
 
     const androidClientId = '334602610846-d1olq2nngjat20e10lapam949ibnf3m9.apps.googleusercontent.com'
     const iosClientId = '334602610846-truoiam9crqjnj41n17o4advbsnu12hf.apps.googleusercontent.com'
 
     const initAsync = async () => {
-        try {
-            await GoogleSignIn.initAsync({
-                clientId: Platform.OS === 'android' ? androidClientId : iosClientId
-            })
-            getUserDetails()
-        } catch (error) {
-            console.log("Gooogle Sign in error: " + message)
-        }
+        // try {
+        //     await GoogleSignIn.initAsync({
+        //         clientId: Platform.OS === 'android' ? androidClientId : iosClientId
+        //     })
+        //     getUserDetails()
+        // } catch (error) {
+        //     console.log("Gooogle Sign in error: " + message)
+        // }
     }
 
     const getUserDetails = async () => {
-        const user = await GoogleSignIn.signInSilentlyAsync()
-        setGoogleSubmitting(false)
-        user && persistLogin({...user}, "Gooogle Sign in succesful", 'success')
+        // const user = await GoogleSignIn.signInSilentlyAsync()
+        // setGoogleSubmitting(false)
+        // user && persistLogin({...user}, "Gooogle Sign in succesful", 'success')
     }
 
-    const handleGoogleSignIn = async (signIn) => {
-        try {
-            setGoogleSubmitting(true)
-            await GoogleSignIn.askForPlayServicesAsync()
-            const {type, user} = await GoogleSignIn.signInAsync()
-            if(type == "success"){
-                getUserDetails();
-            }else{
-                handleMessage('Gooogle sign in cancelled')
-                setGoogleSubmitting(false)
-            }
-        } catch ({message}) {
-            setGoogleSubmitting(false)
-            handleMessage("Gooogle Sign in error: " + message)
-        }
-    }
+    // const handleGoogleSignIn = async (signIn) => {
+    //     // try {
+    //     //     setGoogleSubmitting(true)
+    //     //     await GoogleSignIn.askForPlayServicesAsync()
+    //     //     const {type, user} = await GoogleSignIn.signInAsync()
+    //     //     if(type == "success"){
+    //     //         getUserDetails();
+    //     //     }else{
+    //     //         handleMessage('Gooogle sign in cancelled')
+    //     //         setGoogleSubmitting(false)
+    //     //     }
+    //     // } catch ({message}) {
+    //     //     setGoogleSubmitting(false)
+    //     //     handleMessage("Gooogle Sign in error: " + message)
+    //     // }
+    // }
 
-    const persistLogin = (credentials, message, status) => {
-        AsyncStorage.setItem('escrosisCredentials', JSON.stringify(credentials)).then(() => {
-            handleMessage(message, status)
-            setStoredCredentials(credentials)
-            // console.log(credentials)
-        }).catch(error => {
-            console.log(error)
-            handleMessage('Persisting Login Failed')
-        })
-    }
+   
 
     return (
         <KeyboardAvoidingWrapper>
@@ -218,7 +315,7 @@ const Login = ({navigation}) => {
                         !googleSubmitting && (
                             <StyledButton google={true} onPress={() => {promptAsync()}}>
                                 <Fontisto name="google" color={primary} size={25}/>
-                                {/* <ButtonText google={true}> Sign in with Google </ButtonText> */}
+                                <Text style={{color: 'white'}} google={true}> Sign in with Google </Text>
                             </StyledButton>
                         )
                     }

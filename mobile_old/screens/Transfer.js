@@ -12,13 +12,13 @@ import  {allowedInternationalCurrencies}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
 import {getCountryCurrency} from '../services/index';
 import {countriesAndCurrencies} from '../services/index';
-import { allowedAfricanCountries } from '../services/';
+// import { allowedAfricanCountries } from '../services/';
 import {BaseUrl} from '../services/';
 import { CredentialsContext } from '../components/CredentialsContext';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 import { StyledContainer, LeftIcon, StyledInputLabel, StyledTextInput, RightIcon, Colors, MsgBox, myButton} from '../components/styles';
 import SelectDropdown from 'react-native-select-dropdown'
-import DatePicker from 'react-native-date-picker'
+// import DatePicker from 'react-native-date-picker'
 import {Picker} from '@react-native-picker/picker';
 
 export default function Transfer({route}) {
@@ -26,7 +26,7 @@ export default function Transfer({route}) {
   let {email, token} = storedCredentials
   const {balance} = route.params
   const transferScopeOptions = ['local', 'International']
-  const [selectedValue, setSelectedValue] = useState("ONCE");
+  // const [selectedValue, setSelectedValue] = useState();
   const [show, setShow] = useState(false);
   const [inputValueAmount, setInputValueAmount] = useState();
   const [inputValueAccount, setInputValueAccount] = useState();
@@ -45,7 +45,7 @@ export default function Transfer({route}) {
   const [localBanks, setLocalBanks] = useState(true);
   const [availableCurrency, setAvailableCurrency] = useState(['NGN']);
   const [localCountries, setLocalCountries] = useState(['NG']);
-  const [africanTransfer, setAfricanTransfer] = useState(false)
+  // const [africanTransfer, setAfricanTransfer] = useState(false)
   const [internationalTransfer, setInternationalTransfer] = useState(false)
   const [internationBankName, setInternationalBankName] = useState()
   const [beneficiaryName, setBeneficiaryName] = useState()
@@ -55,17 +55,17 @@ export default function Transfer({route}) {
   const [destinationAmount, setDestinationAmount] = useState()
   const [sourceAmount, setSourceAmount] = useState();
   const [showRateDetails, setShowRateDetails] = useState(false)
-  const [destinationBranchCode, setDestinationBranchCode] = useState()
-  const [destinationCountry, setDestinationCountry] = useState()
+  // const [destinationBranchCode, setDestinationBranchCode] = useState()
+  // const [destinationCountry, setDestinationCountry] = useState()
   const [postalCode, setPostalCode] = useState()
   const [streetNumber, setStreetNumber] = useState()
-  const [streetName, setStreetName] = useState()
-  const [city, setCity] = useState()
+  // const [streetName, setStreetName] = useState()
+  // const [city, setCity] = useState()
   const [countryData, setCountryData] = useState()
   const [isLocalTransfer, setIsLocalTransfer] = useState(true)
-  const [getBanks, setGetBanks] = useState()
+  // const [getBanks, setGetBanks] = useState()
   const [branchCode, setBranchCode] = useState()
-  const [mobileNumber, setMobileNumber] = useState()
+  // const [mobileNumber, setMobileNumber] = useState()
   const [isGUZT, setIsGUZT] = useState(false)
   const [isEurGbp, setIsEurGbp] = useState(false)
   const [beneficiaryFirstName, setBeneficiaryFirstName] = useState()
@@ -78,16 +78,16 @@ export default function Transfer({route}) {
   const [senderMobile, setSenderMobile] = useState()
   const [isUsdAccount, setIsUsdAccount] = useState(false)
   const [isNigerianDorm, setIsNigerianDorm] = useState(false)
-  const [isFcmbDorm, setIsFcmbDorm] = useState();
+  const [isFcmbDorm, setIsFcmbDorm] = useState(false);
   const [isUnionDorm, setIsUnionDorm] = useState(false)
   const [isFidelityDorm, setIsFidelityDorm] = useState(false)
   const [senderOccupation, setSenderOccupation] = useState()
   const [senderCity, setIsSenderCity] = useState()
   const [merchantName, setMerchantName] = useState()
   const [beneficiaryStreetName, setBeneficiaryStreetName] = useState()
-  const [senderIdType, setSenderIdType] = useState()
+  const [senderIdType, setSenderIdType] = useState('')
   const [date, setDate] = useState(new Date())
-  const [open, setOpen] = useState(false)
+  // const [open, setOpen] = useState(false)
   const [transferPurpose, setTransferPurpose] = useState() 
   const [senderIdExpiryDate, setSenderIdExpiryDate] = useState()
   const [senderIdNumber, setSenderIdNumber] = useState()
@@ -97,18 +97,42 @@ export default function Transfer({route}) {
   const [beneficiaryCountry, setBeneficiaryCountry] = useState()
   const [beneficiaryOccupation, setBeneficiaryOccupation] = useState()
   const [mode, setMode] = useState()
-  const [text, setText] = useState()
+  // const [text, setText] = useState()
   const [isLocalDomiciliary, setIsLocalDomiciliary] = useState(false);
+  const [isAfricanTransfer, setIsAfricanTransfer] = useState(false);
+  const [isZarAccount, setIsZarAccount] = useState(false)
+  const [isKesAccount, setIsKesAccount] = useState(false)
+  const [sourceCountry, setSourceCountry] = useState(false)
+  const [recipientAddress, setRecipientAddress] = useState(false)
+  const [beneficiaryCity, setBeneficiaryCity] = useState(false)
+  const [localBankName, setLocalBankName] = useState()
+ 
+  // const toggleSwitch = () => {
+  //   // setIsLocalDomiciliary(!isLocalDomiciliary)
+  //   if (isLocalDomiciliary == true) {
+  //     setIsLocalDomiciliary(true);
+  //     console.log(isLocalDomiciliary, '--is local dorm')
+  //   } else {
+  //     setIsLocalDomiciliary(false)
+  //     console.log(isLocalDomiciliary, '--is local other')
+  //   }
+  //   // console.log(isLocalDomiciliary, 'this is local')
+  // };
 
   const toggleSwitch = () => {
-    // setIsLocalDomiciliary(!isLocalDomiciliary)
-    if(isLocalDomiciliary == true){
-      setIsLocalDomiciliary(false);
-    }else{
-      setIsLocalDomiciliary(true)
+    setIsLocalDomiciliary(previousState => !previousState);
+
+    console.log(isFcmbDorm, isUnionDorm, isFidelityDorm, '--dorm status')
+
+    if (localBankName == 'First City Monument Bank') {
+      setIsFcmbDorm(true); setIsUnionDorm(false); setIsFidelityDorm(false);
+    } else if (localBankName == 'Fidelity Bank') {
+      setIsFcmbDorm(false); setIsUnionDorm(false); setIsFidelityDorm(true);
+    }else if (localBankName == 'Union Bank') {
+      setIsFcmbDorm(false); setIsUnionDorm(true); setIsFidelityDorm(false);
     }
-    console.log(isLocalDomiciliary, 'this is local')
   };
+  
   
   useEffect(()=>{
     setCountryData(allCountriesAbbreviations)
@@ -139,12 +163,94 @@ export default function Transfer({route}) {
   }
 
   const handleTransfer = (text) => {
-    if ( email == null || inputValueAmount == null || inputValueAccount == null || selectedValue == null || transactionId == null ) {
+    // console.log(isLocalDomiciliary, isFcmbDorm)
+
+    if ( email == null || inputValueAmount == null || inputValueAccount == null || transactionId == null ) {
+      // console.log(email,'i am inside here')
       setSubmitting(false)
       handleMessage("Please enter all fields")
       alert("Please enter all fields")
       return
-    }
+    } else if ( (isLocalDomiciliary == true) 
+      && (localBanks == null 
+        || beneficiaryFirstName == null || beneficiaryLastName == null
+        || beneficiaryEmail == null || beneficiaryCountry == null
+        || beneficiaryMobile == null || sender == null || sourceCurrency == null)) 
+    {
+        // console.log(beneficiaryMobile,  'mobile-number')
+        setSubmitting(false)
+        handleMessage("Please enter all fields")
+        alert("Please enter all fields")
+        return
+    } else if ((isLocalDomiciliary == true && isFcmbDorm == true) 
+      && (routingNumber == null || beneficiaryCountry == null
+          || beneficiaryName == null || senderAddress == null
+          || senderIdNumber == null || senderIdType == null 
+          || senderIdExpiryDate == null || senderMobile == null
+          || senderOccupation == null || senderBeneficiaryRelationship == null 
+          || transferPurpose == null || sourceCurrency == null || senderCountry == null ))
+    {
+      // console.log(routingNumber,beneficiaryCountry,senderIdNumber, beneficiaryName, senderAddress
+      // ,senderIdType,senderIdExpiryDate,senderMobile,senderOccupation, senderBeneficiaryRelationship,
+      // transferPurpose,sourceCurrency, senderCountry,'--i am inside here')
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    } else if ( (isLocalDomiciliary == true && (isFidelityDorm == true || isUnionDorm == true)) 
+        && (senderCity == null || sourceCurrency == null) ) 
+    {
+      // console.log('is union or fideity')
+        setSubmitting(false)
+        handleMessage("Please enter all fields")
+        alert("Please enter all fields")
+        return
+    } else if ((isUsdAccount == true) && ( routingNumber == null 
+        || beneficiaryCountry == null || swiftCode == null
+        || internationBankName == null || beneficiaryName == null || beneficiaryAddress == null)) 
+    {
+        // console.log(internationBankName, '999ii')
+        setSubmitting(false)
+        handleMessage("Please enter all fields")
+        alert("Please enter all fields")
+        return
+    } else if ((isEurGbp == true) && ( routingNumber == null 
+      || beneficiaryCountry == null || swiftCode == null
+      || internationBankName == null || beneficiaryName == null || beneficiaryStreetName == null
+      || streetNumber == null || postalCode == null || beneficiaryStreetName == null|| beneficiaryCity == null)) 
+    {
+      // console.log(beneficiaryStreetName, beneficiaryCity, postalCode, streetNumber, 
+      // internationBankName, '---european submission')
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    } else if ((isGUZT == true) && ( branchCode == null || beneficiaryName == null))
+    {
+      // console.log(branchCode, beneficiaryName, '--guzt submission')
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    } else if ((isKesAccount == true) && ( sender == null || senderCountry == null || senderMobile == null))
+    {
+      // console.log(sender, senderCountry, senderMobile, '---kes submission')
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    } else if ((isZarAccount == true) && ( 
+      beneficiaryFirstName == null || beneficiaryLastName == null || beneficiaryMobile == null || 
+       recipientAddress == null))
+    {
+      // console.log(beneficiaryFirstName,beneficiaryLastName, beneficiaryMobile,
+      // recipientAddress,  '--zar account submission')
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    } 
+
 
     if (inputValueAmount > balance) {
       // console.log('i was clicked!')
@@ -156,81 +262,84 @@ export default function Transfer({route}) {
 
     setSubmitting(true)
 
-    var data = transferScope == 'local' ? 
-    {
+    var data = {
       account_bank: localBanks,
       account_number: inputValueAccount,
       amount: inputValueAmount,
       narration: narration,
       currency: sourceCurrency,
       reference: transactionId,
-      callback_url: `${BaseUrl}/webhook/feedback`,
-      debit_currency: currency,
-      transactionType: transferScope,
-    } 
-    
-    : 
-    transferScope == 'African' ?  {
-      account_bank: localBanks,
-      account_number: inputValueAccount,
-      amount: inputValueAmount,
-      narration: narration,
-      currency: sourceCurrency,
-      reference: transactionId,
-      transactionType: transferScope,
-      callback_url: `${BaseUrl}/webhook/feedback`,
-      debit_currency: destinationCurrency,
-      destination_branch_code: branchCode,
-      transferType: transferScope,
-      ...(1 >= 18 ? { isAdult: true, canVote: true } : {}),
-      meta: {
-        AccountNumber: inputValueAccount,
-        RoutingNumber: routingNumber,
-        SwiftCode: swiftCode,
-        BankName: internationBankName,
-        BeneficiaryName: beneficiaryName,
-        BeneficiaryCountry: destinationCountry,
-        PostalCode: postalCode,
-        StreetNumber: streetNumber,
-        StreetName: streetName,
-        City: city,
-        mobile_number: mobileNumber,
-        sender: sender,
-        sender_country: sourceCountry,
-      }
-    } 
-    :
-    transferScope == 'International' ? 
-    {
-      account_bank: localBanks,
-      account_number: inputValueAccount,
-      amount: inputValueAmount,
-      narration: narration,
-      currency: sourceCurrency,
-      reference: transactionId,
-      transactionType: transferScope,
+      transferScope: transferScope,
       callback_url: `${BaseUrl}/webhook/feedback`,
       debit_currency: sourceCurrency,
-      destination_branch_code: branchCode,
-      transferType: transferScope,
-      meta: {
+      transactionType: transferScope,
+      ...(isGUZT ? { destination_branch_code: branchCode, beneficiary_name: beneficiaryName } : {}),
+      ...(((isLocalDomiciliary === true && isFcmbDorm === true) || isUsdAccount || isEurGbp) ? { beneficiary_name: beneficiaryName } : {}),
+      ...(isLocalDomiciliary ? { meta: [{
+        first_name: beneficiaryFirstName,
+        last_name: beneficiaryLastName,
+        email: beneficiaryEmail,
+        beneficiary_country: beneficiaryCountry,
+        mobile_number: beneficiaryMobile,
+        sender: sender,
+        merchant_name: merchantName
+      }] } : {}),
+      ...((isLocalDomiciliary === true && isFcmbDorm === true) ? { meta: [{
+        email: beneficiaryEmail,
+        beneficiary_country: beneficiaryCountry,
+        beneficiary_occupation: beneficiaryOccupation,
+        recipient_address: recipientAddress,
+        mobile_number: beneficiaryMobile,
+        sender: sender,
+        sender_country: senderCountry,
+        sender_id_number: senderIdNumber,
+        sender_id_type: senderIdType,
+        sender_id_expiry: senderIdExpiryDate,
+        sender_mobile_number: senderMobile,
+        sender_address: senderAddress,
+        sender_occupation: senderOccupation,
+        sender_beneficiary_relationship: senderBeneficiaryRelationship,
+        transfer_purpose: transferPurpose
+      }] } : {}),
+      ...(isUsdAccount ? { meta: [{
         AccountNumber: inputValueAccount,
         RoutingNumber: routingNumber,
         SwiftCode: swiftCode,
         BankName: internationBankName,
         BeneficiaryName: beneficiaryName,
-        BeneficiaryCountry: destinationCountry,
+        BeneficiaryAddress: beneficiaryAddress,
+        BeneficiaryCountry: beneficiaryCountry,
+      }]} : {}),
+      ...(isEurGbp ? { meta: [{
+        AccountNumber: inputValueAccount,
+        RoutingNumber: routingNumber,
+        SwiftCode: swiftCode,
+        BankName: internationBankName,
+        BeneficiaryName: beneficiaryName,
+        BeneficiaryCountry: beneficiaryCountry,
         PostalCode: postalCode,
         StreetNumber: streetNumber,
-        StreetName: streetName,
-        City: city
-      }
-    } 
-    :
-    '';
+        StreetName: beneficiaryStreetName,
+        City: beneficiaryCity
+      }]} : {}),
+      ...(isKesAccount ? { meta: [{
+          sender: sender,
+          sender_country: senderCountry,
+          mobile_number: senderMobile
+      }]} : {}),
+      ...(isZarAccount ? { meta: [{
+        first_name: beneficiaryFirstName,
+        last_name: beneficiaryLastName,
+        email: beneficiaryEmail,
+        mobile_number: beneficiaryMobile,
+        recipient_address: recipientAddress
+    }]} : {}),
 
-    console.log(data, 'this is the data')
-    return
+    } 
+    
+    
+    console.log(data, '--this is the data')
+    // return
           
     var config = {
       method: 'post',
@@ -241,21 +350,34 @@ export default function Transfer({route}) {
       },
       data : data
     };
+
     axios(config)
     .then(function (response) {
       // console.log(JSON.stringify(response.data.data));
       const result = response.data
 
-      // console.log(result, 'this is result')
+      console.log(result, 'this is result flutterwave')
+      // return
+
       const { status, message} = result;
 
       // console.log(status, '--status')
-      
       if (status === 'success') {
         // console.log('i got inside here')
         data.email = email
         data.transactionType = 'transfer'
         data.transactionName = 'transfer'
+        data.transferType = isUsdAccount ? 'isUsdAccount' 
+        : isEurGbp ? 'isEurGbp'
+        : isGUZT ? 'isGUZT'
+        : isKesAccount ? 'isKesAccount'
+        : isZarAccount ? 'isZarAccount'
+        : isLocalDomiciliary && isFcmbDorm ? 'isLocalDomiciliaryandisFcmbDorm'
+        : isLocalDomiciliary && (isFidelityDorm || isUnionDorm) ? 'isLocalDomiciliaryandisFidelityUnionDorm'
+        : isLocalDomiciliary && (isFidelityDorm || isUnionDorm) ? 'isLocalDomiciliaryandisFidelityUnionDorm'
+        : 'general'
+
+        data.transferScope = transferScope
         data.details = narration
         data.date = new Date()
         data.transactionId = transactionId
@@ -263,7 +385,11 @@ export default function Transfer({route}) {
         data.transactFromWallet = "yes"
         data.currency = currency
         data.token = `Bearer ${token}`
-        // console.log(data, '--this is success')
+        data.isLocalDomiciliary = isLocalDomiciliary
+        data.beneficiaryCountry = countrySelected
+        console.log(data, '--this is success')
+
+        
         // return
         var config = {
           method: 'post',
@@ -317,13 +443,13 @@ export default function Transfer({route}) {
     setShow(Platform === 'ios');
     setDate(currentDate);
     setDob(currentDate);
+    setSenderIdExpiryDate(currentDate);
   }
 
   const showMode = (currentMode) => {
     setShow(true);
     setMode(currentMode);
   }
-
   // const handleChange = (name, value) => {
   //   setFormValues(prevState => ({
   //     ...prevState,
@@ -335,6 +461,8 @@ export default function Transfer({route}) {
     if (transferScope == 'local') {
       return
     }
+
+    console.log(inputValueAmount, destinationCurrency, sourceCurrency, '--currency')
   
     if (inputValueAmount ) {
       if ( inputValueAmount == null || destinationCurrency == null || sourceCurrency == null ) {
@@ -344,7 +472,7 @@ export default function Transfer({route}) {
       }
     }
 
-    console.log(`${FLUTTERWAVE_API_URL}/transfers/rates?amount=${inputValueAmount}&destination_currency=${destinationCurrency}&source_currency=${sourceCurrency}`)
+    // console.log(`${FLUTTERWAVE_API_URL}/transfers/rates?amount=${inputValueAmount}&destination_currency=${destinationCurrency}&source_currency=${sourceCurrency}`)
     var config = {
       method: 'get',
       url: `${FLUTTERWAVE_API_URL}/transfers/rates?amount=${inputValueAmount}&destination_currency=${destinationCurrency}&source_currency=${sourceCurrency}`,
@@ -356,7 +484,7 @@ export default function Transfer({route}) {
 
     axios(config)
     .then(function (response) {
-      console.log(response.data)
+      // console.log(response.data)
       if (response.data.status == "success") {
         setDestinationAmount(response.data.data.destination.amount)
         setDestinationCurrency(response.data.data.destination.currency)
@@ -374,10 +502,11 @@ export default function Transfer({route}) {
   const renderDropdownIcon = () => {
     return(
       <Octicons name="triangle-down" size={22} color="black" />
-  )
+    )
   }
 
   const handleSelectedCountry = (country) => {
+    // console.log(country, '--country')
     setCountrySelected(country)
     setLocalCountries([country])
     var config = {
@@ -392,6 +521,7 @@ export default function Transfer({route}) {
     axios(config)
     .then(function (response) {
     // console.log(JSON.stringify(response.data.data), 'this is data');
+      // console.log(response.data.data, '--response from banks'),
       setBanks(response.data.data);
     })
     .catch(function (error) {
@@ -400,26 +530,29 @@ export default function Transfer({route}) {
   }
 
   const handleSelectedBanks = (banks) => {
+    //do conditions for not checking the bank code API's here
+    //if its not local or arica
     setLocalBanks(banks.code)
-    if (transferScope == "African") {
+    // console.log(banks.code, '--this is bank code')
+    // if (transferScope !== "local") {
       var config = {//make api call to get the list of banks branch codes.
         method: 'get',
         url: `${FLUTTERWAVE_API_URL}/banks/${banks.id}/branches`,
         headers: { 
-            'Authorization': FLUTTERWAVE_SECRET_KEY, 
-            'Content-Type': 'application/json'
-          },
-        };
-    
-        axios(config)
-        .then(function (response) {
-          // console.log(JSON.stringify(response.data.data[0].branch_code), 'this is data');
-          setBranchCode(response.data.data[0].branch_code)
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
+          'Authorization': FLUTTERWAVE_SECRET_KEY, 
+          'Content-Type': 'application/json'
+        },
+      };
+  
+      axios(config)
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data.data[0].branch_code), 'this is branch code');
+        setBranchCode(response.data.data[0].branch_code)
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    // }
   }
 
   return (
@@ -443,8 +576,10 @@ export default function Transfer({route}) {
               } else {
                 setInternationalTransfer(false)
                 setCountries(['NG'])
+                setIsUsdAccount(false)
                 setTransferScope('local')
                 setIsLocalTransfer(true)
+                setIsKesAccount(false); setIsZarAccount(false); setIsNigerianDorm(false);
               }
             }}
             defaultButtonText="Transfer Scope"
@@ -457,37 +592,26 @@ export default function Transfer({route}) {
             rowTextForSelection={(item, index) => { return item }}// text represented for each item in dropdown// if data array is an array of objects then return item.property to represent item in dropdown 
           />
 
-          {(internationalTransfer || isAfricanTransfer) && <SelectDropdown
-            data={availableCurrency}
-            onSelect={(selectedItem, index) => { setSourceCurrency(selectedItem) }}
-            defaultButtonText="Source Currency"
-            buttonStyle={styles.dropDownButtonStyle}
-            renderDropdownIcon = {renderDropdownIcon}
-            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
-            buttonTextStyle={styles.dropDownButtonTextStyle}
-            rowTextStyle={{ marginLeft: 5 }}
-            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}// text represented after item is selected--if data array is an array of objects then return selectedItem.property to render after item is selected
-            rowTextForSelection={(item, index) => { return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown 
-          />}
-
           {!isLocalTransfer && <SelectDropdown
             data={countries}
             search={true}
             onSelect={(selectedItem, index) => {
-              setDestinationCurrency(getCountryCurrency(countriesAndCurrencies , selectedItem))
-              handleSelectedCountry(selectedItem); 
+              setDestinationCurrency(getCountryCurrency(countriesAndCurrencies , selectedItem, "currency"))
+              handleSelectedCountry(getCountryCurrency(countriesAndCurrencies , selectedItem, "country")); 
               setSourceCountry(selectedItem); 
-              if(selectedItem == 'ZAR'){
-                setIsZarAccount(true)
-              }else if (selectedItem == 'KES') {
-                setIsKesAccount(true); setIsZarAccount(false);
-              }else if (selectedItem == 'GHS' || selectedItem == 'UGX' || selectedItem == 'ZMW' || selectedItem == 'TZS') {
-                setIsGUZT(true); setIsKesAccount(false); setIsZarAccount(false); setIsZarAccount(false);
-              }else if (selectedItem == 'EUR' || selectedItem == 'GBP') {
-                setIsEurGbp(true); setIsGUZT(false); setIsKesAccount(false); setIsZarAccount(false); setIsZarAccount(false);
-              }else if (selectedItem == 'USD') {
-                setIsUsdAccount(true); setIsEurGbp(false); setIsGUZT(false); setIsKesAccount(false); setIsZarAccount(false); setIsZarAccount(false);
-              }else{}
+              if (selectedItem == 'ZAR') {
+                setIsZarAccount(true); setIsEurGbp(false); setIsGUZT(false); setIsKesAccount(false); setIsFidelityDorm(false); setIsUnionDorm(false); setIsUsdAccount(false); setIsAfricanTransfer(true);
+              } else if (selectedItem == 'KES') {
+                setIsKesAccount(true); setIsZarAccount(false); setIsNigerianDorm(false); setIsFidelityDorm(false); setIsGUZT(false); setIsUnionDorm(false); setIsUsdAccount(false); setIsAfricanTransfer(true);
+              } else if (selectedItem == 'GHS' || selectedItem == 'UGX' || selectedItem == 'ZMW' || selectedItem == 'TZS') {
+                setIsGUZT(true); setIsKesAccount(false); setIsZarAccount(false); setIsFidelityDorm(false); setIsUnionDorm(false); setIsEurGbp(false); setIsUsdAccount(false); setIsAfricanTransfer(true);
+              } else if (selectedItem == 'EUR' || selectedItem == 'GBP') {
+                setIsEurGbp(true); setIsGUZT(false); setIsKesAccount(false); setIsZarAccount(false); setIsFidelityDorm(false); setIsUnionDorm(false); setIsUsdAccount(false); setIsAfricanTransfer(false);
+              } else if ((selectedItem == 'USD')) {
+                setIsUsdAccount(true); setIsEurGbp(false); setIsGUZT(false); setIsKesAccount(false); setIsZarAccount(false); setIsFidelityDorm(false); setIsUnionDorm(false); setIsAfricanTransfer(false);
+              } else {
+                setIsUsdAccount(false); setIsEurGbp(false); setIsGUZT(false); setIsKesAccount(false); setIsZarAccount(false); setIsFidelityDorm(false); setIsUnionDorm(false); setIsAfricanTransfer(false);
+              }
             }}
             defaultButtonText="Recipient Currency"
             buttonStyle={styles.dropDownButtonStyle}
@@ -499,20 +623,29 @@ export default function Transfer({route}) {
             rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />}
 
-          {(!internationalTransfer || isNigerianDorm) && <SelectDropdown
+
+          {(!internationalTransfer || isNigerianDorm || isLocalDomiciliary || isGUZT || isKesAccount) && <SelectDropdown
             data={banks}
             search={true}
             onSelect={(selectedItem, index) => { 
-              console.log(selectedItem)
+              // console.log(selectedItem.name, '--local comiciliary')
+              // console.log('i am here')
+              setLocalBankName(selectedItem.name)
+              // console.log(localBankName, '--local')
+
+              // setTimeout(() => {
+              //   console.log(localBankName, 'testtest'); // Log the updated localBankName value after a short delay
+              // }, 5000);
+              
               handleSelectedBanks(selectedItem)
-              if ( selectedItem.name == 'Fidelity Bank') {
-                setIsFidelityDorm(true); setIsFcmbDorm(false);
-              }else if (selectedItem.name == 'Union Bank') {
+              if ( selectedItem.name == 'Fidelity Bank' && isLocalDomiciliary == true ) {
+                setIsFidelityDorm(true); setIsFcmbDorm(false); setIsUnionDorm(false)
+              }else if (selectedItem.name == 'Union Bank' && isLocalDomiciliary == true) {
                 setIsUnionDorm(true); setIsFidelityDorm(false); setIsFcmbDorm(false);
-              }else if (selectedItem.name == 'First City Monument Bank' && isLocalDomiciliary == true) {
+              }else if (selectedItem.name == 'First City Monument Bank') {
                 setIsFcmbDorm(true); setIsUnionDorm(false); setIsFidelityDorm(false);
               }else{
-                setIsUnionDorm(true); setIsFidelityDorm(false); setIsFcmbDorm(false);
+                setIsUnionDorm(false); setIsFidelityDorm(false); setIsFcmbDorm(false);
               }
             }}
             defaultButtonText="Local Banks"
@@ -525,7 +658,7 @@ export default function Transfer({route}) {
             rowTextForSelection={(item, index) => { return item.name }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />}
 
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {!internationalTransfer && <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{color: '#949197', marginLeft: 10, fontFamily: 'Nunito'}}>Local Domiciliary Account: </Text>
             <Switch
               trackColor={{ false: '#767577', true: '#81b0ff' }}
@@ -534,9 +667,22 @@ export default function Transfer({route}) {
               onValueChange={toggleSwitch}
               value={isLocalDomiciliary}
             />
-          </View>
+          </View>}
 
-          {isGUZT && <TextInput
+          {(isLocalDomiciliary || transferScope == "International" ) && <SelectDropdown
+            data={availableCurrency}
+            onSelect={(selectedItem, index) => { setSourceCurrency(selectedItem) }}
+            defaultButtonText="Source Currency"
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 5 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem }}// text represented after item is selected--if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => { return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown 
+          />}
+
+          {(isGUZT) && <TextInput
               editable={false}
               style={styles.input}
               placeholder="Branch Code"
@@ -569,6 +715,33 @@ export default function Transfer({route}) {
             value={inputValueAccount}
           />
 
+          {((isEurGbp || isUsdAccount) && (transferScope == "International")) && <TextInput
+            style={styles.input}
+            placeholder="Swift Code"
+            placeholderTextColor="#949197" 
+            type="text"
+            onChangeText={code => setSwiftCode(code)}
+            value={swiftCode}
+          />}
+
+          {(isEurGbp || isUsdAccount || (isLocalDomiciliary && isFcmbDorm)) && <TextInput
+            style={styles.input}
+            placeholder="Routing Number"
+            placeholderTextColor="#949197" 
+            type="text"
+            onChangeText={routing => setRoutingNumber(routing)}
+            value={routingNumber}
+          />}
+
+          {((isEurGbp || isUsdAccount) && transferScope == "International") && <TextInput
+            style={styles.input}
+            placeholder="Bank Name"
+            placeholderTextColor="#949197" 
+            type="text"
+            onChangeText={bank => setInternationalBankName(bank)}
+            value={internationBankName}
+          />}
+
           <TextInput
             style={styles.input}
             placeholder="Narration"
@@ -578,7 +751,7 @@ export default function Transfer({route}) {
             value={narration}
           />
 
-          {(isZarAccount || isNigerianDorm) && <TextInput
+          {(isZarAccount || isNigerianDorm || isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="First Name"
             placeholderTextColor="#949197" 
@@ -587,7 +760,7 @@ export default function Transfer({route}) {
             value={beneficiaryFirstName}
           />}
 
-          {(isZarAccount || isNigerianDorm) && <TextInput
+          {(isZarAccount || isNigerianDorm || isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Last Name"
             placeholderTextColor="#949197" 
@@ -596,7 +769,7 @@ export default function Transfer({route}) {
             value={beneficiaryLastName}
           />}
 
-          {(isZarAccount || (isFcmbDorm && isLocalDomiciliary)) && <TextInput
+          {(isZarAccount || isFcmbDorm || isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Email"
             placeholderTextColor="#949197" 
@@ -605,7 +778,7 @@ export default function Transfer({route}) {
             value={beneficiaryEmail}
           />}
 
-          {isFcmbDorm && <TextInput
+          {(isFcmbDorm && isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Sender Occupation"
             placeholderTextColor="#949197" 
@@ -614,25 +787,18 @@ export default function Transfer({route}) {
             value={senderOccupation}
           />}
 
-          {isFcmbDorm && <TextInput
-            style={styles.input}
+          {(isFcmbDorm && isLocalDomiciliary) && <TextInput
+            style={styles.textAreaStyle}
             placeholder="Sender Address"
+            multiline = {true}
+            numberOfLines = {3}
             placeholderTextColor="#949197" 
             type="text"
-            onChangeText={text => setBeneficiaryOccupation(text)}
-            value={beneficiaryOccupation}
+            onChangeText={text => setSenderAddress(text)}
+            value={senderAddress}
           />}
 
-          {isFcmbDorm && <TextInput
-            style={styles.input}
-            placeholder="Beneficiary Occupation"
-            placeholderTextColor="#949197" 
-            type="text"
-            onChangeText={text => setBeneficiaryOccupation(text)}
-            value={beneficiaryOccupation}
-          />}
-
-          {(isFidelityDorm || isUnionDorm) && <TextInput
+          {((isFidelityDorm || isUnionDorm) && isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Sender City"
             placeholderTextColor="#949197" 
@@ -641,26 +807,26 @@ export default function Transfer({route}) {
             value={senderCity}
           />}
 
-          {isNigerianDorm && <TextInput
+          {(isNigerianDorm || isLocalDomiciliary) && <TextInput
             style={styles.input}
-            placeholder="Merchant Name"
+            placeholder="Merchant Name - Optional"
             placeholderTextColor="#949197" 
             type="text"
             onChangeText={text => setMerchantName(text)}
             value={merchantName}
           />}
 
-          {isFcmbDorm && <Picker
-            selectedValue={selectedValue}
+          {(isFcmbDorm && isLocalDomiciliary) && <Picker
+            selectedValue={senderIdType}
             style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSenderIdType(itemValue)}
+            onValueChange={(senderIdType, itemIndex) => setSenderIdType(senderIdType)}
           >
             <Picker.Item label="Drivers Liscence" value="drivers license" />
             <Picker.Item label="Passport" value="passport" />
             <Picker.Item label="National ID" value="national id" />
           </Picker>}
 
-          {isFcmbDorm && <TextInput
+          {(isFcmbDorm && isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Transfer Purpose"
             placeholderTextColor="#949197" 
@@ -669,7 +835,7 @@ export default function Transfer({route}) {
             value={transferPurpose}
           />}
 
-          {isFcmbDorm && <TextInput
+          {(isFcmbDorm && isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Sender ID number"
             placeholderTextColor="#949197" 
@@ -679,37 +845,29 @@ export default function Transfer({route}) {
             value={senderIdNumber}
           />}
 
-          {isFcmbDorm && <TextInput
+          {(isLocalDomiciliary && isFcmbDorm) && <TextInput
             style={styles.input}
-            placeholder="Sender Address"
+            placeholder="Recipient Address"
+            multiline = {true}
+            numberOfLines = {3}
             placeholderTextColor="#949197" 
             type="text"
-            keyboardType='number'
-            onChangeText={text => setSenderAddress(text)}
-            value={senderAddress}
+            onChangeText={text => setRecipientAddress(text)}
+            value={recipientAddress}
           />}
 
-          {isFcmbDorm && <TextInput
-            style={styles.input}
-            placeholder="Sender Beneficiary Relationship"
-            placeholderTextColor="#949197" 
-            type="text"
-            keyboardType='number'
-            onChangeText={text => setSenderBeneficiaryRelationship(text)}
-            value={senderBeneficiaryRelationship}
-          />}
+          
 
-          {isFcmbDorm && <MyTextInput 
+          {(isFcmbDorm && isLocalDomiciliary) && <MyTextInput 
             icon="calendar"
-            placeholder="YYYY - MM - DD"
+            placeholder=" ID expiry - YYYY - MM - DD"
             placeholderTextColor={myPlaceHolderTextColor}
-            // onChangeText={handleChange('dateOfBirth')}
-            // onBlur = {handleBlur('dateOfBirth')}
             value={dob ? dob.toDateString() : ''}
             isDate={true}
             editable = {false}
             showDatePicker = {showDatePicker}
             onPress={() => showMode('date')}
+            style={styles.input}
           />}
 
           {show && (<DateTimePicker
@@ -721,26 +879,28 @@ export default function Transfer({route}) {
             onChange={onChange}
           />)}
 
-          {(isZarAccount || isFcmbDorm) && <TextInput
+          {(isLocalDomiciliary || isZarAccount) && <TextInput
             style={styles.input}
             placeholder="Mobile Number"
             placeholderTextColor="#949197" 
             type="text"
-            keyboardType='number'
+            keyboardType={'numeric'}
             onChangeText={text => setBeneficiaryMobile(text)}
             value={beneficiaryMobile}
           />}
 
-          {(isZarAccount || isUsdAccount) && <TextInput
+          {(isZarAccount || isUsdAccount || isFcmbDorm) && <TextInput
             style={styles.input}
             placeholder="Beneficiary Address"
+            multiline = {true}
+            numberOfLines = {3}
             placeholderTextColor="#949197" 
             type="text"
             onChangeText={text => setBeneficiaryAddress(text)}
             value={beneficiaryAddress}
           />}
 
-          {(isKesAccount || isNigerianDorm) && <TextInput
+          {(isKesAccount || isNigerianDorm || isLocalDomiciliary) && <TextInput
             style={styles.input}
             placeholder="Sender Name"
             placeholderTextColor="#949197" 
@@ -749,22 +909,20 @@ export default function Transfer({route}) {
             value={sender}
           />}
 
-          {isKesAccount && <TextInput
+          {(isKesAccount || isFcmbDorm) && <TextInput
             style={styles.input}
             placeholder="Sender Mobile Number"
             placeholderTextColor="#949197" 
-            keyboardType="number"
+            keyboardType={'numeric'}
             onChangeText={text => setSenderMobile(text)}
-            value={sender}
+            value={senderMobile}
           />}
 
-          {(isKesAccount || isEurGbp || isUsdAccount || isFcmbDorm) && <SelectDropdown
+          {((isFcmbDorm && isLocalDomiciliary) || isKesAccount) && <SelectDropdown
             data={allCountriesAbbreviations}
             search={true}
             onSelect={(selectedItem, index) => { 
               setSenderCountry(selectedItem)
-              selectedItem == 'NG' ? setIsNigerianDorm(true) 
-              : '' 
             }}
             defaultButtonText="Sender Country"
             buttonStyle={styles.dropDownButtonStyle}
@@ -776,15 +934,13 @@ export default function Transfer({route}) {
             rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />}
 
-          {isFcmbDorm && <SelectDropdown
+          {( isUsdAccount || isFcmbDorm || isLocalDomiciliary) && <SelectDropdown
             data={allCountriesAbbreviations}
             search={true}
             onSelect={(selectedItem, index) => { 
               setBeneficiaryCountry(selectedItem)
-              selectedItem == 'NG' ? setIsNigerianDorm(true) 
-              : '' 
             }}
-            defaultButtonText="Beneficiary Country"
+            defaultButtonText = "Beneficiary Country"
             buttonStyle={styles.dropDownButtonStyle}
             renderDropdownIcon = {renderDropdownIcon}
             rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
@@ -794,34 +950,7 @@ export default function Transfer({route}) {
             rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />}
 
-          {(isEurGbp || isUsdAccount) && <TextInput
-            style={styles.input}
-            placeholder="Swift Code"
-            placeholderTextColor="#949197" 
-            type="text"
-            onChangeText={code => setSwiftCode(code)}
-            value={swiftCode}
-          />}
-
-          {(isEurGbp || isUsdAccount) && <TextInput
-            style={styles.input}
-            placeholder="Routing Number"
-            placeholderTextColor="#949197" 
-            type="text"
-            onChangeText={routing => setRoutingNumber(routing)}
-            value={routingNumber}
-          />}
-
-          {(isEurGbp || isUsdAccount) && <TextInput
-            style={styles.input}
-            placeholder="Bank Name"
-            placeholderTextColor="#949197" 
-            type="text"
-            onChangeText={bank => setInternationalBankName(bank)}
-            value={inputValueAccount}
-          />}
-
-          {(isGUZT || isEurGbp || isUsdAccount) && <TextInput
+          {(isGUZT || isEurGbp || isUsdAccount || (isLocalDomiciliary && isFcmbDorm)) && <TextInput
             style={styles.input}
             placeholder="Beneficiary Name"
             placeholderTextColor="#949197" 
@@ -853,10 +982,9 @@ export default function Transfer({route}) {
                 data={countryData}
                 search={true}
                 onSelect={(selectedItem, index) => {
-                  console.log(selectedItem, index)
-                  setDestinationCountry(selectedItem)
+                  setBeneficiaryCountry(selectedItem)
                 }}
-                defaultButtonText="country"
+                defaultButtonText="Country"
                 buttonStyle={{
                   paddingTop: 30,
                   backgroundColor: '#1b181f',
@@ -870,16 +998,19 @@ export default function Transfer({route}) {
                   fontSize: 5,
                   width: '25%',
                   height: '75%',
+                  placeholderTextColor:"#949197"
                 }}
                 renderDropdownIcon = {renderDropdownIcon}
                 rowStyle={{
                   fontSize: 5,
                   fontFamily: 'Nunito',
+                  placeholderTextColor:"#949197"
                 }}
                 buttonTextStyle={{
                   color: '#fff',
                   fontFamily: 'Nunito',
-                  fontSize: 14,
+                  fontSize: 13,
+                  placeholderTextColor:"#949197" 
                 }}
                 rowTextStyle={{
                   marginLeft: 0
@@ -893,7 +1024,7 @@ export default function Transfer({route}) {
               />
           </View>}
 
-          {(isEurGbp || isUsdAccount) && <View style={styles.rowDirection}>
+          {(isEurGbp) && <View style={styles.rowDirection}>
             <TextInput
               style={styles.inputHalf50}
               placeholder="Street Name"
@@ -908,10 +1039,29 @@ export default function Transfer({route}) {
               placeholder="Beneficiary City"
               placeholderTextColor="#949197"   
               type="text"
-              onChangeText={text => setBeneficiaryStreetName(text)}
-              value={beneficiaryStreetName}
+              onChangeText={text => setBeneficiaryCity(text)}
+              value={beneficiaryCity}
             />
           </View>}
+
+          {(isFcmbDorm && isLocalDomiciliary) && <TextInput
+            style={styles.input}
+            placeholder="Beneficiary Occupation"
+            placeholderTextColor="#949197" 
+            type="text"
+            onChangeText={text => setBeneficiaryOccupation(text)}
+            value={beneficiaryOccupation}
+          />}
+
+          {(isFcmbDorm && isLocalDomiciliary) && <TextInput
+            style={styles.input}
+            placeholder="Sender Beneficiary Relationship"
+            placeholderTextColor="#949197" 
+            type="text"
+            keyboardType='number'
+            onChangeText={text => setSenderBeneficiaryRelationship(text)}
+            value={senderBeneficiaryRelationship}
+          />}
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
@@ -950,6 +1100,19 @@ const styles = StyleSheet.create({
     margin: 10,
     fontFamily: 'Nunito'
   },
+  textAreaStyle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 30,
+    backgroundColor: '#1b181f',
+    borderBottomColor: '#949197',
+    borderBottomWidth: 1,
+    borderRadius: 3,
+    color: '#fff',
+    margin: 10,
+    fontFamily: 'Nunito',
+    textAlignVertical: 'top'
+  },
   inputHalf: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -960,7 +1123,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     color: '#fff',
     margin: 10,
-    width: '28%'
+    width: '28%',
+    fontFamily: 'Nunito'
   },
   inputHalf50: {
     alignItems: 'center',
@@ -972,7 +1136,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     color: '#fff',
     margin: 10,
-    width: '44%'
+    width: '44%',
+    fontFamily: 'Nunito'
   },
   picker: {
     backgroundColor: '#1b181f',

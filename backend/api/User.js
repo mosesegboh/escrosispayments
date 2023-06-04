@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const ObjectID = require('mongodb')
+const ObjectId = require('mongodb').ObjectId
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const config = require('config')
@@ -41,13 +41,18 @@ transporter.verify((error, success) => {
 //sign up
 router.post('/signup', (req, res) => {
 
-    let {name, email, password, dateOfBirth} = req.body
+    let {name, email, password, dateOfBirth, isGoogleSignIn} = req.body
 
+    // console.log(isGoogleSignIn)
+    
     name = name.trim()
     email = email.trim()
-    password = password.trim()
-    dateOfBirth = dateOfBirth.trim()
+    isGoogleSignIn = (isGoogleSignIn !== undefined && isGoogleSignIn !== null && isGoogleSignIn !== "") ? true : false 
+    password =  isGoogleSignIn ? "googlesignintemppassword" : password.trim()
+    dateOfBirth = isGoogleSignIn ? new Date() : dateOfBirth.trim()
 
+    // console.log(isGoogleSignIn, '--google sign in')
+    // return
     //validation
     if (name == "" || email == "" || password == "" || dateOfBirth == ""){
         res.json({
@@ -78,13 +83,40 @@ router.post('/signup', (req, res) => {
         //if validation passed proceed by checking if the user already exist in the database
         User.find({ email}).then(result => {
             if(result.length){
-                res.json({
-                    status: "FAILED",
-                    message: "User Already exists in the database"
-                })
+                if (isGoogleSignIn == true){
+                    //You can update the last user login
+                    User.findOneAndUpdate(
+                        { _id: new ObjectId(result[0]._id) }, 
+                        { $set: { verified: true } }, 
+                        { new: true})
+                        .then(updatedResult => {
+                            if (updatedResult) {
+                                generateToken(updatedResult, res, password)
+                                .then(token => {
+
+                                    updatedResult = JSON.parse(JSON.stringify(updatedResult));
+                                    updatedResult.token = token;
+
+                                    return res.json({
+                                        status: "VERIFIED",
+                                        message: 'Google Sign In is verified successfully.....',
+                                        data: updatedResult
+                                    })
+
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                });
+                            }
+                        })
+                }else{
+                    res.json({
+                        status: "FAILED",
+                        message: "User already exists in the database"
+                    })
+                }
             }else{
                 //create the user
-
                 //password handling
                 const saltRounds = 10
                 bcrypt.hash(password, saltRounds).then(hashedPassword => {
@@ -94,23 +126,29 @@ router.post('/signup', (req, res) => {
                         email,
                         password: hashedPassword,
                         dateOfBirth,
-                        verified: false
+                        verified: isGoogleSignIn ? true : false,
+                        isGoogleSignIn
                     })
-
+                    
                     newUser
                     .save()
                     .then(result => {
                         const userparam =  { id: result.id }
-                        const expiresIn = { expiresIn: '360' }
+                        const expiresIn = { expiresIn: 36000 }
 
                         const accessToken = jwt.sign(userparam,config.get("ACCESS_TOKEN_SECRET"),expiresIn)
 
+                        // if (isGoogleSignIn) {
+                        result = JSON.parse(JSON.stringify(result));
+                        result.token = accessToken;
+                        // }
+                        // console.log(result,'---result')
+                        // return
                         //handle user verification
                         // email.sendVerificationEmail(result, res)
                         //sendVerification OTP
                         //THIS IS WHAT HANDLES THE VERIFICATION-COMMENTING IT FOR NOW FOREASY DEVELOPMENT
                         sendOTPVerificationEmail(result, res)
-                        
                         //DISABLE THIS WHEN USING EMAIL VERIFICATION FUNCTIONALITY
                         // res.json({
                         //     accessToken: accessToken,
@@ -121,14 +159,14 @@ router.post('/signup', (req, res) => {
                     }).catch(err => {
                         res.json({
                             status: "FAILED",
-                            message: "AN error occured while saving user"
+                            message: "An error occured while saving user"
                         })
                     })
 
                 }).catch(err => {
                     res.json({
                         status: "FAILED",
-                        message: "AN error occured during password hashing"
+                        message: "An error occured during password hashing"
                     })
                 })
             }
@@ -142,10 +180,196 @@ router.post('/signup', (req, res) => {
     }
 })
 
+//hashed password
+// const generateToken = (data, res, userPassword) => {
+//     // console.log(data, '--data');
+
+//     const hashedPassword = data.password
+//     const password = userPassword
+
+//     bcrypt.compare(password, hashedPassword).then(result => {
+//         if(!result){
+//             res.json({
+//                 status: "FAILED",
+//                 message: "Invalid password entered",
+//             })
+//         }
+
+//         //sign the jwt
+//         jwt.sign(
+//             { id: data.id },
+//             config.get("ACCESS_TOKEN_SECRET"),
+//             { expiresIn: 36000 },
+//             (err, token) => {
+//                 // console.log(token, '--token')
+//             if (err) throw err;
+            
+//             return token;
+//                 // data[0].token = token;
+//             }
+//         );
+//     }).catch(err => {
+//         res.json({
+//             status: "FAILED",
+//             message: "An error has occurred"
+//         })
+//     })
+// } 
+
+const generateToken = (data, res, userPassword) => {
+    const hashedPassword = data.password;
+    const password = userPassword;
+  
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, hashedPassword)
+        .then(result => {
+          if (!result) {
+            res.json({
+              status: "FAILED",
+              message: "Invalid password entered",
+            });
+            reject(new Error("Invalid password entered"));
+          }
+  
+          jwt.sign(
+            { id: data.id },
+            config.get("ACCESS_TOKEN_SECRET"),
+            { expiresIn: 36000 },
+            (err, token) => {
+              if (err) {
+                reject(err);
+              }
+              resolve(token);
+            }
+          );
+        })
+        .catch(err => {
+          res.json({
+            status: "FAILED",
+            message: "An error has occurred",
+          });
+          reject(err);
+        });
+    });
+  };
+  
+
+
+
+//sign in
+router.post('/signin', (req, res) => {
+    let {email, password} = req.body
+
+    email = email.trim()
+    password = password.trim()
+
+    if(email == "" || password == ""){
+        res.json({
+            status: "FAILED",
+            message: "Empty credentials"
+        })
+    }else {
+        //check if the user exist in the database
+        User.find({email}).lean().then(data => {
+            if (data.length){
+                //THIS IS FOR THE VERIFICATION STATUS OF THE USER
+                //check for the verification status of the user
+                if (!data[0].verified) {
+                    res.json({
+                        status: "FAILED",
+                        message: "Email has not been verified. check your inbox",
+                    })
+                }else{
+
+                     //User exists in the database
+                    const hashedPassword = data[0].password
+                    bcrypt.compare(password, hashedPassword).then(result => {
+
+                        if(!result){
+                            res.json({
+                                status: "FAILED",
+                                message: "Invalid password entered",
+                            })
+                        }
+
+                        //sign the jwt
+                        jwt.sign(
+                            { id: data.id },
+                            config.get("ACCESS_TOKEN_SECRET"),
+                            { expiresIn: 36000 },
+                            (err, token) => {
+                            if (err) throw err;
+
+                            //   res = JSON.parse(JSON.stringify(data));
+                                // res.token = token;
+                            data[0].token = token;
+
+                            console.log(data[0]);
+                            res.json({
+                                // token,
+                                status: "SUCCESS",
+                                data: data
+                                // user: {
+                                //   id: user.id,
+                                //   name: user.name,
+                                //   email: user.email,
+                                // },
+                            });
+                            }
+                        );
+
+                        // if (result) {
+                        //     //password match
+                        //     res.json({
+                        //         status: "SUCCESS",
+                        //         message: "Sign In successful",
+                        //         data: data
+                        //     })
+                        // }else {
+                        //     res.json({
+                        //         status: "FAILED",
+                        //         message: "Invalid passsword entered",
+                        //     })
+                        // }
+                    }).catch(err => {
+                        res.json({
+                            status: "FAILED",
+                            message: "An error has occurred"
+                        })
+                    })
+                }
+                               
+            }else{
+                res.json({
+                    status: "FAILED",
+                    message: "User does not exist"
+                })
+            }
+        }).catch(err => {
+            res.json({
+                status: "FAILED",
+                message: "An error has occurred"
+            })
+        })
+    }
+
+})
+
 
 //send otp verification Email
-const sendOTPVerificationEmail = async ({_id, email}, res) => {
+const sendOTPVerificationEmail = async (result, res) => {
+    const {_id, email, isGoogleSignIn, token, name, dateOfBirth} = result
+    // console.log(result, '--result')
+    // return
     try {
+        if (isGoogleSignIn) {
+            res.json({
+                status: "VERIFIED",
+                message: 'Google Sign In is verified successfully..',
+                data: result
+            })
+            return
+        }
         const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
 
         //mail options
@@ -172,13 +396,15 @@ const sendOTPVerificationEmail = async ({_id, email}, res) => {
         await transporter.sendMail(mailOPtions)
 
         // console.log(_id)
-
         res.json({
             status: "PENDING",
             message: "Verification OTP email sent",
             data: {
                 userId: _id,
                 email,
+                token,
+                name,
+                dateOfBirth
             }
         })
 
@@ -204,7 +430,7 @@ router.post('/verifyOTP', async (req, res) => {
                 userId
             })
 
-            console.log(UserOTPVerificationRecords)
+            // console.log(UserOTPVerificationRecords)
 
             if (UserOTPVerification.length <= 0) {
                 //no record found
@@ -217,7 +443,7 @@ router.post('/verifyOTP', async (req, res) => {
                 const {expiresAt} = UserOTPVerificationRecords[0]
                 const hashedOTP = UserOTPVerificationRecords[0].otp
 
-                console.log(expiresAt)
+                // console.log(expiresAt)
 
                 // console.log(UserOTPVerificationRecords[0], UserOTPVerificationRecords[0].otp, userId, otp)
 
@@ -442,103 +668,5 @@ router.get('/verify/:userId/:uniqueString', (req, res) =>{
         })
 })
 
-//sign in
-router.post('/signin', (req, res) => {
-    let {email, password} = req.body
-
-    email = email.trim()
-    password = password.trim()
-
-    if(email == "" || password == ""){
-        res.json({
-            status: "FAILED",
-            message: "Empty credentials"
-        })
-    }else {
-        //check if the user exist in the database
-        User.find({email}).lean().then(data => {
-            if (data.length){
-                //THIS IS FOR THE VERIFICATION STATUS OF THE USER
-                //check for the verification status of the user
-                if (!data[0].verified) {
-                    res.json({
-                        status: "FAILED",
-                        message: "Email has not been verified. check your inbox",
-                    })
-                }else{
-
-                     //User exists in the database
-                    const hashedPassword = data[0].password
-                    bcrypt.compare(password, hashedPassword).then(result => {
-
-                        if(!result){
-                            res.json({
-                                status: "FAILED",
-                                message: "Invalid password entered",
-                            })
-                        }
-
-                        //sign the jwt
-                        jwt.sign(
-                            { id: data.id },
-                            config.get("ACCESS_TOKEN_SECRET"),
-                            { expiresIn: 36000 },
-                            (err, token) => {
-                            if (err) throw err;
-
-                            //   res = JSON.parse(JSON.stringify(data));
-                                // res.token = token;
-                            data[0].token = token;
-
-                            console.log(data[0]);
-                            res.json({
-                                // token,
-                                status: "SUCCESS",
-                                data: data
-                                // user: {
-                                //   id: user.id,
-                                //   name: user.name,
-                                //   email: user.email,
-                                // },
-                            });
-                            }
-                        );
-
-                        // if (result) {
-                        //     //password match
-                        //     res.json({
-                        //         status: "SUCCESS",
-                        //         message: "Sign In successful",
-                        //         data: data
-                        //     })
-                        // }else {
-                        //     res.json({
-                        //         status: "FAILED",
-                        //         message: "Invalid passsword entered",
-                        //     })
-                        // }
-                    }).catch(err => {
-                        res.json({
-                            status: "FAILED",
-                            message: "An error has occurred"
-                        })
-                    })
-                }
-                               
-            }else{
-                res.json({
-                    status: "FAILED",
-                    message: "User does not exist"
-                })
-            }
-        }).catch(err => {
-            res.json({
-                status: "FAILED",
-                message: "An error has occurred"
-            })
-        })
-    }
-
-})
 
 module.exports = router

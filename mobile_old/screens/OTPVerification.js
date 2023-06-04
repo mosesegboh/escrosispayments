@@ -121,7 +121,7 @@ export default function OTPVerification({route}) {
             const result = await axios.post(url, {userId, otp: code})
             const {data} = result
 
-            console.log(data)
+            console.log(data, '--otp veriication')
 
             if(data.status !== "VERIFIED") {
                 setVerificationSuccessful(false)
@@ -318,6 +318,7 @@ export default function OTPVerification({route}) {
                 requestMessage={requestMessage}
                 persistLoginAfterOTPVerification={persistLoginAfterOTPVerification}
             />
+            
         </View>
     </KeyboardAvoidingWrapper>
   )

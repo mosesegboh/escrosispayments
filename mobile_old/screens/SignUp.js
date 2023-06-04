@@ -61,9 +61,11 @@ const SignUp = ({navigation}) => {
             const result = response.data;
             const {message, status, data} = result
 
+            console.log(result, '--result to plan')
+
             // if(status !== 'SUCCESS') {
             if(status !== 'PENDING') {
-                console.log('inside pending')
+                // console.log('inside pending')
                 handleMessage(message, status)
             }else{
                 
@@ -71,9 +73,12 @@ const SignUp = ({navigation}) => {
                 //former one
                 // persistLogin({...data}, message, status)
                 // console.log(email, '--email')
-                temporaryUserPersist({email, name, dateOfBirth} = credentials)
+                //the former before the instant login is just below this line below:
+                // temporaryUserPersist({email, name, dateOfBirth} = credentials)
+                console.log(result.data, '--inside handle signup')
+                temporaryUserPersist({email, name, dateOfBirth, token} = data)
                 // temporaryUserPersist(credentials)
-                console.log(email, 'inside elseemail')
+                // console.log(email, 'inside elseemail')
                 navigation.navigate('OTPVerification', {...data})
             }
             setSubmitting(false)

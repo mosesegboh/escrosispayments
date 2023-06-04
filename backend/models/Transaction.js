@@ -55,7 +55,44 @@ const TransactionSchema = new Schema({
     debitCurrency: {
         type: String,
         required: false
+    },
+    beneficiaryEmail: {
+        type: String,
+        required: false
+    },
+    beneficiary_country: {
+        type: String,
+        required: false
+    },
+    beneficiary_occupation: {
+        type: String,
+        required: false
+    },
+    recipient_address: {
+        type: String,
+        required: false
+    },
+    mobile_number: {
+        type: String,
+        required: false
+    },
+    sender: {
+        type: String,
+        required: false
+    },
+    sender_country: {
+        type: String,
+        required: false
+    },
+    sender_id_number: {
+        type: String,
+        required: false
+    },
+    sender_id_type: {
+        type: String,
+        required: false
     }
+
 })
 
 const Transaction = mongoose.model('Transaction', TransactionSchema)
