@@ -1,39 +1,23 @@
 import React, { useState } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity,TextInput, Picker, Button } from 'react-native';
-// import { Colors, ExtraView } from './../components/styles';
-import Constants from 'expo-constants';
-//DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
-
+import { CredentialsContext } from '../components/CredentialsContext';
+import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 import {
-  StyledContainer,
-  InnerContainer,
-  PageLogo,
-  PageTitle,
-  SubTitle,
-  StyledFormArea,
   LeftIcon,
   StyledInputLabel,
   StyledTextInput,
-  StyledButton,
-  ButtonText,
   RightIcon,
   Colors,
-  Line,
-  MsgBox,
-  ExtraView,
-  ExtraText,
-  TextLink,
-  TextLinkContent
 } from '../components/styles';
 
-//Colors
 const {myButton,grey, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
 
-//icons
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
-
 export default function Transaction() {
+
+  //context
+  const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+
   const [selectedValue, setSelectedValue] = useState("java");
 
   const [show, setShow] = useState(false);

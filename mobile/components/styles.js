@@ -41,11 +41,15 @@ export const PageLogo = styled.Image`
     height: 200px;
 `
 export const PageTitle = styled.Text`
-    font-size: 30px;
+    font-size: 15px;
     text-align: center;
     font-weight: bold; 
     color: ${myWhite};
     padding: 10px;
+
+    ${(props) => props.welcome &&`
+      font-size: 35px;
+   `}
 `
 export const SubTitle = styled.Text`
     font-size: 18px;
@@ -53,6 +57,11 @@ export const SubTitle = styled.Text`
     letter-spacing: 1px;
     font-weight: bold;
     color: ${myWhite};
+
+    ${(props) => props.welcome &&`
+      margin-bottom: 5px;
+      font-weight: normal;
+   `}
 `
 export const StyledFormArea = styled.View`
     width: 90%;
@@ -62,11 +71,13 @@ export const StyledTextInput = styled.TextInput`
    padding: 15px;
    padding-left: 55px;
    padding-right: 55px;
-   border-radius: 5px;
+   border-radius: 0px;
+   border-bottom-width: 1px;
+   border-bottom-color: '#949197;
    font-size: 16px;
    height: 60px;
-   margin-vertical: 3px;
-   margin-bottom: 10px;
+   margin-vertical: 0px;
+   margin-bottom: 0px;
    color: ${myWhite}
    border-bottom-color: ${myWhite}
 `
@@ -74,6 +85,7 @@ export const StyledInputLabel = styled.Text`
    color: ${tertiary};
    font-size: 13px;
    text-align: left;
+   font-family: 'Nunito';
 `
 export const LeftIcon = styled.View`
    left: 15px;
@@ -88,12 +100,12 @@ export const RightIcon = styled.TouchableOpacity`
    z-index: 1;
 `
 export const StyledButton = styled.TouchableOpacity`
-   padding: 15px;
+   padding: 10px;
    background-color: ${myButton};
    justify-content: center;
    align-items: center;
-   border-radius: 5px;
-   margin-vertical: 5px;
+   border-radius: 0px;
+   margin-vertical: 0px;
    height: 60px;
 
    ${(props) => props.google == true && `
@@ -139,6 +151,7 @@ export const ExtraText = styled.Text`
    align-content: center;
    color: ${myWhite};
    font-size: 15px;
+   font-family: 'Nunito';
 `
 
 export const TextLink = styled.TouchableOpacity`
@@ -149,7 +162,144 @@ export const TextLink = styled.TouchableOpacity`
 export const TextLinkContent = styled.Text`
    color: ${myButton};
    font-size: 15px;
+   font-family: 'Nunito';
 
+   ${(props) => {
+      const {resendStatus} = props;
+      if (resendStatus === 'Failed!') {
+         return `color: ${Colors.red}`;
+      }else if (resendStatus === 'Sent!') {
+         return `color: ${Colors.green}`;
+      }
+   }}
+`
+
+//verification components
+export const TopHalf = styled.View`
+   flex: 1;
+   justify-content: center;
+   padding: 20px;
+`
+
+export const IconBg = styled.View`
+   width: 300px;
+   height: 300px;
+   background-color: ${Colors.myGreen};
+   border-radius: 250px;
+   justify-content: center;
+   align-items: center;
+   margin-top: 30px;
+`
+
+export const BottomHalf = styled(TopHalf)`
+   justify-content: space-around;
+`
+
+export const InfoText = styled.Text`
+   color: white;
+   font-size: 15px;
+   text-align: center;
+   font-family: Nunito;
+`
+
+export const EmphasizeText = styled.Text`
+   font-weight: bold;
+   font-style: italic;
+   font-family: 'Nunito';
+`
+
+export const CodeInputSection = styled.View`
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      margin-vertical: 30px;
+`
+// position: absolute;
+//       width: 1px;
+//       height: 1px;
+//       opacity: 0;
+export const HiddenTextInput = styled.Text`
+      border-color: ${green};
+      border-width: 2px;
+      border-radius: 5px;
+      padding: 12px;
+      margin-top: 15px;
+      width: 300px;
+      color: ${myWhite};
+`
+
+export const CodeInputContainer = styled.Pressable`
+   width: 70%;
+   flex-direction: row;
+   justify-content: space-between;
+`
+
+export const CodeInput = styled.View`
+   border-color:${Colors.green};
+   min-width: 15%;
+   border-width: 2px;
+   border-radius: 5px;
+   padding: 12px;
+`
+
+export const CodeInputText = styled.Text`
+   font-size: 22px;
+   font-weight: bold;
+   text-align; center;
+   color: ${Colors.brand};
+`
+
+export const CodeInputFocused = styled(CodeInput)`
+   border-color: ${Colors.green}
+`
+
+export const InlineGroup = styled.View`
+   flex-direction: row;
+   padding: 10px;
+   justify-content: center;
+   align-items: center;
+`
+
+export const ModalContainer = styled(StyledContainer)`
+   justify-content: center;
+   align-items: center;
+   background-color: rgba(0, 0, 0, 0.7);
+`
+
+export const ModalView = styled.View`
+   margin: 20px;
+   background-color: white;
+   border-radius: 20px;
+   padding: 35px;
+   align-items: center;
+   elevation: 5;
+   shadow-color: #000;
+   shadow-offset: 0px 2px;
+   shadow-opacity: 0.25;
+   shadow-radius: 4px;
+   width: 100%;
+`
+
+export const WelcomeContainer = styled(InnerContainer)`
+   padding: 25px;
+   padding-top: 10px;
+   justify-content: center;
+`;
+
+export const Avatar = styled.Image`
+   width: 80px
+   height: 80px;
+   margin: auto;
+   border-radius: 50px;
+   border-width: 2px;
+   border-color: ${secondary};
+   margin-bottom: 10px
+   margint-top: 10px;
+`
+
+export const WelcomeImage = styled.Image`
+   height: 50%;
+   min-width: 100%;
 `
 
 

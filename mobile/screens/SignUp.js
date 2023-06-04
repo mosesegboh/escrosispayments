@@ -1,22 +1,11 @@
 import React, {useState, useContext} from 'react';
 import { StatusBar } from 'expo-status-bar';
-// import { View } from 'formik';
-
-//formik
 import {Formik} from  'formik';
-
-//icons
-import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
-
-//KeyboardAvoidingWrapper
+import {Octicons, Ionicons} from '@expo/vector-icons';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
-
 import {
     StyledContainer,
     InnerContainer,
-    PageLogo,
-    PageTitle,
-    SubTitle,
     StyledFormArea,
     LeftIcon,
     StyledInputLabel,
@@ -32,35 +21,24 @@ import {
     TextLink,
     TextLinkContent
 } from '../components/styles';
-
-import {View, TouchableOpacity, ActivityIndicator} from 'react-native';
-//Colors
+import {View, TouchableOpacity, ActivityIndicator, Image} from 'react-native';
 const {myButton, myWhite, myPlaceHolderTextColor, darkLight, primary} = Colors;
-//DateTimePicker
 import DateTimePicker from '@react-native-community/datetimepicker';
-
-//API Client
 import axios from 'axios'
-
-//async storage
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
-//credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
-
-//context
-const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+import { BaseUrl } from '../services';
 
 const SignUp = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [show, setShow] = useState(false);
     const [date, setDate] = useState(new Date(2000, 0, 1));
-
     const [message, setMessage] = useState()
     const [messageType, setMessageType] = useState()
-
     //Actual date of birth chosen by the user to be sent
     const [dob, setDob] = useState();
+
+    const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
 
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -73,27 +51,50 @@ const SignUp = ({navigation}) => {
         setShow(true);
     }
 
-    //handle signup
-    const handleSignUp = (credentials,setSubmitting) => {
+    const handleSignUp = async (credentials,setSubmitting) => {
+        console.log(credentials, '--credentials')
         handleMessage(null)
-        const url = 'https://boiling-everglades-35416.herokuapp.com/user/signup';
+        const url = `${BaseUrl}/user/signup`;
 
         axios.post(url, credentials).then((response) => {
+            
             const result = response.data;
             const {message, status, data} = result
 
-            if(status !== 'SUCCESS') {
+            console.log(result, '--result to plan')
+
+            // if(status !== 'SUCCESS') {
+            if(status !== 'PENDING') {
+                // console.log('inside pending')
                 handleMessage(message, status)
             }else{
+                
                 // navigation.navigate('Dashboard', {...data})
-                persistLogin({...data}, message, status)
+                //former one
+                // persistLogin({...data}, message, status)
+                // console.log(email, '--email')
+                //the former before the instant login is just below this line below:
+                // temporaryUserPersist({email, name, dateOfBirth} = credentials)
+                console.log(result.data, '--inside handle signup')
+                temporaryUserPersist({email, name, dateOfBirth, token} = data)
+                // temporaryUserPersist(credentials)
+                // console.log(email, 'inside elseemail')
+                navigation.navigate('OTPVerification', {...data})
             }
             setSubmitting(false)
         }).catch((error) => {
-            console.log(error)
+            console.log(error, '--this is the axio error')
             setSubmitting(false)
-            handleMessage("An error occured, check your network and try again")
+            handleMessage("An error occured, check your network and try again.")
         })
+    }
+
+    const temporaryUserPersist = async (credentials) => {
+        try {
+            await AsyncStorage.setItem('tempUser', JSON.stringify(credentials))
+        } catch (error) {
+            handleMessage("Error with initial handling")
+        }
     }
 
     const handleMessage = (message,type="FAILED") => {
@@ -119,8 +120,12 @@ const SignUp = ({navigation}) => {
                 <StatusBar style="dark"/>
                 <InnerContainer>
                     
-                    <PageTitle>Escrosis</PageTitle>
-                    <SubTitle>Account SignUp</SubTitle>
+                    {/* <PageTitle>Escrosis</PageTitle>
+                    <SubTitle>Account SignUp</SubTitle> */}
+                    <Image 
+                    source={require('./../assets/img/escrosis-low-trans-bg.png')}
+                    style={{height:20, width:210, marginTop:100}}
+                />
 
                     {show && (
                         <DateTimePicker
@@ -213,7 +218,7 @@ const SignUp = ({navigation}) => {
 
                         {!isSubmitting && <StyledButton onPress={handleSubmit}>
                         <ButtonText>
-                            Login
+                            Sign Up
                         </ButtonText>
                         </StyledButton>}
 
@@ -221,17 +226,12 @@ const SignUp = ({navigation}) => {
                             <ActivityIndicator size="large" color={primary}/>
                         </StyledButton>}
 
-                        <StyledButton onPress={handleSubmit}>
-                            <ButtonText>
-                                Sign Up
-                            </ButtonText>
-                        </StyledButton>
                         <Line />
                         
                         <ExtraView>
-                            <ExtraText>Already have an account?</ExtraText>
+                            <ExtraText>Already have an account ? </ExtraText>
                             <TextLink onPress={() => navigation.navigate('Login')}>
-                                <TextLinkContent>Login</TextLinkContent>
+                                <TextLinkContent>  Login</TextLinkContent>
                             </TextLink>
                         </ExtraView>
                     </StyledFormArea>)}
@@ -244,8 +244,7 @@ const SignUp = ({navigation}) => {
 
 const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword, 
     isDate, showDatePicker,...props}) => {
-    return (
-        <View>
+    return (<View>
             <LeftIcon>
                 <Octicons name={icon} size={30} color={myButton} />
             </LeftIcon>
@@ -259,8 +258,7 @@ const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword,
                     <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
                 </RightIcon>
             )}
-        </View>
-    )
+        </View>)
 }
 
 export default SignUp;
