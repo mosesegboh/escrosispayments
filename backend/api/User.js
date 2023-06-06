@@ -86,29 +86,29 @@ router.post('/signup', (req, res) => {
                 if (isGoogleSignIn == true){
                     //You can update the last user login
                     User.findOneAndUpdate(
-                        { _id: new ObjectId(result[0]._id) }, 
-                        { $set: { verified: true } }, 
-                        { new: true})
-                        .then(updatedResult => {
-                            if (updatedResult) {
-                                generateToken(updatedResult, res, password)
-                                .then(token => {
+                    { _id: new ObjectId(result[0]._id) }, 
+                    { $set: { verified: true } }, 
+                    { new: true})
+                    .then(updatedResult => {
+                        if (updatedResult) {
+                            generateToken(updatedResult, res, password)
+                            .then(token => {
 
-                                    updatedResult = JSON.parse(JSON.stringify(updatedResult));
-                                    updatedResult.token = token;
+                                updatedResult = JSON.parse(JSON.stringify(updatedResult));
+                                updatedResult.token = token;
 
-                                    return res.json({
-                                        status: "VERIFIED",
-                                        message: 'Google Sign In is verified successfully.....',
-                                        data: updatedResult
-                                    })
-
+                                return res.json({
+                                    status: "VERIFIED",
+                                    message: 'Google Sign In is verified successfully.....',
+                                    data: updatedResult
                                 })
-                                .catch(err => {
-                                    console.error(err);
-                                });
-                            }
-                        })
+
+                            })
+                            .catch(err => {
+                                console.error(err);
+                            });
+                        }
+                    })
                 }else{
                     res.json({
                         status: "FAILED",

@@ -42,7 +42,7 @@ const processTransfers = async (data, res) => {
         return [currentBalance]
     })
 
-    if ( amount > userCurrentDetails[0]) {
+    if ( amount > userCurrentDetails[0] ) {
         return res.json({
             status: "FAILED",
             message: "You do not have sufficient funds to complete your transaction"
@@ -68,25 +68,76 @@ const processTransfers = async (data, res) => {
         callbackUrl: callbackUrl,
         debitCurrency: debitCurrency,
         status: 'pending',
-        
+
+        ...((transferType == "isGUZT") ? { destination_branch_code: data.branchCode, beneficiary_name: data.beneficiaryName } : {}),
+
+        ...((transferType = "isLocalDomiciliaryAndIsFcmbOrIsUsdOrIsEur") ? { beneficiary_name: data.beneficiaryName } : {}),
+
+        ...((transferType = "isLocalDomiciliary") ? { meta: [{
+            first_name: data.beneficiaryFirstName,
+            last_name: data.beneficiaryLastName,
+            email: data.beneficiaryEmail,
+            beneficiary_country: data.beneficiaryCountry,
+            mobile_number: data.beneficiaryMobile,
+            sender: data.sender,
+            merchant_name: data.merchantName
+          }] } : {}),
         //additional meta fields for international transfers
         ...((transferType == "isLocalDomiciliaryandisFcmbDorm") ? { meta: [{
             beneficiaryEmail: data.beneficiaryEmail,
             beneficiary_country: data.beneficiaryCountry,
             beneficiary_occupation: data.beneficiaryOccupation,
             recipient_address: data.recipientAddress,
-            mobile_number: beneficiaryMobile,
-            sender: sender,
-            sender_country: senderCountry,
-            sender_id_number: senderIdNumber,
-            sender_id_type: senderIdType,
-            sender_id_expiry: senderIdExpiryDate,
-            sender_mobile_number: senderMobile,
-            sender_address: senderAddress,
-            sender_occupation: senderOccupation,
-            sender_beneficiary_relationship: senderBeneficiaryRelationship,
-            transfer_purpose: transferPurpose
-          }] } : {}),
+            mobile_number: data.beneficiaryMobile,
+            sender: data.sender,
+            sender_country: data.senderCountry,
+            sender_id_number: data.senderIdNumber,
+            sender_id_type: data.senderIdType,
+            sender_id_expiry: data.senderIdExpiryDate,
+            sender_mobile_number: data.senderMobile,
+            sender_address: data.senderAddress,
+            sender_occupation: data.senderOccupation,
+            sender_beneficiary_relationship: data.senderBeneficiaryRelationship,
+            transfer_purpose: data.transferPurpose
+        }] } : {}),
+
+        ...(transferType = "isUsdAccount" ? { meta: [{
+            AccountNumber: data.inputValueAccount,
+            RoutingNumber: data.routingNumber,
+            SwiftCode: data.swiftCode,
+            BankName: data.internationBankName,
+            BeneficiaryName: data.beneficiaryName,
+            BeneficiaryAddress: data.beneficiaryAddress,
+            BeneficiaryCountry: data.beneficiaryCountry,
+          }]} : {}),
+
+        ...(transferType == "isEurGbp" ? { meta: [{
+            AccountNumber: data.inputValueAccount,
+            RoutingNumber: data.routingNumber,
+            SwiftCode: data.swiftCode,
+            BankName: data.internationBankName,
+            BeneficiaryName: data.beneficiaryName,
+            BeneficiaryCountry: data.beneficiaryCountry,
+            PostalCode: data.postalCode,
+            StreetNumber: data.streetNumber,
+            StreetName: data.beneficiaryStreetName,
+            City: data.beneficiaryCity
+        }]} : {}),
+
+        ...(transferType == "isKesAccount" ? { meta: [{
+            sender: data.sender,
+            sender_country: data.senderCountry,
+            mobile_number: data.senderMobile
+        }]} : {}),
+
+        ...(isZarAccount == 'isZarAccount' ? { meta: [{
+            first_name: data.beneficiaryFirstName,
+            last_name: data.beneficiaryLastName,
+            email: data.beneficiaryEmail,
+            mobile_number: data.beneficiaryMobile,
+            recipient_address: data.recipientAddress
+        }]} : {}),
+
     };
 
     if (transactFromAddedFunds == "no"){
@@ -98,7 +149,7 @@ const processTransfers = async (data, res) => {
                 transferFunction.sendTransferEmail(result, res, status)
                 res.json({
                     status: "SUCCESS",
-                    message: "Your transaction has been successfuly completed"
+                    message: "Your transaction has been successfuly submitted"
                 })
             }
         }).catch(err => {
@@ -110,6 +161,7 @@ const processTransfers = async (data, res) => {
         })
         return
     } 
+
 
     if (transactFromWallet == "yes") {    
         const newTransaction = new Transaction(update)
@@ -131,25 +183,21 @@ const processTransfers = async (data, res) => {
             })
         })
     }else{
-        setTimeout(function(){
-            console.log("Delaying for 5 secs for webhook");
-        }, 5000);
         //balance will remain thesame if you are doing from added funds
         if ( transactFromAddedFunds == "yes"){
             update.balance = userCurrentDetails[0]
         }
 
-        Transaction.findOneAndUpdate(filter, update, {
-            new: true
-        }).then(result => {
-                console.log(result, '<-result, right track')
+        Transaction.save(update).
+        then(result => {
+            console.log(result, '<-result, right track')
             if (result){
                 const status = "success"
                 transferFunction.sendTransferEmail(result, res, status)
                 
                 return res.json({
                     status: "SUCCESS",
-                    message: "Transfer has been sent successfully"
+                    message: "Transfer has been submitted successfully"
                 })
             }else{
                 return res.json({
@@ -165,10 +213,70 @@ const processTransfers = async (data, res) => {
             console.log(err)
             return res.json({
                 status: "FAILED",
-                message: "An error occured, while trying to send the transfer"
+                message: "An error occured, while trying to submit the transfer"
             })
         })
     }
+
+    //OLD CODE
+    // if (transactFromWallet == "yes") {    
+    //     const newTransaction = new Transaction(update)
+    //     newTransaction.save()
+    //     .then(result => {
+    //         if (result) {
+    //             const status = "success"
+    //             transferFunction.sendTransferEmail(result, res, status)
+    //             res.json({
+    //                 status: "SUCCESS",
+    //                 message: "The transaction was successfully added"
+    //             })
+    //         }
+    //     }).catch(err => {
+    //         console.log(err)
+    //         res.json({
+    //             status: "FAILED",
+    //             message: "An error occured while saving user"
+    //         })
+    //     })
+    // }else{
+    //     setTimeout(function(){
+    //         console.log("Delaying for 5 secs for webhook");
+    //     }, 5000);
+    //     //balance will remain thesame if you are doing from added funds
+    //     if ( transactFromAddedFunds == "yes"){
+    //         update.balance = userCurrentDetails[0]
+    //     }
+
+    //     Transaction.findOneAndUpdate(filter, update, {
+    //         new: true
+    //     }).then(result => {
+    //             console.log(result, '<-result, right track')
+    //         if (result){
+    //             const status = "success"
+    //             transferFunction.sendTransferEmail(result, res, status)
+                
+    //             return res.json({
+    //                 status: "SUCCESS",
+    //                 message: "Transfer has been sent successfully"
+    //             })
+    //         }else{
+    //             return res.json({
+    //                 status: "FAILED",
+    //                 message: "The transaction could not be completed - API"
+    //             })
+    //         }
+    //     }).catch(err => {
+    //         const status = "failed"
+    //         var result = {}
+    
+    //         transferFunction.sendTransferEmail(result, res, status)
+    //         console.log(err)
+    //         return res.json({
+    //             status: "FAILED",
+    //             message: "An error occured, while trying to send the transfer"
+    //         })
+    //     })
+    // }
 }
 
 module.exports = {processTransfers}  

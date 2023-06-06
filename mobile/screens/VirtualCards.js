@@ -23,6 +23,8 @@ import { CredentialsContext } from '../components/CredentialsContext';
 import SlidingUpPanel from 'rn-sliding-up-panel'
 import Carousel from 'react-native-snap-carousel'
 import { MaterialIcons } from '@expo/vector-icons';
+import SelectDropdown from 'react-native-select-dropdown'
+import  {allCountriesAbbreviations}  from '../services/index';
 import {
   LeftIcon,
   StyledInputLabel,
@@ -38,23 +40,27 @@ export default function VirtualCard({navigation, route}) {
   let {email, token} = storedCredentials
   const {balance} = route.params
 
-  const [selectedValue, setSelectedValue] = useState("ONCE");
-  const [selectedValueRecurrence, setSelectedValueRecurrence] = useState();
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
   const [inputValuePhone, setInputValuePhone] = useState();
   const [transactionId, setTransactionId] = useState();
-  const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
   const [details, setDetails] = useState();
-  const [input, setInput] = useState();
   const [data, setData] = useState([]);
-  const [billData, setbillData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
-  const [disabled, setDisabled] = useState(false)
+  const [currency, setCurrency] = useState()
+  const [debitCurrency, setDebitCurrency] = useState()
+  const [billingName, setBillingName] = useState()
+  const [billingAddress, setBillingAddress] = useState()
+  const [billingCity, setBillingCity] = useState()
+  const [billingState, setBillingState] = useState()
+  const [billingPostalCode, setBillingPostalCode] = useState()
+  const [billingCountry, setBillingCountry] = useState()
+  const [title, setTitle] = useState()
+  const [gender, setGender] = useState()
   
   useEffect(()=>{
     //generate transaction ID
@@ -110,9 +116,7 @@ export default function VirtualCard({navigation, route}) {
     )
   }
 
-
   // SLIDING PANEL
-
   const [dragRange,setDragRange] = useState({
     top:height - 80,
     bottom: 160
@@ -138,30 +142,10 @@ export default function VirtualCard({navigation, route}) {
   }
 
   const showDatePicker = () => {
-      setShow(true);
+    setShow(true);
   }
 
-  const navigateConfirmTransaction = () => {
-    if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
-        setSubmitting(false)
-        handleMessage("Please enter all fields")
-        alert("Please enter all fields")
-        return
-    }
-    
-    navigation.navigate('ConfirmTransaction', {
-    transactionId: transactionId,
-    email: email,
-    // transactionDate: new Date(),
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    date: dob,
-    details: details,
-    secondLegTransactionId: secondLeg,
-    token: `Bearer ${token}`
-  })}
-
-  const handleAddTransaction = () => {
+  const handleCreateVirtualCards = () => {
     // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     // if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
     //     setSubmitting(false)
@@ -216,40 +200,10 @@ export default function VirtualCard({navigation, route}) {
       })
   }
 
-  const searchTransactionId = (text) => {
-      setSecondLegTransactionInput(text);
-      // console.log('get data')
-      if (text.length > 2) {
-
-        const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions'
-
-        headers = {
-          'Authorization': `String text ${token}`
-        }
-
-        credentials = {
-          email: email,
-        }
-
-        axios.post(url, credentials,headers ).then((response) => {
-          // token = response.token
-          const result = response.data;
-          console.log(result)
-          if(result.length > 0) setData(result);
-          
-      
-          setSubmitting(false)
-        }).catch((error) => {
-            console.log(error)
-            setSubmitting(false)
-            handleMessage("An error occured, check your network and try again")
-        })
-        
-      }
-  }
-
-  const handleSelectedValue  = (text) => {
-    setSelectedValue(text)
+  const renderDropdownIcon = () => {
+    return(
+      <Octicons name="triangle-down" size={22} color="black" />
+    )
   }
 
   const handleAirtimePurchase = (text) => {
@@ -275,7 +229,6 @@ export default function VirtualCard({navigation, route}) {
       country: 'NG',
       customer: inputValuePhone,
       amount: inputValueAmount,
-      recurrence: selectedValue,
       type: 'AIRTIME',
       reference: transactionId,
     });
@@ -363,115 +316,49 @@ export default function VirtualCard({navigation, route}) {
     });      
   }
 
-
-
-
-
   return (
     <View style={styles.container}>
+      <View  style={{ alignItems: 'center', justifyContent: 'center', }}>
+        <Carousel 
+          layout={"tinder"}
+          ref={carouselRef}
+          data={Images}
+          renderItem={RenderItem}
+          sliderWidth={width}
+          itemWidth={width - 10}
+          swipeThreshold={100}
+          layoutCardOffset={-12}
+          inactiveSlideOpacity={0.4}
+          containerCustomStyle={{
+          overflow: 'visible',
+          marginVertical: 0
+          }}
+          contentContainerCustomStyle={{
+          paddingTop: 10
+          }}
+        />
+      </View>
 
-            <View  style={{ alignItems: 'center', justifyContent: 'center', }}>
-                <Carousel 
-                layout={"tinder"}
-                ref={carouselRef}
-                data={Images}
-                renderItem={RenderItem}
-                sliderWidth={width}
-                itemWidth={width - 10}
-                swipeThreshold={100}
-                layoutCardOffset={-12}
-                inactiveSlideOpacity={0.4}
-                containerCustomStyle={{
-                overflow: 'visible',
-                marginVertical: 0
-                }}
-                contentContainerCustomStyle={{
-                paddingTop: 10
-                }}
-                />
-            </View>
-        <View>
-          {show && (
-              <DateTimePicker
-                  testID="dateTimePicker"
-                  value={date}
-                  mode='date'
-                  is24Hour={true}
-                  display="default"
-                  onChange={onChange}
-              />
-          )}
+      <View>
+        <Text style={styles.input}>Your List Of Cards</Text>
 
-          <TextInput
-            style={styles.input}
-            value = {transactionId}
-            editable={false}
+        <Text>You do not currently have any cards</Text>
+
+        {show && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={date}
+            mode='date'
+            is24Hour={true}
+            display="default"
+            onChange={onChange}
           />
-
-          {/* <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(text)
-                (itemValue)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.short_name} value={item.short_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker> */}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Amount"
-            placeholderTextColor="#949197" 
-            type="number"
-            keyboardType={'numeric'}
-            onChangeText={amount => setInputValueAmount(amount)}
-            value={inputValueAmount}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            placeholderTextColor="#949197" 
-            type="number"
-            // keyboardType={'numeric'}
-            onChangeText={phone => setInputValuePhone(phone)}
-            value={inputValuePhone}
-          />
-
-          <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
-          >
-            <Picker.Item label="ONCE" value="ONCE" />
-            <Picker.Item label="HOURLY" value="HOURLY" />
-            <Picker.Item label="WEEKLY" value="WEEKLY" />
-            <Picker.Item label="DAILY" value="DAILY" />
-            <Picker.Item label="MONTHLY" value="MONTHLY" />
-          </Picker>
-
-          <MsgBox type={messageType}>{message}</MsgBox>
-
-           {submitting && <TouchableOpacity 
-            onPress={handleAirtimePurchase}
-            style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
-          </TouchableOpacity>}
-
-          {!submitting &&<TouchableOpacity 
-            onPress={handleAirtimePurchase}
-            style={styles.addTransactionButton}>
-              <Text style={styles.buttonText}>Purchase Airtime</Text>
-          </TouchableOpacity>}
-        </View>
+        )}
+      </View>
 
 
         <View style={{flex: 1}}>
-            <SlidingUpPanel 
+          <SlidingUpPanel 
             ref={ModalRef}
             draggableRange={dragRange}
             animatedValue={_draggedValue}
@@ -479,24 +366,227 @@ export default function VirtualCard({navigation, route}) {
             snappingPoints={[360]}
             height={height + 20}
             friction={0.9}
-            >
+          >
 
             <View style={{flex: 1, backgroundColor: '#0c0c0c', borderRadius: 24, padding: 14}}>
               <View style={styles.PanelHandle}></View>
               <View>
-                <Text style={{marginVertical: 16, color: '#fff'}}>Add A Card</Text>
+                <Text style={{marginVertical: 16, color: '#fff', justifyContent: 'center'}}>Add A Card</Text>
+
                 <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            placeholderTextColor="#949197" 
-            type="number"
-            // keyboardType={'numeric'}
-            onChangeText={phone => setInputValuePhone(phone)}
-            value={inputValuePhone}
-          />
+                  style={styles.input}
+                  value = {transactionId}
+                  editable={false}
+                />
+
+                <SelectDropdown
+                  data= {["Naira", "Dollar"]}
+                  // search={true}
+                  onSelect={(selectedItem, index) => { 
+                    // setSenderCountry(selectedItem)
+                    setCurrency(selectedItem)
+                  }}
+                  defaultButtonText="Currency"
+                  buttonStyle={styles.dropDownButtonStyle}
+                  renderDropdownIcon = {renderDropdownIcon}
+                  rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+                  buttonTextStyle={styles.dropDownButtonTextStyle}
+                  rowTextStyle={{ marginLeft: 0 }}
+                  buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+                  rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+                />
+
+                <SelectDropdown
+                  data= {["NGN"]}
+                  // search={true}
+                  onSelect={(selectedItem, index) => { 
+                    // setSenderCountry(selectedItem)
+                    setDebitCurrency(selectedItem)
+                  }}
+                  defaultButtonText="Debit Currency"
+                  buttonStyle={styles.dropDownButtonStyle}
+                  renderDropdownIcon = {renderDropdownIcon}
+                  rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+                  buttonTextStyle={styles.dropDownButtonTextStyle}
+                  rowTextStyle={{ marginLeft: 0 }}
+                  buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+                  rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+                />
+
+                <SelectDropdown
+                  data= {["Mr", "Mrs", "Master"]}
+                  // search={true}
+                  onSelect={(selectedItem, index) => { 
+                    setTitle(selectedItem)
+                    // setSelectedItem(selectedItem)
+                  }}
+                  defaultButtonText="Title"
+                  buttonStyle={styles.dropDownButtonStyle}
+                  renderDropdownIcon = {renderDropdownIcon}
+                  rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+                  buttonTextStyle={styles.dropDownButtonTextStyle}
+                  rowTextStyle={{ marginLeft: 0 }}
+                  buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+                  rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+                />
+
+                <SelectDropdown
+                  data= {["M", "F"]}
+                  // search={true}
+                  onSelect={(selectedItem, index) => { 
+                    setTitle(selectedItem)
+                    // setSelectedItem(selectedItem)
+                  }}
+                  defaultButtonText="Gender"
+                  buttonStyle={styles.dropDownButtonStyle}
+                  renderDropdownIcon = {renderDropdownIcon}
+                  rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+                  buttonTextStyle={styles.dropDownButtonTextStyle}
+                  rowTextStyle={{ marginLeft: 0 }}
+                  buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+                  rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="First Name"
+                  placeholderTextColor="#949197" 
+                  type="text"
+                  onChangeText={phone => setFirstName(phone)}
+                  value={firstName}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Last Name"
+                  placeholderTextColor="#949197"
+                  type="text"
+                  onChangeText={phone => setLastName(phone)}
+                  value={lastName}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="email"
+                  placeholderTextColor="#949197"
+                  type="text"
+                  onChangeText={phone => setEmail(phone)}
+                  value={email}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Billing City"
+                  placeholderTextColor="#949197" 
+                  type="text"
+                  onChangeText={phone => setBillingCity(phone)}
+                  value={billingCity}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Billing Name"
+                  placeholderTextColor="#949197" 
+                  type="text"
+                  onChangeText={phone => setBillingName(phone)}
+                  value={billingName}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Billing State"
+                  placeholderTextColor="#949197" 
+                  type="text"
+                  onChangeText={phone => setBillingState(phone)}
+                  value={billingState}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Billing Address"
+                  placeholderTextColor="#949197" 
+                  multiline = {true}
+                  numberOfLines = {3}
+                  type="text"
+                  onChangeText={phone => setBillingAddress(phone)}
+                  value={billingAddress}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Billing Postal Code"
+                  placeholderTextColor="#949197" 
+                  multiline = {true}
+                  numberOfLines = {3}
+                  type="text"
+                  onChangeText={phone => setBillingPostalCode(phone)}
+                  value={billingPostalCode}
+                />
+
+                <SelectDropdown
+                  data={allCountriesAbbreviations}
+                  search={true}
+                  onSelect={(selectedItem, index) => { 
+                    setBillingCountry(selectedItem)
+                  }}
+                  defaultButtonText="Billing Country"
+                  buttonStyle={styles.dropDownButtonStyle}
+                  renderDropdownIcon = {renderDropdownIcon}
+                  rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+                  buttonTextStyle={styles.dropDownButtonTextStyle}
+                  rowTextStyle={{ marginLeft: 0 }}
+                  buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+                  rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+                />
+
+                <MyTextInput 
+                  icon="calendar"
+                  placeholder=" ID expiry - YYYY - MM - DD"
+                  placeholderTextColor={myPlaceHolderTextColor}
+                  value={dob ? dob.toDateString() : ''}
+                  isDate={true}
+                  editable = {false}
+                  showDatePicker = {showDatePicker}
+                  onPress={() => showMode('date')}
+                  style={styles.input}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Phone Number"
+                  placeholderTextColor="#949197" 
+                  type="number"
+                  // keyboardType={'numeric'}
+                  onChangeText={phone => setInputValuePhone(phone)}
+                  value={inputValuePhone}
+                />
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Amount"
+                  placeholderTextColor="#949197" 
+                  keyboardType={'numeric'}
+                  onChangeText={phone => setInputValuePhone(phone)}
+                  value={inputValuePhone}
+                />
+
+                <MsgBox type={messageType}>{message}</MsgBox>
+
+                {submitting && <TouchableOpacity 
+                onPress={handleAirtimePurchase}
+                style={styles.addTransactionButton}>
+                  <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
+                </TouchableOpacity>}
+
+                {!submitting &&<TouchableOpacity 
+                onPress={handleAirtimePurchase}
+                style={styles.addTransactionButton}>
+                  <Text style={styles.buttonText}>Create Card</Text>
+                </TouchableOpacity>}
+
               </View>
             </View>
-            </SlidingUpPanel>
+          </SlidingUpPanel>
         </View>
     </View>
   );
@@ -566,39 +656,74 @@ const styles = StyleSheet.create({
       flexDirection: 'column',
     },
     PanelButton: {
-        padding:14,
-        width: 200,
-        justifyContent: 'center',
-        backgroundColor: '#1c1c1c',
-        borderRadius: 10
-      },
-      PanelButtonText: {
-        fontSize: 16,
-        color: '#fff',
-        alignSelf: 'center'
-      },
-      PanelHandle: {
-        height: 6,
-        width: 50,
-        backgroundColor: '#666',
-        borderRadius: 6,
-        alignSelf: 'center',
-        marginTop: 6
-      },
-      PanelItemContainer: {
-        borderWidth: 0.4,
-        borderColor: '#131112',
-        padding: 14,
-        borderRadius: 6,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20
-      },
-      PanelImage: {
-        width: 30,
-        height: 30,
-        backgroundColor: '#000',
-        borderRadius: 40
-      },
+      padding:14,
+      width: 200,
+      justifyContent: 'center',
+      backgroundColor: '#1c1c1c',
+      borderRadius: 10
+    },
+    PanelButtonText: {
+      fontSize: 16,
+      color: '#fff',
+      alignSelf: 'center'
+    },
+    PanelHandle: {
+      height: 6,
+      width: 50,
+      backgroundColor: '#666',
+      borderRadius: 6,
+      alignSelf: 'center',
+      marginTop: 6
+    },
+    PanelItemContainer: {
+      borderWidth: 0.4,
+      borderColor: '#131112',
+      padding: 14,
+      borderRadius: 6,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20
+    },
+    PanelImage: {
+      width: 30,
+      height: 30,
+      backgroundColor: '#000',
+      borderRadius: 40
+    },
+    dropDownButtonStyle: {
+      paddingTop: 30,
+      backgroundColor: '#1b181f',
+      borderBottomColor: '#949197',
+      borderBottomWidth: 1,
+      borderRadius: 3,
+      color: '#fff',
+      margin: 10,
+      width: '95%',
+      paddingTop: 10,
+      fontFamily: 'Nunito',
+      fontSize: 5
+    },
+    dropDownButtonStyleQuarter: {
+      paddingTop: 30,
+      backgroundColor: '#1b181f',
+      borderBottomColor: '#949197',
+      borderBottomWidth: 1,
+      borderRadius: 3,
+      color: '#fff',
+      margin: 10,
+      width: '95%',
+      paddingTop: 10,
+      fontFamily: 'Nunito',
+      fontSize: 5,
+      width: '25%',
+      height: '75%',
+    },
+    dropDownButtonTextStyle: {
+      color: '#949197',
+      // marginLeft: -35,
+      // marginRight: 150,
+      fontFamily: 'Nunito',
+      fontSize: 15,
+    }
 });

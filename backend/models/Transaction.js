@@ -73,7 +73,7 @@ const TransactionSchema = new Schema({
         required: false
     },
     mobile_number: {
-        type: String,
+        type: Number,
         required: false
     },
     sender: {
@@ -91,7 +91,93 @@ const TransactionSchema = new Schema({
     sender_id_type: {
         type: String,
         required: false
+    },
+    sender_id_expiry: {
+        type: Date,
+        required: false
+    },
+    sender_mobile_number: {
+        type: Number,
+        required: false
+    },
+    sender_mobile_number: {
+        type: Number,
+        required: false
+    },
+    sender_occupation: {
+        type: String,
+        required: false
+    },
+    sender_beneficiary_relationship: {
+        type: String,
+        required: false
+    },
+    transfer_purpose: {
+        type: String,
+        required: false
+    },
+    destination_branch_code: {
+        type: String,
+        required: false
+    },
+    beneficiary_name: {
+        type: String,
+        required: false
+    },
+    AccountNumber: {
+        type: String,
+        required: false
+    },
+    RoutingNumber: {
+        type: String,
+        required: false
+    },
+    SwiftCode: {
+        type: String,
+        required: false
+    },
+    BankName: {
+        type: String,
+        required: false
+    },
+    BeneficiaryName: {
+        type: String,
+        required: false
+    },
+    BeneficiaryAddress: {
+        type: String,
+        required: false
+    },
+    BeneficiaryCountry: {
+        type: String,
+        required: false
+    },
+    PostalCode: {
+        type: String,
+        required: false
+    },
+    StreetNumber: {
+        type: String,
+        required: false
+    },
+    StreetName: {
+        type: String,
+        required: false
+    },
+    City: {
+        type: String,
+        required: false
+    },
+    first_name: {
+        type: String,
+        required: false
+    },
+    last_name: {
+        type: String,
+        required: false
     }
+
+
 
 })
 

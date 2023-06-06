@@ -333,7 +333,7 @@ export default function Transfer({route}) {
         email: beneficiaryEmail,
         mobile_number: beneficiaryMobile,
         recipient_address: recipientAddress
-    }]} : {}),
+      }]} : {}),
 
     } 
     
@@ -374,7 +374,8 @@ export default function Transfer({route}) {
         : isZarAccount ? 'isZarAccount'
         : isLocalDomiciliary && isFcmbDorm ? 'isLocalDomiciliaryandisFcmbDorm'
         : isLocalDomiciliary && (isFidelityDorm || isUnionDorm) ? 'isLocalDomiciliaryandisFidelityUnionDorm'
-        : isLocalDomiciliary && (isFidelityDorm || isUnionDorm) ? 'isLocalDomiciliaryandisFidelityUnionDorm'
+        : (isLocalDomiciliary && isFcmbDorm) || isUsdAccount || isEurGbp ? 'isLocalDomiciliaryAndIsFcmbOrIsUsdOrIsEur'
+        : isLocalDomiciliary ? 'isLocalDomiciliary'
         : 'general'
 
         data.transferScope = transferScope
