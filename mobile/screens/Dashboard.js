@@ -164,7 +164,7 @@ export default function Dashboard ({navigation, route}) {
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('ComingSoon', {email: email, token: token, balance: balance})}>
           <MaterialCommunityIcons name="earth-arrow-right" size={20} color="green" />
-          <Text style={styles.billsText}>int. transfer</Text>
+          <Text style={styles.billsText}>swap</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance})}>
           <Ionicons name="card" size={24} color="green" />

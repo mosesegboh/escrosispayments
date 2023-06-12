@@ -10,6 +10,8 @@ export const FLUTTERWAVE_API_URL = 'https://api.flutterwave.com/v3'
 export const FLUTTERWAVE_GET_RATE_URL = 'transfers/rates'
 export const FLUTTER_BILL_PAYMENT_URL = 'bills'
 export const ADD_TRANSACTION_URL = '/transaction/add-transaction'
+export const CARD_BLOCK_STATUS = 'block'
+export const CARD_UNBLOCK_STATUS = 'unblock'
 
 async function wrapper(response) {
     const result = await response.json();

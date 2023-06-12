@@ -43,7 +43,7 @@ router.post('/feedback', (req, res) => {
     Transaction.findOne({ transactionId: transactionId })
     .then(transaction => {
         if (transaction) {
-            if (response.status == "successful") {
+            if (response.data.status == "SUCCESSFUL" || response.status == "success") {
                 transaction.status = "successful";
             }else{
                 transaction.status = "failed";

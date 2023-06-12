@@ -6,6 +6,7 @@ const authenticateTokenMiddleware = require("../middleware/authenticateTokenMidd
 const emailFunction = require('../services');
 const updateCustomerLockedBalance = require('../functions/transactions/Transactions')
 const transfer = require('../functions/transactions/processTransfers')
+const virtualCard = require('../functions/transactions/processVirtualCards')
 
 router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware, async  (req, res) => {
     
@@ -29,6 +30,16 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
         transfer.processTransfers( req.body, res)
         return
     }
+
+    if (transactionName == 'virtualcards') {
+        virtualCard.processVirtualCards( req.body, res)
+        return
+    }
+
+    // if (transactionName == 'virtualcardsaddfunds') {
+    //     virtualCard.processVirtualCards( req.body, res)
+    //     return
+    // }
 
     if (email == null 
         || transactionDate == null 

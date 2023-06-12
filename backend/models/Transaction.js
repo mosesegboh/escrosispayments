@@ -175,10 +175,79 @@ const TransactionSchema = new Schema({
     last_name: {
         type: String,
         required: false
+    },
+    virtualCardId: {
+        type: String,
+        required: false
+    },
+    account_id: {
+        type: String,
+        required: false
+    },
+    card_hash: {
+        type: String,
+        required: false
+    },
+    masked_pan: {
+        type: String,
+        required: false
+    },
+    state: {
+        type: String,
+        required: false
+    },
+    address_1: {
+        type: String,
+        required: false
+    },
+    address_2: {
+        type: String,
+        required: false
+    },
+    zip_code: {
+        type: String,
+        required: false
+    },
+    cvv: {
+        type: String,
+        required: false
+    },
+    expiration: {
+        type: String,
+        required: false
+    },
+    send_to: {
+        type: String,
+        required: false
+    },
+    bin_check_name: {
+        type: String,
+        required: false
+    },
+    card_type: {
+        type: String,
+        required: false
+    },
+    name_on_card: {
+        type: String,
+        required: false
+    },
+    created_at: {
+        type: String,
+        required: false
+    },
+    is_active: {
+        type: Boolean,
+        required: false
+    },
+    callback_url: {
+        type: String,
+        required: false
+    },
+    data: {
+        type: Object,
+        required: false
     }
-
-
-
 })
 
 const Transaction = mongoose.model('Transaction', TransactionSchema)

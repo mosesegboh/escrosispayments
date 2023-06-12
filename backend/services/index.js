@@ -1,16 +1,17 @@
 const walletTemplate = require('./email/templates/walletTemplate')
 const escrowTemplate = require('./email/templates/escrowTemplate')
 const verificationEmailTemplate = require('./email/templates/verificationEmailTemplate')
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken')
 const nodemailer = require('nodemailer')
+// const GOOGLE_PLAYSTORE_URL = 'https://play.google.com/store/games';
 
 //unique string
 const {v4: uuidv4} = require('uuid')
 
 const generateAccessToken = (req,res,next) => {
    return jwt.sign(user,
-         config.get("ACCESS_TOKEN_SECRET"), 
-         { expiresIn: 360 },)
+    config.get("ACCESS_TOKEN_SECRET"), 
+    { expiresIn: 360 },)
 }
 
 let transporter = nodemailer.createTransport({
@@ -191,4 +192,12 @@ function getRandom(length) {
     );
 }
 
-module.exports = {generateAccessToken, sendVerificationEmail, sendTransactionCompleteEmail, sendTransactionLockedEmail, getRandom, sendAddWalletSuccessfulEmail}
+module.exports = {
+    generateAccessToken, 
+    sendVerificationEmail, 
+    sendTransactionCompleteEmail, 
+    sendTransactionLockedEmail, 
+    getRandom, 
+    sendAddWalletSuccessfulEmail, 
+    // GOOGLE_APP_URL
+}

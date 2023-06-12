@@ -21,7 +21,6 @@ import BillPayment from '../screens/BillPayment';
 import Transfer from '../screens/Transfer';
 import ComingSoon from '../screens/ComingSoon';
 import VirtualCard from '../screens/VirtualCards';
-import InternationalTransfer from '../screens/InternationalTransfer';
 import {Ionicons} from '@expo/vector-icons';
 
 // import DrawerNavigator from '../navigators/DrawerNavigator';
@@ -181,14 +180,6 @@ const RootStack = () => {
                                     name="VirtualCard" component={VirtualCard}
                                 />
 
-                                <Stack.Screen
-                                    options={{headerShown: true, 
-                                        headerTitle:"International Transfer",
-                                        headerTintColor: 'white', 
-                                        headerStyle: {backgroundColor: "#1b181f",
-                                        }, }} 
-                                    name="InternationalTransfer" component={InternationalTransfer}
-                                />
                                 
                                 <Stack.Screen 
                                     options={{headerTintColor: 'white'}} 
