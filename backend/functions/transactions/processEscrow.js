@@ -11,14 +11,19 @@ const processFirstLeg = async (data, res) => {
 
     var userCurrentDetails = await getCurrentUserDetails(data);
 
+    const {currentBalance, currentlockedTransactionBalance, currentUnlockedTransactionBalance} = userCurrentDetails
+
     var filter = { transactionId: data.transactionId }; //filter is a check for added transactions
     var update = {
-        transactionId: data.transactionId,
+        transactionId: data.transactionId, 
         transactionName: data.transactionName,
         transactionType: data.transactionType,
-        balance: +userCurrentDetails[2] - +data.amount,
-        lockedTransaction: +userCurrentDetails[0],
-        unLockedTransaction: +userCurrentDetails[1] + +data.amount,
+        // balance: +userCurrentDetails[2] - +data.amount,
+        balance: currentBalance - +data.amount,
+        // lockedTransaction: +userCurrentDetails[0],
+        lockedTransaction: currentlockedTransactionBalance,
+        // unLockedTransaction: +userCurrentDetails[1] + +data.amount,
+        unLockedTransaction: currentUnlockedTransactionBalance + +data.amount,
         amount: data.amount,
         email: data.email,
         date: data.date,

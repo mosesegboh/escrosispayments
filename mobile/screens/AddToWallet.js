@@ -4,7 +4,8 @@ import { Text,
         StyleSheet, 
         TouchableOpacity,
         TextInput, 
-        ActivityIndicator
+        ActivityIndicator,
+        Platform
       } from 'react-native';
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -18,42 +19,59 @@ import {
   RightIcon,
   Colors,
   MsgBox,
+  StyledContainer
 } from '../components/styles';
 import {Octicons, Ionicons} from '@expo/vector-icons';
 import {BaseUrl} from '../services/'
 import {PayWithFlutterwave} from 'flutterwave-react-native';
-import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
+import { FLUTTERWAVE_PUBLIC_KEY, DEFAULT_CURRENCY } from '../services';
 const {primary} = Colors;
-const {myButton, myPlaceHolderTextColor, darkLight} = Colors;
+const {myButton, darkLight} = Colors;
+import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 
 
 export default function AddToWallet({navigation}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
 
-  const [choseData, setChoseData] = useState()
   const [show, setShow] = useState(false);
-  const [date, setDate] = useState(new Date(2000, 0, 1));
+  const [date, setDate] = useState(new Date());
+  const [mode, setMode] = useState()
+  const [dob, setDob] = useState();
+
+  const [choseData, setChoseData] = useState()
   const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [submittingConfirm, setSubmittingConfirm] = useState(false)
   const [messageType, setMessageType] = useState()
-  const [dob, setDob] = useState();
   const [visible, setVisible] = useState(false)
-  
   
   useEffect(()=>{
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
   },[]);
 
-  const onChange = (event, selectedDate) => {
+  const onChange = ({type}, selectedDate) => {
+    if (type == "set"){
       const currentDate = selectedDate || date;
-      setShow(false);
       setDate(currentDate);
-      setDob(currentDate);
+      if (Platform.OS === "android") {
+        toggleDatePicker()
+        setDob(currentDate.toDateString());
+      }  
+    }else{
+      toggleDatePicker()
+    }  
+  }
+
+  const RenderItem = ({item}) => {
+    return(
+      <TouchableWithoutFeedback>
+        <Image source={item.image} style={{width: 310, height: 180, borderRadius: 10}} />
+      </TouchableWithoutFeedback>
+    )
   }
 
   const handleAddTransaction = () => {
@@ -75,46 +93,48 @@ export default function AddToWallet({navigation}) {
       amount: inputValueAmount,
       transactionType: "wallet",
       transactionName: "wallet",
-      date: dob,
+      date: new Date(),
+      transactionCurrency: DEFAULT_CURRENCY,
       transactionDate:  new Date(),
       details: "Add Funds To Wallet",
       token: `Bearer ${token}`
     }
+    // console.log(transactionData, '--transaction data--');
+    // return
+  axios.post(url, transactionData, headers).then((response) => {
+    // token = response.token
+    const result = response.data;
+    console.log(result)
+    const {message, status} = result
 
-    console.log(transactionData);
+    console.log(status, message, '--this is status and message')
+    
+    if (status == 'SUCCESS') {
+      setSubmitting(false)
+      handleMessage(message, status)
+      alert('Funds was successfully Added to your account')
 
-    axios.post(url, transactionData, headers).then((response) => {
-      // token = response.token
-      const result = response.data;
-      console.log(result)
-      const {message, status} = result
-     
-      if(status == 'SUCCESS'){
-        setSubmitting(false)
-        handleMessage(message, status)
-        alert('Funds was successfully Added to your account')
-
-        //set the form to null
-        setInputValueAmount(null)
-        setHideButton(false)
-        setVisible(false)
-        setDob(null)
-      }else{
-        setSubmitting(false)
-        handleMessage("An error occured")
-        setVisible(false)
-      }
-      // navigation.navigate('AddTransaction')
-    }).catch((error) => {
-        console.log(error)
-        setSubmitting(false)
-        setVisible(false)
-        handleMessage("An error occured and this transaction is not completed, check your network and try again")
-    })
+      //set the form to null
+      setInputValueAmount(null)
+      // setHideButton(false)
+      setVisible(false)
+      setDob(null)
+    } else {
+      setSubmitting(false)
+      handleMessage("An error occured")
+      setVisible(false)
+    }
+    // navigation.navigate('AddTransaction')
+  }).catch((error) => {
+    console.log(error)
+    setSubmitting(false)
+    setVisible(false)
+    handleMessage("An error occured and this transaction is not completed, check your network and try again")
+  })
 }
 
   const confirmTransaction = () => {
-    if ( inputValueAmount == null || dob == null || transactionId == null ){
+    if ( inputValueAmount == null || transactionId == null ){
       handleMessage("Please enter all fields")
       alert("Please enter all fields")
       return
@@ -124,39 +144,45 @@ export default function AddToWallet({navigation}) {
   }
 
   const handleMessage = (message,type="FAILED") => {
-      setMessage(message)
-      setMessageType(type)
+    setMessage(message)
+    setMessageType(type)
   }
 
   const showDatePicker = () => {
-      setShow(true);
+    setShow(true);
+  }
+
+  const toggleDatePicker = () => {
+    setShow(!show)
+  }
+
+  const confirmIosDate = () => {
+    setDob(date.toDateString())
+    toggleDatePicker()
   }
 
   const handleOnAbort = () => {
     alert ('The transaction failed. Try again later')
+    setSubmitting(false)
+    setVisible(false)
     return
   }
 
   const handleCancel = () => {
     setSubmitting(false)
     setVisible(false)
+    return
+  }
+
+  const handleRedirect = () => {
+    console.log('i was redirected!!!')
   }
 
   return (
-    <View style={styles.container}>
-      <Text>{choseData}</Text>
+    <KeyboardAvoidingWrapper>
+      <StyledContainer>
+        <Text>{choseData}</Text>
         <View>
-            {show && (
-                <DateTimePicker
-                    testID="dateTimePicker"
-                    value={date}
-                    mode='date'
-                    is24Hour={true}
-                    display="default"
-                    onChange={onChange}
-                />
-            )}
-
             <TextInput
               style={styles.input}
               value = {transactionId}
@@ -173,15 +199,83 @@ export default function AddToWallet({navigation}) {
               value={inputValueAmount}
             />
 
-            <MyTextInput 
-                icon="calendar"
-                placeholder="YYYY - MM - DD"
-                placeholderTextColor={myPlaceHolderTextColor}
-                value={dob ? dob.toDateString() : ''}
-                isDate={true}
-                editable = {false}
-                showDatePicker = {showDatePicker}
-            />
+            {/* <MyTextInput 
+              icon="calendar"
+              placeholder=" ID expiry - YYYY - MM - DD"
+              placeholderTextColor={myPlaceHolderTextColor}
+              value={dob ? dob : ''}
+              isDate={true}
+              editable = {false}
+              showDatePicker = {showDatePicker}
+              onPress={() => showMode('date')}
+              style={styles.input}
+              onPressIn = {toggleDatePicker}
+            /> */}
+
+            {show && (<DateTimePicker
+              testID="dateTimePicker"
+              value={date}
+              mode={mode}
+              is24Hour={true}
+              style={{
+                height: 120,
+                marginTop: -10,
+                color: "#fff"
+              }}
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onChange}
+            />)}
+
+            {show &&  Platform.OS === 'ios' && <View
+              style={{flexDirection: 'row', justifyContent: 'space-around'}}
+            >
+              <TouchableOpacity style={[
+                  styles.button,
+                  styles.pickerButton,
+                  {backgroundColor: '#3a5fbc',
+                  height: 30,
+                  width: 70,
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: -30,
+                  borderRadius: 15 }
+                ]}
+                onPress={toggleDatePicker}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    {color: '#fff', fontFamily: 'Nunito' }
+                  ]}
+                >Cancel</Text>
+              </TouchableOpacity>
+
+            <TouchableOpacity style={[
+                styles.button,
+                styles.pickerButton,
+                {
+                  backgroundColor: '#3a5fbc',
+                  height: 30,
+                  width: 70,
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: -30,
+                  borderRadius: 15
+                }
+              ]}
+              onPress={confirmIosDate}
+            >
+              <Text
+                style={[
+                  styles.buttonText,
+                  {color: '#fff', fontFamily: 'Nunito'}
+
+                ]}
+              >Confirm</Text>
+            </TouchableOpacity>
+          </View>}
 
             <MsgBox type={messageType}>{message}</MsgBox>
 
@@ -204,7 +298,7 @@ export default function AddToWallet({navigation}) {
               </Dialog.Description>
               {!submittingConfirm && <PayWithFlutterwave
                 // style={styles.addTransactionButton}
-                onRedirect={handleAddTransaction}
+                onRedirect={handleRedirect}
                 // onWillInitialize = {handleOnRedirect}
                 options={{
                   tx_ref: transactionId,
@@ -237,8 +331,8 @@ export default function AddToWallet({navigation}) {
               <Dialog.Button label="Cancel" onPress={handleCancel}/>
             </Dialog.Container>
         </View>
-
-    </View>
+      </StyledContainer>
+      </KeyboardAvoidingWrapper>  
   );
 }
 

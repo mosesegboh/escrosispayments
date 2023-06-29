@@ -1,4 +1,4 @@
-const walletTransactionSuccess = ({transactionId,  amount,  transactionType, transactionDate, details}) => {
+const success = ({transactionId,  amount,  transactionType, date, details}) => {
         
     const subject = `You Have Successfully Added Funds to your wallet`
 
@@ -7,15 +7,18 @@ const walletTransactionSuccess = ({transactionId,  amount,  transactionType, tra
     <p>The details of the transaction is below:</p>
     <p><b>Transaction ID: ${transactionId}</b></p>
     <p><b>Amount: ${amount}</b></p>
-    <p><b>Transaction Date: ${transactionDate}</b></p>
+    <p><b>Transaction Type: ${transactionType}</b></p>
+    <p><b>Transaction Date: ${date}</b></p>
     <p><b> Details: ${details}</b></p>
     <p>Thank You for transacting with us</p>
     <p>Warm Regards</p>`
-    
-    return [subject, body]
+
+    const emailDetails = { subject: subject, body: body }
+
+    return emailDetails
 }
 
- const walletTransactionFailed = ({transactionId,  amount,  transactionType, transactionDate, details}) => {
+ const failed = ({transactionId,  amount,  transactionType, date, details}) => {
     const subject = `Your Addition To Wallet Transaction Failed`
 
     const body = `<p>Hello There!</p>
@@ -23,12 +26,15 @@ const walletTransactionSuccess = ({transactionId,  amount,  transactionType, tra
     <p>The details of the transaction is below:</p>
     <p><b>Transaction ID: ${transactionId}</b></p>
     <p><b>Amount: ${amount}</b></p>
-    <p><b>Transaction Date: ${transactionDate}</b></p>
+    <p><b>Transaction Type: ${transactionType}</b></p>
+    <p><b>Transaction Date: ${date}</b></p>
     <p><b> Details: ${details}</b></p>
     <p>Kindly try again later</p>
     <p>Warm Regards</p>`
-    
-    return [subject, body]
+
+    const emailDetails = { subject: subject, body: body }
+
+    return emailDetails
 }
 
-module.exports = {walletTransactionSuccess, walletTransactionFailed}
+module.exports = {success, failed}

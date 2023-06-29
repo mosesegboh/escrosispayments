@@ -1,10 +1,11 @@
 import React, {useContext, useEffect, useState} from 'react'
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native'
-import {Octicons} from '@expo/vector-icons';
-import { CredentialsContext } from '../components/CredentialsContext';
-import { ScrollView } from 'react-native-gesture-handler';
-import { Colors } from '../components/styles';
-import {trimString} from '../services/';
+import {Octicons} from '@expo/vector-icons'
+import { CredentialsContext } from '../components/CredentialsContext'
+import { ScrollView } from 'react-native-gesture-handler'
+import { Colors } from '../components/styles'
+import {trimString} from '../services/'
+import { AntDesign } from '@expo/vector-icons'
 
 const {primary} = Colors;
 
@@ -54,16 +55,26 @@ export default function AllTransactions({navigation, route}) {
                         <Octicons name="book" size={18} color="#3f9876" />
                       </View>
                       <View>
-                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details, 10)}</Text>
+                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 15)}</Text>
                         <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
                       </View>
                     </View>
                     
                     <View style={styles.transactionDetailRightSide}>
-                      
                       <View style={styles.recentTransactionAmount}>
-                        <Text style={styles.transacitonAmount}>{item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}</Text>
+                        <Text style={styles.transacitonAmount}>
+                          {item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}  
+                        </Text>
                       </View>
+                      {
+                        item.status == 'success' ? 
+                        <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" /> :
+                        item.status == 'pending' ? 
+                        <AntDesign style={{marginRight:10}} name="minuscircle" size={13} color="#a87532" /> :
+                        item.status == 'failed' ?
+                        <AntDesign style={{marginRight:10}} name="closecircle" size={13} color="#a8324a" /> :
+                        <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" />
+                      }
                     </View>
                   </View>
                 ))

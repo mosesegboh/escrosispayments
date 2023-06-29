@@ -5,30 +5,30 @@ const Transaction = require('./../models/Transaction')
 router.post('/feedback', (req, res) => {
    console.log(req.body, 'this is the request body')
 
-   const test = {
-    "event": "transfer.completed",
-    "event.type": "Transfer",
-    "data": {
-      "id": 8416497,
-      "account_number": "******",
-      "bank_name": "ACCESS BANK NIGERIA",
-      "bank_code": "044",
-      "fullname": "John Doe",
-      "created_at": "2021-04-28T17:01:41.000Z",
-      "currency": "NGN",
-      "debit_currency": "NGN",
-      "amount": 100,
-      "fee": 10.75,
-      "status": "SUCCESSFUL",
-      "reference": "TX-refe123456-6-3-1",
-      "meta": null,
-      "narration": "Test for wallet to wallet",
-      "approver": null,
-      "complete_message": "Transaction was successful",
-      "requires_approval": 0,
-      "is_approved": 1
-    }
-  }
+//    const test = {
+//     "event": "transfer.completed",
+//     "event.type": "Transfer",
+//     "data": {
+//       "id": 8416497,
+//       "account_number": "******",
+//       "bank_name": "ACCESS BANK NIGERIA",
+//       "bank_code": "044",
+//       "fullname": "John Doe",
+//       "created_at": "2021-04-28T17:01:41.000Z",
+//       "currency": "NGN",
+//       "debit_currency": "NGN",
+//       "amount": 100,
+//       "fee": 10.75,
+//       "status": "SUCCESSFUL",
+//       "reference": "TX-refe123456-6-3-1",
+//       "meta": null,
+//       "narration": "Test for wallet to wallet",
+//       "approver": null,
+//       "complete_message": "Transaction was successful",
+//       "requires_approval": 0,
+//       "is_approved": 1
+//     }
+//   }
 
    const response = req.body
 
@@ -45,11 +45,15 @@ router.post('/feedback', (req, res) => {
         if (transaction) {
             if (response.data.status == "SUCCESSFUL" || response.status == "success") {
                 transaction.status = "successful";
-            }else{
-                transaction.status = "failed";
                 transaction.balance = +transaction.balance + +transaction.amount
             }
-            
+            // else if (transaction.transactionName == "wallet") {
+            //     transaction.balance = +transaction.balance + +transaction.amount
+            // } 
+            // else {
+            //     transaction.status = "failed";
+            //     transaction.balance = +transaction.balance + +transaction.amount
+            // }
             return transaction.save();
         } else {
             throw new Error("Transaction not found");

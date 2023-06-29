@@ -30,7 +30,7 @@ const processVirtualCards = async (data, res) => {
         customer: data.customer,
         recurrence: data.recurrence,
         reference: data.reference,
-        data: data.data
+        data: data.data,
     };
 
     saveTransaction(filter, update, data, res)

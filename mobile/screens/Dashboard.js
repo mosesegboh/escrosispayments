@@ -1,5 +1,5 @@
-import React, {useContext, useEffect, useState} from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, {useContext, useEffect, useState, useRef} from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions} from 'react-native';
 import { Colors, TextLink, TextLinkContent } from '../components/styles';
 import {trimString} from '../services/';
 import { useIsFocused } from '@react-navigation/native'
@@ -7,12 +7,14 @@ import {Octicons} from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons'; 
 import { FontAwesome5 } from '@expo/vector-icons'; 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
-import { AntDesign } from '@expo/vector-icons'; 
 import { BaseUrl } from '../services/';
+import {DEFAULT_CURRENCY} from '../services/'
+import Carousel from 'react-native-snap-carousel'
 const { primary} = Colors;
 
 //you can get rid of navigation and route
@@ -24,6 +26,8 @@ export default function Dashboard ({navigation, route}) {
   const [lockedTransaction, setLockedTransaction] = useState()
   const [unLockedTransaction, setUnLockedTransaction] = useState()
   const isFocused = useIsFocused()
+  const [hasMultipleCurrency, setHasMultipleCurrency] = useState(false)
+  const [multipleCurrencyObject, setMultipleCurrencyObject] = useState()
 
   let {name, email, token,  photoUrl} = storedCredentials
   // console.log(name, email, token, 'Name and email')
@@ -38,7 +42,7 @@ export default function Dashboard ({navigation, route}) {
 
     var config = {
       method: 'post',
-    url: `${BaseUrl}/transaction/get-transactions`,
+      url: `${BaseUrl}/transaction/get-transactions`,
       headers: { 
         'Content-Type': 'application/json', 
         'Authorization': `Bearer ${token}`
@@ -61,10 +65,18 @@ export default function Dashboard ({navigation, route}) {
         // return
         const latestIndex = transactions.length
         const latestValue = transactions[latestIndex-1]
+        // console.log(latestValue.balanceForAdditionalCurrencies.length > 0, '--latest value')
+        // (latestValue.balanceForAdditionalCurrencies && latestValue.balanceForAdditionalCurrencies.length > 0) ? setHasMultipleCurrency(true) : setHasMultipleCurrency(false)
+        if (latestValue.balanceForAdditionalCurrencies.length > 0) {
+          latestValue.balanceForAdditionalCurrencies.push({balance: latestValue.balance, toCurrency: DEFAULT_CURRENCY})
+          // console.log(latestValue.balanceForAdditionalCurrencies, 'true ooooo')
+          setHasMultipleCurrency(true)
+          setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
+        }
         setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
         setLockedTransaction(transactions.length > 0 ? latestValue.lockedTransaction : 0.00)
         setUnLockedTransaction(transactions.length > 0 ? latestValue.unLockedTransaction : 0.00)
-        console.log(response.data.data.length === 0)
+        // console.log(response.data.data.length === 0)
         setIsUserTransactions(response.data.data.length === 0)
         setUserTransactions(response.data.data.reverse())
       }else{
@@ -79,6 +91,44 @@ export default function Dashboard ({navigation, route}) {
   },[isFocused]);
 
   
+  // Carousel data
+  const Images= [
+  {
+    // image: require('../assets/img/card2.png'),
+    text: 'heeeeeeee'
+  },
+  {
+    // image: require('../assets/img/card1.png'),
+    text: 'heeeeeeee'
+  },
+  {
+    // image: require('../assets/img/card3.png'),
+    text: 'heeeeeeee'
+  },
+  {
+    // image: require('../assets/img/card4.png'),
+    text: 'heeeeeeee'
+  },
+];
+const {width,height} = Dimensions.get('window')
+const carouselRef = useRef(null)
+const RenderItem = ({item, index}) => {
+  return(
+    <View style={styles.balanceView}>
+        {/* <TouchableWithoutFeedback> */}
+        <Text style={styles.balanceText}>
+            TOTAL BALANCE (s)
+          </Text>
+          <Text style={styles.balanceValue}>
+            {item.balance || '0.00'} {item.toCurrency} 
+          </Text>
+          {/* <Text style={{color: 'white'}}>{item.balance}</Text> */}
+          {/* <Image source={item.image} style={{width: 310, height: 180, borderRadius: 10}} /> */}
+        {/* </TouchableWithoutFeedback> */}
+    </View>
+    
+  )
+}
   // console.log(token)
   //const AvatarImg = photoUrl ? {uri: photoUrl} : require('./../assets/img/img1')
 
@@ -106,20 +156,46 @@ export default function Dashboard ({navigation, route}) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.balanceView}>
+      {hasMultipleCurrency && <View style={{ alignItems: 'center', justifyContent: 'center'}}>
+        <Carousel 
+           // layout={"tinder"}
+           layout={"default"}
+           ref={carouselRef}
+           data={multipleCurrencyObject}
+           renderItem={RenderItem}
+           sliderWidth={width}
+           itemWidth={width - 10}
+           swipeThreshold={100}
+           layoutCardOffset={-12}
+           inactiveSlideOpacity={0.4}
+           autoplay={true}
+           autoplayDelay={1000} // Adjust the delay as needed (in milliseconds)
+           autoplayInterval={3000} // Adjust the interval as needed (in milliseconds)
+           // containerCustomStyle={{
+           // overflow: 'visible',
+           // marginVertical: 0
+           // }}
+           contentContainerCustomStyle={{
+           paddingTop: 10,
+           paddingLeft: 60
+           }}
+         />
+       </View>}
+
+      {!hasMultipleCurrency && <View style={styles.balanceView}>
           <Text style={styles.balanceText}>Hello {name || 'Egboh Moses'}</Text>
           {/* <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text> */}
           {/* <Text style={styles.balanceText}>{token || 'token'}</Text> */}
           <Text style={styles.balanceText}>
-              TOTAL BALANCE
+            TOTAL BALANCE
           </Text>
           <Text style={styles.balanceValue}>
-          ₦{balance || '0.00'}
+            ₦{balance || '0.00'}
           </Text>
           {/* <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
               <Text>Logout</Text>
           </TouchableOpacity> */}
-      </View>
+      </View>}
 
       <View style={styles.servicesIcons}>
         <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance})}>
@@ -130,7 +206,7 @@ export default function Dashboard ({navigation, route}) {
           <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
           <Text style={styles.billsText}>airtime</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency})}>
           <MaterialCommunityIcons name="bank-transfer-out" size={32} color="green" />
           <Text style={styles.billsText}>transfers</Text>
         </TouchableOpacity>
@@ -162,11 +238,11 @@ export default function Dashboard ({navigation, route}) {
           <MaterialCommunityIcons name="cash" size={26} color="green" />
           <Text style={styles.billsText}>shipping</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('ComingSoon', {email: email, token: token, balance: balance})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance})}>
           <MaterialCommunityIcons name="earth-arrow-right" size={20} color="green" />
           <Text style={styles.billsText}>swap</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency})}>
           <Ionicons name="card" size={24} color="green" />
           <Text style={styles.billsText}>v-cards</Text>
         </TouchableOpacity> 
@@ -217,19 +293,26 @@ export default function Dashboard ({navigation, route}) {
                     <Octicons name="book" size={18} color="#3f9876" />
                   </View>
                   <View>
-                    <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 10)}</Text>
+                    <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 15)}</Text>
                     <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
                   </View>
                 </View>
                 
                 <View style={styles.transactionDetailRightSide}>
-                    
                   <View style={styles.recentTransactionAmount}>
                     <Text style={styles.transacitonAmount}>
                       {item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}  
                     </Text>
                   </View>
-                  <AntDesign name="checkcircle" size={13} color="green" />
+                  {
+                    item.status == 'success' ? 
+                    <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" /> :
+                    item.status == 'pending' ? 
+                    <AntDesign style={{marginRight:10}} name="minuscircle" size={13} color="#a87532" /> :
+                    item.status == 'failed' ?
+                    <AntDesign style={{marginRight:10}} name="closecircle" size={13} color="#a8324a" /> :
+                    <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" />
+                  }
                 </View>
               </TouchableOpacity>
             ))
@@ -406,6 +489,7 @@ const styles = StyleSheet.create({
   },
   transacitonAmount: {
     color: 'white',
+    // marginRight: 10
   },
   recentTransactionHeadingActual: {
     color: 'white',

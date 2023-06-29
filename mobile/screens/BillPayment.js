@@ -8,25 +8,18 @@ import { Text,
       } from 'react-native';
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Picker} from '@react-native-picker/picker';
 import {randomString} from '../services';
-const {myButton, darkLight, primary} = Colors;
-import {Octicons, Ionicons} from '@expo/vector-icons';
+const {primary} = Colors;
+import {Octicons} from '@expo/vector-icons';
 import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
-import  {handleBillPayment}  from '../services/index';
 import { CredentialsContext } from '../components/CredentialsContext';
-import {
-  LeftIcon,
-  StyledInputLabel,
-  StyledTextInput,
-  RightIcon,
-  Colors,
-  MsgBox,
-} from '../components/styles';
+import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
+import SelectDropdown from 'react-native-select-dropdown'
+import {Colors, MsgBox, StyledContainer} from '../components/styles';
 
 
-export default function BillPayment({navigation, route}) {
+export default function BillPayment({route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
   const {balance, bill} = route.params
@@ -34,16 +27,16 @@ export default function BillPayment({navigation, route}) {
   const [selectedValue, setSelectedValue] = useState("ONCE");
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
-  const [inputValueAmount, setInputValueAmount] = useState();
+  const [inputValueAmount, setInputValueAmount] = useState('');
   const [inputValuePhone, setInputValuePhone] = useState();
   const [transactionId, setTransactionId] = useState(); 
-  const [details, setDetails] = useState();
   const [billData, setbillData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
   const [billSelected, setBillSelected] = useState()
   const [dob, setDob] = useState();
+  const [occurrence] = useState(['ONCE', 'HOURLY', 'WEEKLY', 'DAILY', 'MONTHLY'])
 
   
   useEffect(()=>{
@@ -65,7 +58,7 @@ export default function BillPayment({navigation, route}) {
         const {message, status, data} = response.data
         // console.log(data, '--data')
         // console.log(typeof(data), '--response data')
-        if (bill == 'tithe' || bill == 'cable' || bill == 'tax') {
+        if (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'dhl') {
           const processedResponse = response.data.data
 
           var unCategorizedBillData = []
@@ -81,11 +74,11 @@ export default function BillPayment({navigation, route}) {
             if ( element.id >= 165 && element.id <= 166 && bill == 'tax') {
               unCategorizedBillData.push(element)
             }
-            if ( element.id = 165 && bill == 'dhl') {
+            if ( (element.id === 47 || element.id == 104 || element.id == 167) && bill == 'dhl') {
+              console.log('dhl')
               unCategorizedBillData.push(element)
             }
           }
-          // console.log(unCategorizedBillData, 'this is uncatego')
         }
         
         if (status == 'success'){
@@ -115,35 +108,6 @@ export default function BillPayment({navigation, route}) {
   const handleMessage = (message,type="FAILED") => {
       setMessage(message)
       setMessageType(type)
-  }
-
-  const showDatePicker = () => {
-      setShow(true);
-  }
-
-  const navigateConfirmTransaction = () => {
-    if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
-        setSubmitting(false)
-        handleMessage("Please enter all fields")
-        alert("Please enter all fields")
-        return
-    }
-    
-    navigation.navigate('ConfirmTransaction', {
-    transactionId: transactionId,
-    email: email,
-    // transactionDate: new Date(),
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    date: dob,
-    details: details,
-    // secondLegTransactionId: secondLeg,
-    token: `Bearer ${token}`
-  })}
-
-
-  const handleSelectedValue  = (text) => {
-    setSelectedValue(text)
   }
 
   const handleBillPurchase = (text) => {
@@ -176,7 +140,6 @@ export default function BillPayment({navigation, route}) {
 
     console.log(data, 'this is the data')
     // return
-          
     var config = {
       method: 'post',
       url: `${FLUTTERWAVE_API_URL}/bills`,
@@ -190,7 +153,6 @@ export default function BillPayment({navigation, route}) {
     axios(config)
     .then(function (response) {
       // console.log(JSON.stringify(response.data));
-      // const result = JSON.stringify(response.data)
       const result = response.data
       const { status, message} = result;
       
@@ -229,12 +191,10 @@ export default function BillPayment({navigation, route}) {
         axios(config)
         .then(function (response) {
           // console.log(JSON.stringify(response.data), 'response from acios');
-          // const result = JSON.stringify(response.data)
           const result = response.data
     
           const { status, message} = result;
           
-    
           if(status === 'SUCCESS') {
             handleMessage(message, status)
             setSubmitting(false)
@@ -278,16 +238,22 @@ export default function BillPayment({navigation, route}) {
     }
   }
 
-  // const handleSetAmount  = (text, amount) => {
-  //   setBillSelected(text) 
-  //   setInputValueAmount(amount)
-  //   console.log(amount)
-  //   // setInputValueAmount(amount)
-  //   // console.log(currency)
-  // }
+  const handleSelectedItem = (item) => {
+    console.log(item)
+    if(bill == 'data' || bill == 'cable') {
+      setInputValueAmount(item.amount.toString())
+    }
+  }
+
+  const renderDropdownIcon = () => {
+    return(
+      <Octicons name="triangle-down" size={22} color="black" />
+    )
+  }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingWrapper>
+      <StyledContainer>
         <View>
           {show && (
               <DateTimePicker
@@ -306,101 +272,36 @@ export default function BillPayment({navigation, route}) {
             editable={false}
           />
 
-          {(bill == 'electricity') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
-          {(bill == 'internet') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
-          {(bill == 'data') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.biller_name} value={ ` ${item.biller_name},${item.amount} `} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
-          {(bill == 'tithe') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
-          {(bill == 'cable') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
-          {(bill == 'tax') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
-          {(bill == 'dhl') && <Picker
-            selectedValue={billSelected}
-            style={styles.picker}
-            onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker>}
-
+          {((bill == 'electricity' || bill == 'internet'
+            || bill == 'data' || bill == 'tithe' || bill == 'cable'
+            || bill == 'tax' || bill == 'dhl'
+            ) && billData.length !== 0) ? <SelectDropdown
+              data={billData}
+              search={true}
+              onSelect={(selectedItem, index) => { 
+                handleSelectedItem(selectedItem)
+                // if (bill == 'data') {() => setInputValueAmount('100')}
+                // handleSelectBillerName(selectedItem.biller_name)
+              }}
+            defaultButtonText = {bill == 'electricity' ? 'Select Electricity Provider' 
+                                : bill == 'internet' ? 'Select Internet Provider'
+                                : bill == 'data' ? 'Select Data Provider'
+                                : bill == 'tithe' ? 'Select Church'
+                                : bill == 'cable' ? 'Select Cable TV Provider'
+                                : bill == 'tax' ? 'Select Tax Authority'
+                                : bill == 'dhl' ? 'Select Shipping Payment'
+                                : ''}
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem.short_name  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return `${item.biller_name} - ${item.short_name}` }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+          /> 
+          :
+          <ActivityIndicator size="large" color={primary}/>}
           
-
-          
-
           <TextInput
             style={styles.input}
             placeholder="Amount"
@@ -426,17 +327,20 @@ export default function BillPayment({navigation, route}) {
             value={inputValuePhone}
           />
 
-          <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
-          >
-            <Picker.Item label="ONCE" value="ONCE" />
-            <Picker.Item label="HOURLY" value="HOURLY" />
-            <Picker.Item label="WEEKLY" value="WEEKLY" />
-            <Picker.Item label="DAILY" value="DAILY" />
-            <Picker.Item label="MONTHLY" value="MONTHLY" />
-          </Picker>
+          <SelectDropdown
+            data={occurrence}
+            onSelect={(selectedItem, index) => { 
+              handleSelectBillerName(selectedItem)
+            }}
+            defaultButtonText = "Occurence"
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+          />
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
@@ -463,29 +367,10 @@ export default function BillPayment({navigation, route}) {
               </Text>
           </TouchableOpacity>}
         </View>
-    </View>
+      </StyledContainer>
+    </KeyboardAvoidingWrapper>
+      
   );
-}
-
-const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword, 
-  isDate, showDatePicker,...props}) => {
-  return (
-      <View>
-          <LeftIcon>
-              <Octicons name={icon} size={30} color={myButton} />
-          </LeftIcon>
-          <StyledInputLabel>{label}</StyledInputLabel>
-          {!isDate && <StyledTextInput {...props}/>}
-          {isDate && <TouchableOpacity onPress={showDatePicker}>
-                  <StyledTextInput {...props}/>
-              </TouchableOpacity>}
-          {isPassword && (
-              <RightIcon onPress={() => setHidePassword(!hidePassword)}>
-                  <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
-              </RightIcon>
-          )}
-      </View>
-  )
 }
 
 const styles = StyleSheet.create({
@@ -529,5 +414,150 @@ const styles = StyleSheet.create({
     options: {
       flex: 1,
       flexDirection: 'column',
+    },
+    //select drop down
+    dropDownButtonStyle: {
+      paddingTop: 30,
+      backgroundColor: '#1b181f',
+      borderBottomColor: '#949197',
+      borderBottomWidth: 1,
+      borderRadius: 3,
+      color: '#fff',
+      margin: 10,
+      width: '95%',
+      paddingTop: 10,
+      fontFamily: 'Nunito',
+      fontSize: 5
+    },
+    dropDownButtonTextStyle: {
+      color: '#949197',
+      fontFamily: 'Nunito',
+      fontSize: 15,
     }
 });
+
+// const navigateConfirmTransaction = () => {
+//   if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
+//       setSubmitting(false)
+//       handleMessage("Please enter all fields")
+//       alert("Please enter all fields")
+//       return
+//   }
+  
+//   navigation.navigate('ConfirmTransaction', {
+//     transactionId: transactionId,
+//     email: email,
+//     // transactionDate: new Date(),
+//     amount: inputValueAmount,
+//     transactionType: selectedValue,
+//     date: dob,
+//     details: details,
+//     // secondLegTransactionId: secondLeg,
+//     token: `Bearer ${token}`
+//   })
+// }
+
+
+// {(bill == 'electricity') && <Picker
+//             selectedValue={billSelected}
+//             style={styles.picker}
+//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+//           >
+//             {billData ? 
+//                 billData.map((item, index) => (
+//                     <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
+//                 ))
+//                 : <ActivityIndicator size="large" color={primary}/>
+//             }
+//           </Picker>}
+
+// {(bill == 'internet') && <Picker
+//             selectedValue={billSelected}
+//             style={styles.picker}
+//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+//           >
+//             {billData ? 
+//                 billData.map((item, index) => (
+//                     <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
+//                 ))
+//                 : <ActivityIndicator size="large" color={primary}/>
+//             }
+//           </Picker>}
+
+// {(bill == 'data') && <Picker
+//             selectedValue={billSelected}
+//             style={styles.picker}
+//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+//           >
+//             {billData ? 
+//                 billData.map((item, index) => (
+//                     <Picker.Item key={item.id} label={item.biller_name} value={ ` ${item.biller_name},${item.amount} `} />
+//                 ))
+//                 : <ActivityIndicator size="large" color={primary}/>
+//             }
+//           </Picker>}
+
+
+// {(bill == 'tithe') && <Picker
+// selectedValue={billSelected}
+// style={styles.picker}
+// onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+// >
+// {billData ? 
+//     billData.map((item, index) => (
+//         <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+//     ))
+//     : <ActivityIndicator size="large" color={primary}/>
+// }
+// </Picker>}
+
+// {(bill == 'cable') && <Picker
+//             selectedValue={billSelected}
+//             style={styles.picker}
+//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+//           >
+//             {billData ? 
+//                 billData.map((item, index) => (
+//                     <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+//                 ))
+//                 : <ActivityIndicator size="large" color={primary}/>
+//             }
+//           </Picker>}
+
+// {(bill == 'tax') && <Picker
+//             selectedValue={billSelected}
+//             style={styles.picker}
+//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+//           >
+//             {billData ? 
+//                 billData.map((item, index) => (
+//                     <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+//                 ))
+//                 : <ActivityIndicator size="large" color={primary}/>
+//             }
+//           </Picker>}
+
+// {(bill == 'dhl') && <Picker
+//             selectedValue={billSelected}
+//             style={styles.picker}
+//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
+//           >
+//             {billData ? 
+//                 billData.map((item, index) => (
+//                     <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
+//                 ))
+//                 : <ActivityIndicator size="large" color={primary}/>
+//             }
+//           </Picker>}
+
+ {/* <Picker
+            selectedValue={selectedValue}
+            style={styles.picker}
+            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
+          >
+            <Picker.Item label="ONCE" value="ONCE" />
+            <Picker.Item label="HOURLY" value="HOURLY" />
+            <Picker.Item label="WEEKLY" value="WEEKLY" />
+            <Picker.Item label="DAILY" value="DAILY" />
+            <Picker.Item label="MONTHLY" value="MONTHLY" />
+          </Picker> */}

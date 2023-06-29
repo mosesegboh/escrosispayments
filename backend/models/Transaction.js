@@ -247,6 +247,26 @@ const TransactionSchema = new Schema({
     data: {
         type: Object,
         required: false
+    },
+    virtualCardEvent: {
+        type: Object,
+        required: false
+    },
+    balanceForAdditionalCurrencies: {
+        type: Array,
+        required: false
+    },
+    transactionCurrency: {
+        type: String,
+        required: false
+    },
+    secondPartyPhone: {
+        type: String,
+        required: false
+    },
+    secondPartyEmail: {
+        type: String,
+        required: false
     }
 })
 

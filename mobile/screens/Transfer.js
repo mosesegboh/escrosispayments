@@ -12,13 +12,11 @@ import  {allowedInternationalCurrencies}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
 import {getCountryCurrency} from '../services/index';
 import {countriesAndCurrencies} from '../services/index';
-// import { allowedAfricanCountries } from '../services/';
 import {BaseUrl} from '../services/';
 import { CredentialsContext } from '../components/CredentialsContext';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 import { StyledContainer, LeftIcon, StyledInputLabel, StyledTextInput, RightIcon, Colors, MsgBox, myButton} from '../components/styles';
 import SelectDropdown from 'react-native-select-dropdown'
-// import DatePicker from 'react-native-date-picker'
 import {Picker} from '@react-native-picker/picker';
 
 export default function Transfer({route}) {
@@ -106,18 +104,8 @@ export default function Transfer({route}) {
   const [recipientAddress, setRecipientAddress] = useState(false)
   const [beneficiaryCity, setBeneficiaryCity] = useState(false)
   const [localBankName, setLocalBankName] = useState()
- 
-  // const toggleSwitch = () => {
-  //   // setIsLocalDomiciliary(!isLocalDomiciliary)
-  //   if (isLocalDomiciliary == true) {
-  //     setIsLocalDomiciliary(true);
-  //     console.log(isLocalDomiciliary, '--is local dorm')
-  //   } else {
-  //     setIsLocalDomiciliary(false)
-  //     console.log(isLocalDomiciliary, '--is local other')
-  //   }
-  //   // console.log(isLocalDomiciliary, 'this is local')
-  // };
+  const [timer, setTimer] = useState(null);
+  const delayDuration = 1000; // 5 seconds
 
   const toggleSwitch = () => {
     setIsLocalDomiciliary(previousState => !previousState);
@@ -132,7 +120,6 @@ export default function Transfer({route}) {
       setIsFcmbDorm(false); setIsUnionDorm(true); setIsFidelityDorm(false);
     }
   };
-  
   
   useEffect(()=>{
     setCountryData(allCountriesAbbreviations)
@@ -334,7 +321,6 @@ export default function Transfer({route}) {
         mobile_number: beneficiaryMobile,
         recipient_address: recipientAddress
       }]} : {}),
-
     } 
     
     
@@ -389,7 +375,6 @@ export default function Transfer({route}) {
         data.isLocalDomiciliary = isLocalDomiciliary
         data.beneficiaryCountry = countrySelected
         console.log(data, '--this is success')
-
         
         // return
         var config = {
@@ -473,12 +458,12 @@ export default function Transfer({route}) {
       }
     }
 
-    // console.log(`${FLUTTERWAVE_API_URL}/transfers/rates?amount=${inputValueAmount}&destination_currency=${destinationCurrency}&source_currency=${sourceCurrency}`)
+    console.log(`${FLUTTERWAVE_API_URL}/transfers/rates?amount=${inputValueAmount}&destination_currency=${destinationCurrency}&source_currency=${sourceCurrency}`)
     var config = {
       method: 'get',
       url: `${FLUTTERWAVE_API_URL}/transfers/rates?amount=${inputValueAmount}&destination_currency=${destinationCurrency}&source_currency=${sourceCurrency}`,
       headers: { 
-        'Authorization': FLUTTERWAVE_SECRET_KEY, 
+        'Authorization': FLUTTERWAVE_SECRET_KEY,
         'Content-Type': 'application/json'
       },
     };
@@ -692,7 +677,7 @@ export default function Transfer({route}) {
               value={branchCode}
           />}
 
-          <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Amount"
             placeholderTextColor="#949197" 
@@ -702,7 +687,25 @@ export default function Transfer({route}) {
             value={inputValueAmount}
             onBlur={handleGetRate}
             onEndEditing={handleGetRate}
+          /> */}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Amount"
+            placeholderTextColor="#949197" 
+            type="number"
+            keyboardType={'numeric'}
+            onChangeText={amount => {
+              clearTimeout(timer); // Clear the existing timer
+              const newTimer = setTimeout(handleGetRate, delayDuration); // Start a new timer
+              setTimer(newTimer); // Update the timer state
+              setInputValueAmount(amount); // Update the input value state
+            }}
+            value={inputValueAmount}
+            onBlur={handleGetRate} // Trigger the function when the input loses focus
+            onEndEditing={handleGetRate} // Trigger the function when the input ends editing
           />
+
 
           {showRateDetails && <Text style={styles.rateText}> {sourceAmount} will be deduced from your account and the receiver gets {destinationAmount} at rate: {rate} </Text>}
 
@@ -1217,130 +1220,22 @@ const styles = StyleSheet.create({
 
 const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword, 
   isDate, showDatePicker,...props}) => {
-  return (<View>
-          <LeftIcon>
-              <Octicons name={icon} size={30} color={myButton} />
-          </LeftIcon>
-          <StyledInputLabel>{label}</StyledInputLabel>
-          {!isDate && <StyledTextInput {...props}/>}
-          {isDate && <TouchableOpacity onPress={showDatePicker}>
-                  <StyledTextInput {...props}/>
-              </TouchableOpacity>}
-          {isPassword && (
-              <RightIcon onPress={() => setHidePassword(!hidePassword)}>
-                  <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
-              </RightIcon>
-          )}
-      </View>)
+  return 
+    (
+      <View>
+        <LeftIcon>
+            <Octicons name={icon} size={30} color={myButton} />
+        </LeftIcon>
+        <StyledInputLabel>{label}</StyledInputLabel>
+        {!isDate && <StyledTextInput {...props}/>}
+        {isDate && <TouchableOpacity onPress={showDatePicker}>
+                <StyledTextInput {...props}/>
+            </TouchableOpacity>}
+        {isPassword && (
+            <RightIcon onPress={() => setHidePassword(!hidePassword)}>
+                <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
+            </RightIcon>
+        )}
+      </View>
+  )
 }
-
-
-         {/* <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-          >
-            {clientCurrencies ? 
-                clientCurrencies.map((item, index) => (
-                    <Picker.Item key={item.id} label={item} value={item} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker> */}
-
-          {/* <Picker
-            selectedValue={transferScope}
-            style={styles.picker}
-            onValueChange={(transferScope, itemIndex) => handleSelectedTransfer(transferScope)}
-          >
-            <Picker.Item label="local" value="local" />
-            <Picker.Item label="International" value="international" />
-          </Picker> */}
-
-          {/* <Picker
-            selectedValue={currency}
-            style={styles.picker}
-            onValueChange={(currency, itemIndex) => handleSelectedValue(currency)}
-          >
-            {countries ? 
-                countries.map((item, index) => (
-                    <Picker.Item key={index} label={item} value={item} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker> */}
-
-          {/* <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(itemValue)}
-          >
-            {banks ? 
-                banks.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.name} value={item.code} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker> */}
-
-// const handleSelectedTransfer = (text) => {
-//   // console.log(typeof(text), 'this is inside function')
-//   // setTransferScope(text)
-//   if (text == "International") {
-//   setInternationalTransfer(true)
-//   setTransferScope('International')
-//   setCountries(allowedInternationalCurrencies)
-//     // setCountries([
-//     //     'GH', 'KE', 'UG', 'ZA', 'TZ', 
-//     //     'USD','AED', 'ARS', 'AUD', 'CAD', 
-//     //     'CHF','CZK', 'ETB', 'EUR', 'GBP', 
-//     //     'GHS', 'ILS', 'INR', 'JPY', 'KES', 
-//     //     'MAD', 'MUR', 'MYR', 'NGN', 'NOK', 
-//     //     'NZD', 'PEN', 'PLN', 'RUB', 'RWF', 
-//     //     'SAR', 'SEK', 'SGD', 'SLL', 'TZS', 
-//     //     'UGX', 'USD', 'XAF', 'XOF', 'ZAR', 
-//     //     'ZMK', 'ZMW', 'MWK', 'GBP'
-//     // ])
-//     //   setCountries([
-//     //     // 'NG', 'GH', 'KE', 'UG', 'ZA', 'TZ', 'US'
-//     //     'USD','EUR','GBP'
-//     // ])
-//   }else if(text == "African"){
-//     setInternationalTransfer(false)
-//     setAfricanTransfer(true)
-//     setCountries(['NG', 'GH', 'KE', 'UG', 'ZA', 'TZ'])
-//     setTransferScope('African')
-//   }else{
-//     setInternationalTransfer(false)
-//     setCountries(['NG'])
-//     setTransferScope('local')
-//   }
-// }
-
-{/* {showRateDetails && <TextInput
-            style={styles.input}
-            placeholder="Destination Amount"
-            placeholderTextColor="#949197" 
-            // type="number"
-            keyboardType={'numeric'}
-            onChangeText={amount => setDestinationAmount(amount)}
-            value={destinationAmount}
-            onBlur={reverseHandleGetRate}
-          />} */}
-
-// if (selectedItem == "African"){
-//   setInternationalTransfer(false)
-//   setIsAfricanTransfer(true)
-//   setCountries(allowedAfricanCountries)
-//   setTransferScope('African')
-//   setIsLocalTransfer(false)
-// } 
-
-{/* {africanTransfer && <TextInput
-              style={styles.input}
-              placeholder="Destination Branch Code"
-              placeholderTextColor="#949197" 
-              type="text"
-              onChangeText={branchCode => setDestinationBranchCode(branchCode)}
-              value={destinationBranchCode}
-            />} */}

@@ -1,0 +1,46 @@
+// const transferFunction = require('../../services/email/functions/transferFunction')
+// const Transaction = require('../../models/Transaction')
+// const sendEmailFunction = require('../../services/email/functions/sendEmailFunction')
+// const airtimeTemplate = require('../../services/email/templates/airtimeTemplate')
+const {saveTransaction, getCurrentUserDetails} = require('../process')
+const {validateData} = require('../validation/validateData')
+
+const processAddFundsToWallet = async (data, res) => {
+
+    validateData(data, res)
+
+    var userCurrentDetails = await getCurrentUserDetails(data, undefined, 1, undefined);
+
+    var {
+        balanceForAdditionalCurrencies, 
+        currentBalance, 
+        currentlockedTransactionBalance,
+        currentUnlockedTransactionBalance,
+        // userCurrentTransactionCurrency,
+    } = userCurrentDetails
+
+    var update = {
+        status: "pending",
+        transactionId: data.transactionId,
+        transactionName: data.transactionName,
+        transactionType: data.transactionType,
+        balance: currentBalance,
+        transactionCurrency: data.transactionCurrency,
+        transactionName: data.transactionName,
+        lockedTransaction: currentlockedTransactionBalance,
+        unLockedTransaction: currentUnlockedTransactionBalance,
+        amount: data.amount,
+        email: data.email,
+        date: data.date,
+        details: data.details,
+        transactionType: data.transactionType,
+        customer: data.customer,
+        reference: data.reference,
+        balanceForAdditionalCurrencies,
+        // data: data.data
+    };
+
+    saveTransaction(undefined, update, data, res, "directsave")
+}
+
+module.exports = {processAddFundsToWallet}

@@ -9,33 +9,25 @@ import { Text,
         Dimensions,
         Image,
         Animated,
-        FlatList,
-        ScrollView,
         Platform,
         Modal,
-        Button
       } from 'react-native';
 import  axios from 'axios'
-import Dialog from "react-native-dialog";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Picker} from '@react-native-picker/picker';
 import {randomString} from '../services/';
 const {myButton, darkLight, primary, myPlaceHolderTextColor} = Colors;
-import {Octicons, SimpleLineIcons} from '@expo/vector-icons';
+import {Octicons} from '@expo/vector-icons';
 import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
 import { CredentialsContext } from '../components/CredentialsContext';
-import SlidingUpPanel from 'rn-sliding-up-panel'
+// import SlidingUpPanel from 'rn-sliding-up-panel'
 import Carousel from 'react-native-snap-carousel'
 import { MaterialIcons } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons'; 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import SelectDropdown from 'react-native-select-dropdown'
 import  {allCountriesAbbreviations}  from '../services/index';
-import {BaseUrl, CARD_BLOCK_STATUS, CARD_UNBLOCK_STATUS} from '../services/';
+import {BaseUrl, trimString} from '../services/';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
-import {trimString} from '../services/';
 import {
   LeftIcon,
   StyledInputLabel,
@@ -46,11 +38,11 @@ import {
   StyledContainer
 } from '../components/styles';
 
-export default function VirtualCard({navigation, route}) {
+export default function VirtualCard({route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   let {email, token} = storedCredentials
   const {balance} = route.params
-
+  //date
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState()
@@ -59,7 +51,6 @@ export default function VirtualCard({navigation, route}) {
   const [inputValueAmount, setInputValueAmount] = useState();
   const [inputValuePhone, setInputValuePhone] = useState();
   const [transactionId, setTransactionId] = useState();
-  const [data, setData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
@@ -76,7 +67,6 @@ export default function VirtualCard({navigation, route}) {
   const [firstName, setFirstName] = useState()
   const [lastName, setLastName] = useState()
   const [showForm, setShowForm] = useState(false)
-  const [showDialogue, setShowDialogue] = useState(true)
   const [cards, setCards] = useState([
     {id: '38c9201a-fcb2-48fd-875e-6494ed79a6bb', cardName: 'Test  Name', CardNumber: '1234567789101112', expiryDate: '2/12', cvv: '123', status: 'active', key: '1', is_active: true, currency: 'USD' },
     {id: '38c9201a-fcb2-48fd-875e-6494ed79a6bb', cardName: 'Test  Name', CardNumber: '1234567789101112', expiryDate: '2/12', cvv: '123', status: 'active', key: '2', is_active: true, currency: 'USD'},
@@ -85,7 +75,6 @@ export default function VirtualCard({navigation, route}) {
     {id: '38c9201a-fcb2-48fd-875e-6494ed79a6bb', cardName: 'Test  Name', CardNumber: '1234567789101112', expiryDate: '2/12', cvv: '123', status: 'blocked', key: '5', is_active: true, currency: 'USD'}
   ])
   const [dialogVisible, setDialogVisible] = useState(false);
-  const [cardDetails, setCardDetails] = useState()
   const [cardName, setCardName] = useState()
   const [cardNumber, setCardNumber] = useState()
   const [expiryDate, setExpiryDate] = useState()
@@ -115,7 +104,7 @@ export default function VirtualCard({navigation, route}) {
     setTransactionId(rString.toUpperCase());
     // automatically start playing when component munts
     carouselRef.current.startAutoplay();
-  },[]);
+  },[isActive]);
 
   // Carousel data
   const Images= [
@@ -132,10 +121,8 @@ export default function VirtualCard({navigation, route}) {
       image: require('../assets/img/card4.png'),
     },
   ];
-
   const {width,height} = Dimensions.get('window')
   const carouselRef = useRef(null)
-
   const RenderItem = ({item}) => {
     return(
       <TouchableWithoutFeedback>
@@ -144,16 +131,17 @@ export default function VirtualCard({navigation, route}) {
     )
   }
 
+
   // SLIDING PANEL
   const [dragRange,setDragRange] = useState({
     top:height - 80,
     bottom: 160
   })
-
   const _draggedValue = new Animated.Value(180);
-
   const ModalRef = useRef(null);
 
+  
+  //date
   const onChange = ({type}, selectedDate) => {
     if (type == "set"){
       const currentDate = selectedDate || date;
@@ -165,11 +153,6 @@ export default function VirtualCard({navigation, route}) {
     }else{
       toggleDatePicker()
     }  
-  }
-
-  const handleMessage = (message,type="FAILED") => {
-      setMessage(message)
-      setMessageType(type)
   }
 
   const showDatePicker = () => {
@@ -184,6 +167,11 @@ export default function VirtualCard({navigation, route}) {
     setDob(date.toDateString())
     toggleDatePicker()
   }
+
+  const handleMessage = (message,type="FAILED") => {
+    setMessage(message)
+    setMessageType(type)
+}
 
   const renderDropdownIcon = () => {
     return(
@@ -233,7 +221,7 @@ export default function VirtualCard({navigation, route}) {
       gender: gender,
       country: 'NG',
       reference: transactionId,
-      callback_url: `${BaseUrl}/webhook/feedback`
+      callback_url: `${BaseUrl}/webhook/virtualcardfeedback`
     });
 
     console.log(data, '---this is data')
@@ -317,7 +305,7 @@ export default function VirtualCard({navigation, route}) {
     <KeyboardAvoidingWrapper>
       <StyledContainer>
 
-      <View  style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 30}}>
+      <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 30}}>
        <Carousel 
           // layout={"tinder"}
           layout={"default"}
@@ -678,6 +666,7 @@ const DialogBox = ({ visible, onClose, cardName, cardNumber, expiryDate, cvv, ca
   const [showAddFundsInput, setShowAddFundsInput] = useState(false)
   const [addedCardFunds, setAddedCardFunds] = useState()
   const [blockedSubmitting, setBlockedSubmitting] = useState(false)
+  const [terminateSubmitting, setTerminateSubmitting] = useState(false)
   const [message, setMessage] = useState()
   const [messageType, setMessageType] = useState()
   // const [currentCardStatus, setCurrentCardStatus] = useState()
@@ -690,15 +679,15 @@ const DialogBox = ({ visible, onClose, cardName, cardNumber, expiryDate, cvv, ca
     setMessageType(type)
   }
 
-  const currentCardStatus = CARD_BLOCK_STATUS ? CARD_UNBLOCK_STATUS : ''
-
-  const handleBlockCard = (cardId) => {
+  const handleBlockCard = (cardId, status) => {
     // return;
     setBlockedSubmitting(true)
 
+    // const cardBlockStatus = (status == "block") ? "block" : "unblock"
+
     var config = {
       method: 'PUT',
-      url: `${BaseUrl}/virtual-cards/${cardId}/${CARD_BLOCK_STATUS}`,
+      url: `${BaseUrl}/virtual-cards/${cardId}/${status}`,
       headers: { 
         'Authorization': `Bearer ${token}`, 
         'Content-Type': 'application/json'
@@ -716,17 +705,12 @@ const DialogBox = ({ visible, onClose, cardName, cardNumber, expiryDate, cvv, ca
         setBlockedSubmitting(false)
         setAddedCardFunds(false)
         alert(message)
-
-
         //make another call update our backend
-        
-
       }else{
         handleMessage("An error occured", 'FAILED')
         setBlockedSubmitting(false)
         alert(error.message)
       }
-      setBlockedSubmitting(false)
     })
     .catch(function (error) {
       console.log(error.message, '---response from blocking card');
@@ -815,7 +799,92 @@ const DialogBox = ({ visible, onClose, cardName, cardNumber, expiryDate, cvv, ca
           setSubmitting(false)
         })
 
+
       
+      }else{
+        handleMessage("An error occured", 'FAILED')
+        setBlockedSubmitting(false)
+        alert(error.message)
+      }
+      setBlockedSubmitting(false)
+    })
+    .catch(function (error) {
+      console.log(error.message, '---response from blocking card');
+      handleMessage(error.message, 'FAILED')
+      alert(error.message)
+      setBlockedSubmitting(false)
+    })
+  }
+
+  const handleTerminateCard = (cardId) => {
+    // return;
+    setTerminateSubmitting(true)
+
+    var config = {
+      method: 'PUT',
+      url: `${BaseUrl}/virtual-cards/${cardId}/terminate`,
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    };
+
+    axios(config)
+    .then(function (response) {
+      const result = response.data
+
+      const { status, message } = result;
+
+      if (status === 'success') {
+        //make another call to our backend
+
+        data.transactionType = 'virtualcards'
+        data.transactionName = 'virtualcardsaddfunds'
+        data.details = 'virtualcardsaddfunds'
+        data.date = new Date()
+        data.transactionId = transactionId
+        data.transactFromAddedFunds = "none"
+        data.transactFromWallet = "yes"
+        data.currency = currency
+        data.token = `Bearer ${token}`
+        data.data = data
+
+        //make another api call to update client account
+        var config = {
+          method: 'post',
+          url: `${BaseUrl}/transaction/virtual-card`,
+          headers: { 
+            'Authorization': `Bearer ${token}`, 
+            'Content-Type': 'application/json'
+          },
+          data : data
+        };
+
+        axios(config)
+        .then(function (response) {
+          const result = response.data
+    
+          const { status, message} = result;
+    
+          if(status === 'SUCCESS') {
+            handleMessage(message, "SUCCESS")
+            setBlockedSubmitting(false)
+            setAddedCardFunds(false)
+            alert(message)
+          }else{
+            handleMessage("An error occured", 'FAILED')
+            setBlockedSubmitting(false)
+            alert(error.message)
+          }
+
+        })
+        .catch(function (error) {
+          console.log(error.message, 'response from aff transacton');
+          handleMessage(error.message, 'FAILED')
+          alert(error.message)
+          setSubmitting(false)
+        })
+
       }else{
         handleMessage("An error occured", 'FAILED')
         setBlockedSubmitting(false)
@@ -850,16 +919,39 @@ const DialogBox = ({ visible, onClose, cardName, cardNumber, expiryDate, cvv, ca
           <Text>{currentCardCurrency}</Text>
           <Text style={{display: 'none'}}>{cardId}</Text>
 
-          {blockedSubmitting && <TouchableOpacity onPress={(cardId) => handleBlockCard(cardId)} style={styles.modalButton}>
-            <Text>Block Card</Text>
+          {(blockedSubmitting && isActive == true) 
+          && <TouchableOpacity onPress={(cardId) => handleBlockCard(cardId, 'block')} style={styles.modalButton}>
+            <Text>Block Card</Text> 
+            <MaterialIcons name="block-helper" size={24} color="white" />
           </TouchableOpacity>}
 
-          {!blockedSubmitting && <TouchableOpacity onPress={handleBlockCard} style={styles.modalButton}>
+          {(blockedSubmitting && isActive == false) 
+          && <TouchableOpacity onPress={(cardId) => handleBlockCard(cardId, 'unblock')} style={styles.modalButton}>
+            <Text>Unblock Card</Text> 
+            <MaterialIcons name="checkcircleo" size={24} color="white" />
+          </TouchableOpacity>}
+
+          {(!blockedSubmitting && isActive == true) && <TouchableOpacity onPress={handleBlockCard} style={styles.modalButton}>
             <ActivityIndicator size="large" color={primary}/>
           </TouchableOpacity>}
 
+
           {blockedSubmitting && <TouchableOpacity onPress={handleAddFunds} style={styles.modalButton}>
             <Text>Add Funds</Text>
+          </TouchableOpacity>}
+
+          {!blockedSubmitting && <TouchableOpacity onPress={handleAddFunds} style={styles.modalButton}>
+            <ActivityIndicator size="large" color={primary}/>
+          </TouchableOpacity>}
+
+
+          {terminateSubmitting && <TouchableOpacity onPress={(cardId) => handleBlockCard(cardId, 'terminate')} style={styles.modalButton}>
+            <Text>Terminate Card</Text>
+            <MaterialIcons name="checkcircleo" size={24} color="trash" />
+          </TouchableOpacity>}
+
+          {!terminateSubmitting && <TouchableOpacity onPress={(cardId) => handleBlockCard(cardId, 'terminate')} style={styles.modalButton}>
+            <ActivityIndicator size="large" color={primary}/>
           </TouchableOpacity>}
 
           {showAddFundsInput && <TextInput 

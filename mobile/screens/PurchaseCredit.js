@@ -7,22 +7,16 @@ import { Text,
         ActivityIndicator
       } from 'react-native';
 import  axios from 'axios'
+import {Octicons} from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Picker} from '@react-native-picker/picker';
+import SelectDropdown from 'react-native-select-dropdown'
 import {randomString} from '../services/';
-const {myButton, darkLight, primary} = Colors;
-import {Octicons, Ionicons} from '@expo/vector-icons';
+const { primary} = Colors;
 import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
 import { CredentialsContext } from '../components/CredentialsContext';
-import {
-  LeftIcon,
-  StyledInputLabel,
-  StyledTextInput,
-  RightIcon,
-  Colors,
-  MsgBox,
-} from '../components/styles';
+import { Colors,MsgBox,StyledContainer} from '../components/styles';
+import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 
 
 export default function PurchaseCredit({navigation, route}) {
@@ -31,48 +25,20 @@ export default function PurchaseCredit({navigation, route}) {
   const {balance} = route.params
 
   const [selectedValue, setSelectedValue] = useState("ONCE");
-  const [selectedValueRecurrence, setSelectedValueRecurrence] = useState();
   const [show, setShow] = useState(false);
   const [date, setDate] = useState(new Date(2000, 0, 1));
   const [inputValueAmount, setInputValueAmount] = useState();
   const [inputValuePhone, setInputValuePhone] = useState();
   const [transactionId, setTransactionId] = useState();
-  const [secondLegTransactionInput, setSecondLegTransactionInput] = useState();
-  const [secondLeg, setSecondLeg] = useState();
-  const [details, setDetails] = useState();
-  const [input, setInput] = useState();
-  const [data, setData] = useState([]);
-  const [billData, setbillData] = useState([]);
   const [message, setMessage] = useState()
   const [submitting, setSubmitting] = useState(false)
   const [messageType, setMessageType] = useState()
-  const [disabled, setDisabled] = useState(false)
+  const [occurrence] = useState(['ONCE', 'HOURLY', 'WEEKLY', 'DAILY', 'MONTHLY'])
   
   useEffect(()=>{
     //generate transaction ID
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
-
-    //make api call to get all the available bill services
-    // const url = 'https://api.flutterwave.com/v3/bill-categories?airtime=1';
-    // const token = FLUTTERWAVE_SECRET_KEY;
-
-    // axios.get(url, { headers: { Authorization: token } }).then((response) => {
-    // //   console.log(response, 'this is the response')
-    //   const {message, status, data} = response.data
-
-    //   console.log(data, 'this is data')
-     
-    //   if(status == 'success'){
-    //     console.log('it was successful')
-    //     setbillData(data)
-    //   }else{
-    //     handleMessage('An error occured while getting services', 'FAILED')
-    //   }
-    // }).catch((error) => {
-    //     console.log(error)
-    //     handleMessage('An error occured while getting services', 'FAILED')
-    // })
   },[]);
 
   //Actual date of birth chosen by the user to be sent
@@ -90,119 +56,10 @@ export default function PurchaseCredit({navigation, route}) {
       setMessageType(type)
   }
 
-  const showDatePicker = () => {
-      setShow(true);
-  }
-
-  const navigateConfirmTransaction = () => {
-    if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
-        setSubmitting(false)
-        handleMessage("Please enter all fields")
-        alert("Please enter all fields")
-        return
-    }
-    
-    navigation.navigate('ConfirmTransaction', {
-    transactionId: transactionId,
-    email: email,
-    // transactionDate: new Date(),
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    date: dob,
-    details: details,
-    secondLegTransactionId: secondLeg,
-    token: `Bearer ${token}`
-  })}
-
-  const handleAddTransaction = () => {
-    // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    // if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
-    //     setSubmitting(false)
-    //     handleMessage("Please enter all fields")
-    // }
-      setSubmitting(true);
-      handleMessage(null)
-      const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
-
-      let headers = 
-      {
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      }
-
-      const credentials = {
-        email: email,
-        transactionDate: new Date(),
-        transactionId: transactionId,
-        amount: inputValueAmount,
-        transactionType: selectedValue,
-        date: dob,
-        details: details,
-        secondLegTransactionId: secondLeg,
-        token: `Bearer ${token}`
-      }
-
-      axios.post(url, credentials, headers).then((response) => {
-        // token = response.token
-        const result = response.data;
-        console.log(result)
-        const {message, status} = result
-       
-        if(status == 'SUCCESS'){
-          setSubmitting(false)
-          handleMessage(message, status)
-
-          //set the form to null
-          setInputValueAmount(null)
-          setSecondLeg(null)
-          setDetails(null)
-          setData([])
-          setInputValueAmount(null)
-          setDate(null)
-        }
-      }).catch((error) => {
-          console.log(error)
-          setSubmitting(false)
-          handleMessage("An error occured, check your network and try again")
-      })
-  }
-
-  const searchTransactionId = (text) => {
-      setSecondLegTransactionInput(text);
-      // console.log('get data')
-      if (text.length > 2) {
-
-        const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions'
-
-        headers = {
-          'Authorization': `String text ${token}`
-        }
-
-        credentials = {
-          email: email,
-        }
-
-        axios.post(url, credentials,headers ).then((response) => {
-          // token = response.token
-          const result = response.data;
-          console.log(result)
-          if(result.length > 0) setData(result);
-          
-      
-          setSubmitting(false)
-        }).catch((error) => {
-            console.log(error)
-            setSubmitting(false)
-            handleMessage("An error occured, check your network and try again")
-        })
-        
-      }
-  }
-
-  const handleSelectedValue  = (text) => {
-    setSelectedValue(text)
+  const renderDropdownIcon = () => {
+    return(
+      <Octicons name="triangle-down" size={22} color="black" />
+    )
   }
 
   const handleAirtimePurchase = (text) => {
@@ -317,7 +174,8 @@ export default function PurchaseCredit({navigation, route}) {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingWrapper>
+      <StyledContainer>
         <View>
           {show && (
               <DateTimePicker
@@ -335,20 +193,6 @@ export default function PurchaseCredit({navigation, route}) {
             value = {transactionId}
             editable={false}
           />
-
-          {/* <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setSelectedValue(text)
-                (itemValue)}
-          >
-            {billData ? 
-                billData.map((item, index) => (
-                    <Picker.Item key={item.id} label={item.short_name} value={item.short_name} />
-                ))
-                : <ActivityIndicator size="large" color={primary}/>
-            }
-          </Picker> */}
 
           <TextInput
             style={styles.input}
@@ -370,17 +214,20 @@ export default function PurchaseCredit({navigation, route}) {
             value={inputValuePhone}
           />
 
-          <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
-          >
-            <Picker.Item label="ONCE" value="ONCE" />
-            <Picker.Item label="HOURLY" value="HOURLY" />
-            <Picker.Item label="WEEKLY" value="WEEKLY" />
-            <Picker.Item label="DAILY" value="DAILY" />
-            <Picker.Item label="MONTHLY" value="MONTHLY" />
-          </Picker>
+          <SelectDropdown
+            data={occurrence}
+            onSelect={(selectedItem, index) => { 
+              handleSelectBillerName(selectedItem)
+            }}
+            defaultButtonText = "Occurence"
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+          />
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
@@ -396,29 +243,10 @@ export default function PurchaseCredit({navigation, route}) {
               <Text style={styles.buttonText}>Purchase Airtime</Text>
           </TouchableOpacity>}
         </View>
-    </View>
+      </StyledContainer>
+    </KeyboardAvoidingWrapper>
+      
   );
-}
-
-const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword, 
-  isDate, showDatePicker,...props}) => {
-  return (
-      <View>
-          <LeftIcon>
-              <Octicons name={icon} size={30} color={myButton} />
-          </LeftIcon>
-          <StyledInputLabel>{label}</StyledInputLabel>
-          {!isDate && <StyledTextInput {...props}/>}
-          {isDate && <TouchableOpacity onPress={showDatePicker}>
-                  <StyledTextInput {...props}/>
-              </TouchableOpacity>}
-          {isPassword && (
-              <RightIcon onPress={() => setHidePassword(!hidePassword)}>
-                  <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
-              </RightIcon>
-          )}
-      </View>
-  )
 }
 
 const styles = StyleSheet.create({
@@ -462,5 +290,134 @@ const styles = StyleSheet.create({
     options: {
       flex: 1,
       flexDirection: 'column',
-    }
+    },
+    //select drop down
+    dropDownButtonStyle: {
+      paddingTop: 30,
+      backgroundColor: '#1b181f',
+      borderBottomColor: '#949197',
+      borderBottomWidth: 1,
+      borderRadius: 3,
+      color: '#fff',
+      margin: 10,
+      width: '95%',
+      paddingTop: 10,
+      fontFamily: 'Nunito',
+      fontSize: 5
+    },
+    dropDownButtonTextStyle: {
+      color: '#949197',
+      fontFamily: 'Nunito',
+      fontSize: 15,
+    },
 });
+
+
+// const navigateConfirmTransaction = () => {
+//   if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
+//       setSubmitting(false)
+//       handleMessage("Please enter all fields")
+//       alert("Please enter all fields")
+//       return
+//   }
+  
+//   navigation.navigate('ConfirmTransaction', {
+//   transactionId: transactionId,
+//   email: email,
+//   // transactionDate: new Date(),
+//   amount: inputValueAmount,
+//   transactionType: selectedValue,
+//   date: dob,
+//   details: details,
+//   secondLegTransactionId: secondLeg,
+//   token: `Bearer ${token}`
+// })}
+
+// const searchTransactionId = (text) => {
+//   setSecondLegTransactionInput(text);
+//   // console.log('get data')
+//   if (text.length > 2) {
+
+//     const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions'
+
+//     headers = {
+//       'Authorization': `String text ${token}`
+//     }
+
+//     credentials = {
+//       email: email,
+//     }
+
+//     axios.post(url, credentials,headers ).then((response) => {
+//       // token = response.token
+//       const result = response.data;
+//       console.log(result)
+//       if(result.length > 0) setData(result);
+      
+  
+//       setSubmitting(false)
+//     }).catch((error) => {
+//         console.log(error)
+//         setSubmitting(false)
+//         handleMessage("An error occured, check your network and try again")
+//     })
+    
+//   }
+// }
+
+// </Picker> */}
+
+// const handleAddTransaction = () => {
+//   // axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+//   // if ( email == "" || inputValueAmount == "" || dob == "" || transactionId == "" || details == "" ){
+//   //     setSubmitting(false)
+//   //     handleMessage("Please enter all fields")
+//   // }
+//     setSubmitting(true);
+//     handleMessage(null)
+//     const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/add-transaction';
+
+//     let headers = 
+//     {
+//       header: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${token}`
+//       }
+//     }
+
+//     const credentials = {
+//       email: email,
+//       transactionDate: new Date(),
+//       transactionId: transactionId,
+//       amount: inputValueAmount,
+//       transactionType: selectedValue,
+//       date: dob,
+//       details: details,
+//       secondLegTransactionId: secondLeg,
+//       token: `Bearer ${token}`
+//     }
+
+//     axios.post(url, credentials, headers).then((response) => {
+//       // token = response.token
+//       const result = response.data;
+//       console.log(result)
+//       const {message, status} = result
+     
+//       if(status == 'SUCCESS'){
+//         setSubmitting(false)
+//         handleMessage(message, status)
+
+//         //set the form to null
+//         setInputValueAmount(null)
+//         setSecondLeg(null)
+//         setDetails(null)
+//         setData([])
+//         setInputValueAmount(null)
+//         setDate(null)
+//       }
+//     }).catch((error) => {
+//         console.log(error)
+//         setSubmitting(false)
+//         handleMessage("An error occured, check your network and try again")
+//     })
+// }

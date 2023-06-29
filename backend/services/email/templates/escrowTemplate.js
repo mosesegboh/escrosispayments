@@ -15,6 +15,30 @@ const firstLegTransactionSuccess = ({transactionId,  amount,  transactionType, t
     return [subject, body]
 }
 
+
+const firstLegSecondPartyTransactionSuccess = ({transactionId,  amount,  transactionType, transactionDate, details}) => {
+    const subject = `An Escrow Transaction Has Been Initiated In Your Favour`
+
+    const body = `<p>Hello Customer,</p>
+    <p>This is to notify you that an escrow transaction has been initiated in your favour</p>
+    <p>Here are the details of the transaction:</p>
+    <p><b>Transaction ID: ${transactionId}</b></p>
+    <p><b>Amount: ${amount}</b></p>
+    <p><b>Transaction Redemption Date: ${transactionDate}</b></p>
+    <p><b> Transaction Leg: ${transactionType}</b></p>
+    <p><b> Details: ${details}</b></p>
+    <p><b> Kindly download and install our app on: ${process.env.GOOGLE_PLAYSTORE_URL}</b> to lock and confirm the transaction.</p>
+    <p>Thank you for trusting us, your transaction is in safe hands.</p>
+    <p>Warm Regards</p>`
+    // return [subject, body]
+    const params = {
+        subject: subject,
+        body: body
+    }
+
+    return params
+}
+
  const firstLegTransactionFailed = ({transactionId,  amount,  transactionType, transactionDate, details}) => {
     const subject = `Your Transaction Failed`
 
@@ -67,4 +91,10 @@ const secondLegTransactionFailed = ({transactionId,  amount,  transactionType, t
     return [subject, body]
 }
 
-module.exports = {firstLegTransactionSuccess, firstLegTransactionFailed, secondLegTransactionSuccess, secondLegTransactionFailed}
+module.exports = {
+    firstLegTransactionSuccess,
+    firstLegTransactionFailed, 
+    secondLegTransactionSuccess, 
+    secondLegTransactionFailed, 
+    firstLegSecondPartyTransactionSuccess
+}

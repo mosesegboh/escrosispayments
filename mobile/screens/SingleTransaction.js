@@ -1,9 +1,7 @@
 import React from 'react'
-import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { AntDesign } from '@expo/vector-icons'; 
-import {
-    Line,
-} from '../components/styles';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { AntDesign } from '@expo/vector-icons'
+import { Line } from '../components/styles'
 
 export default function SingleTransaction({navigation, route}) {
 
@@ -13,14 +11,27 @@ export default function SingleTransaction({navigation, route}) {
         
   }
 
+  const handleRedeemTransaction = () => {
 
+  }
 
   return (
     <View style={styles.container}>
         <View style={styles.innerContainer}>
-            <AntDesign name="checkcircle" size={100} color="green" />
+            {
+                transactionDetails.status == 'success' ? 
+                <AntDesign style={{marginRight:10}} name="checkcircle" size={100} color="green" /> :
+                transactionDetails.status == 'pending' ? 
+                <AntDesign style={{marginRight:10}} name="minuscircle" size={100} color="#a87532" /> :
+                transactionDetails.status == 'failed' ?
+                <AntDesign style={{marginRight:10}} name="closecircle" size={100} color="#a8324a" /> :
+                <AntDesign style={{marginRight:10}} name="checkcircle" size={100} color="green" />
+            }
             <Text style={styles.textHeading}>Transaction Details</Text>
             <Line />
+            <Text style={styles.textBody}>Status: {transactionDetails.status == 'success' ? 'Transaction Successful' :
+                        transactionDetails.status == 'pending' ? 'Transaction Pending' :
+                        transactionDetails.status == 'failed' ?  'Transaction Failed' : ''}</Text>
             <Text style={styles.textBody}>Transaction ID: {transactionDetails.transactionId}</Text>
             <Text style={styles.textBody}>Email: {transactionDetails.email}</Text>
             <Text style={styles.textBody}>Transaction Type: {transactionDetails.transactionType}</Text>
@@ -31,7 +42,7 @@ export default function SingleTransaction({navigation, route}) {
             {transactionDetails.transactionType == "FirstLeg" ? 
             <TouchableOpacity
                 style={styles.addTransactionButton}
-                onPress={handleCancelTransaction}
+                onPress={handleCancelTransaction(transactionDetails.transactionId)}
             >
                 <Text style={styles.buttonText}>Cancel Transaction</Text>
                 </TouchableOpacity> : <Text></Text>
@@ -39,6 +50,7 @@ export default function SingleTransaction({navigation, route}) {
 
             {transactionDetails.transactionType == "SecondLeg" ? <TouchableOpacity
                 style={styles.addTransactionButton}
+                onPress={handleRedeemTransaction(transactionDetails.transactionId)}
             >
                 <Text style={styles.buttonText}>Redeem Transaction</Text>
                 </TouchableOpacity> : <Text></Text>

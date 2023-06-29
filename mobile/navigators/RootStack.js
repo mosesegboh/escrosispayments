@@ -14,7 +14,9 @@ import Profile from '../screens/Profile';
 import AllTransactions from '../screens/AllTransactions';
 import OTPVerification from '../screens/OTPVerification';
 import DrawerContent from './DrawerContent';
+import SwapCurrency from '../screens/SwapCurrency';
 import SingleTransaction from '../screens/SingleTransaction';
+import GetRate from '../screens/GetRate';
 import SideBar from './customDrawer';
 import AddToWallet from '../screens/AddToWallet';
 import BillPayment from '../screens/BillPayment';
@@ -50,10 +52,24 @@ function MyDrawer({navigation}){
                         backgroundColor: "#3b60bd",
                     },
                     
-                    })} 
+                })} 
                 name="Dashboard" component={Dashboard} 
             />
-            {/* <Drawer.Screen name="Profile" component={Profile} /> */}
+            <Drawer.Screen name="GetRate" component={GetRate} 
+                options={({navigation})=>({
+                    headerLeft: () => 
+                    (
+                        <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+                            <Ionicons name='menu' size={25} color='white'
+                            />
+                        </TouchableOpacity> 
+                    ),
+                    headerStyle: {
+                        backgroundColor: "#3b60bd",
+                    },
+                    
+                })} 
+            />
             {/* <Drawer.Screen name="SingleTransaction" component={SingleTransaction} /> */}
             {/* <Drawer.Screen name="OTPVerification" component={OTPVerification} /> */}
         </Drawer.Navigator>
@@ -180,7 +196,24 @@ const RootStack = () => {
                                     name="VirtualCard" component={VirtualCard}
                                 />
 
-                                
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Get Currency Rate",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="GetRate" component={GetRate}
+                                />
+
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Swap Currency",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="SwapCurrency" component={SwapCurrency}
+                                />
+
                                 <Stack.Screen 
                                     options={{headerTintColor: 'white'}} 
                                     name="ConfirmTransaction" 

@@ -1,7 +1,8 @@
-const transferTemplate = require('../templates/transferTemplate')
+// const transferTemplate = require('../templates/transferTemplate')
 const nodemailer = require('nodemailer')
-const success = require('../templates/billPaymentTemplate')
-const failed = require('../templates/billPaymentTemplate')
+// const success = require('../templates/billPaymentTemplate')
+// const failed = require('../templates/billPaymentTemplate')
+const {success, failed} = require('../templates/walletTemplate')
 // import {getProducts} from '../services';
 
 let transporter = nodemailer.createTransport({
@@ -21,14 +22,14 @@ transporter.verify((error, success) => {
     }
 })
 
-const sendEmailFunction  = async ({email, transactionId, date, amount, transactionType, details}, res, status, success, failed) => {
+const sendEmailFunction  = async ({email, transactionId, date, amount, transactionType, details}, res, status, {success, failed}) => {
     try {
         if (status == "success"){
             var mailOPtions = { 
                 from : process.env.AUTH_EMAIL,
                 to: email,
-                subject: success({email, transactionId, date, amount, transactionType, details})[0],
-                html: success({email, transactionId, date, amount, transactionType, details})[1],
+                subject: success({email, transactionId, date, amount, transactionType, details}).subject,
+                html: success({email, transactionId, date, amount, transactionType, details}).body,
             }
         }
 
@@ -36,8 +37,8 @@ const sendEmailFunction  = async ({email, transactionId, date, amount, transacti
             var mailOPtions = { 
                 from : process.env.AUTH_EMAIL,
                 to: email,
-                subject: failed({email, transactionId, transactionDate, amount, transactionType, details})[0],
-                html: failed({email, transactionId, transactionDate, amount, transactionType, details})[1],
+                subject: failed({email, transactionId, date, amount, transactionType, details}).subject,
+                html: failed({email, transactionId, date, amount, transactionType, details}).body,
             }
         }
         await transporter.sendMail(mailOPtions)

@@ -12,6 +12,12 @@ export const FLUTTER_BILL_PAYMENT_URL = 'bills'
 export const ADD_TRANSACTION_URL = '/transaction/add-transaction'
 export const CARD_BLOCK_STATUS = 'block'
 export const CARD_UNBLOCK_STATUS = 'unblock'
+export const SERVICE_FEE_TRANSFER = 100
+export const SERVICE_FEE_INT_TRANFER_DOLLAR = 5
+export const SERVICE_FEE_BILL_PAYMENT = 100
+export const SERVICE_FEE_INT_TRANFER_NAIRA = 100
+export const DEFAULT_CURRENCY = 'NGN'
+export const WEBSITE_URL = 'www.escrosis.com/contact'
 
 async function wrapper(response) {
     const result = await response.json();

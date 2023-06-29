@@ -11,15 +11,17 @@ const processBillPayment = async (data, res) => {
 
     var userCurrentDetails = await getCurrentUserDetails(data);
 
+    const {currentBalance, currentlockedTransactionBalance,currentUnlockedTransactionBalance} = userCurrentDetails
+
     var filter = { transactionId: data.transactionId }; //filter is a check for added transactions
     var update = {
         status: "pending",
         transactionId: data.transactionId,
         transactionName: data.transactionName,
         transactionType: data.transactionType,
-        balance: +userCurrentDetails[2] - +data.amount,
-        lockedTransaction: +userCurrentDetails[0],
-        unLockedTransaction: +userCurrentDetails[1],
+        balance: +currentBalance - +data.amount,
+        lockedTransaction: +currentlockedTransactionBalance,
+        unLockedTransaction: +currentUnlockedTransactionBalance,
         amount: data.amount,
         email: data.email,
         date: data.date,

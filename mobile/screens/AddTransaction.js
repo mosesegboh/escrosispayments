@@ -5,11 +5,11 @@ import { Text,
         TouchableOpacity,
         TextInput,
         ActivityIndicator,
+        Platform
       } from 'react-native';
 import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Picker} from '@react-native-picker/picker';
 import {randomString} from '../services/';
 import {BaseUrl} from '../services/'
 import {PayWithFlutterwave} from 'flutterwave-react-native';
@@ -22,21 +22,25 @@ import {
   RightIcon,
   Colors,
   MsgBox,
+  StyledContainer
 } from '../components/styles';
 const {myButton, myPlaceHolderTextColor, darkLight, primary} = Colors;
 import {Octicons, Ionicons} from '@expo/vector-icons';
-import SelectDropdown from 'react-native-select-dropdown' 
+import SelectDropdown from 'react-native-select-dropdown'
+import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 
 export default function AddTransaction({navigation, route}) {
   const {storedCredentials} = useContext(CredentialsContext)
 
   let {email, token} = storedCredentials
   const {balance} = route.params
-  const countries = ["Egypt", "Canada", "Australia", "Ireland"]
-
   const [selectedValue, setSelectedValue] = useState("FirstLeg");
+
   const [show, setShow] = useState(false);
-  const [date, setDate] = useState(new Date(2000, 0, 1));
+  const [date, setDate] = useState(new Date());
+  const [mode, setMode] = useState()
+  const [dob, setDob] = useState();
+
   const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
   const [transactionParty, setTransactionParty] = useState();
@@ -52,32 +56,51 @@ export default function AddTransaction({navigation, route}) {
   const [visible, setVisible] = useState(false)
   const [showOptions, setShowOptions] = useState(false)
   const [showNormal, setShowNormal] = useState(true)
-  const [dob, setDob] = useState();
+  const [transactionLegs, setTransactionLegs] = useState(['FirstLeg', 'SecondLeg'])
+  const [transactionParties, setTransactionParties] = useState(['Buyer', 'Seller'])
+  const [searchTrasactionSecondLeg, setSearchTrasactionSecondLeg] = useState([])
+  const [secondPartyEmail, setSecondPartyEmail] = useState()
+  const [secondPartyPhone, setSecondPartyPhone] = useState()
   
   useEffect(()=>{
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
     setTransactionId(rString.toUpperCase());
   },[]);
 
-  const onChange = (event,selectedDate) => {
+  const onChange = ({type}, selectedDate) => {
+    if (type == "set"){
       const currentDate = selectedDate || date;
-      setShow(false);
       setDate(currentDate);
-      setDob(currentDate);
+      if (Platform.OS === "android") {
+        toggleDatePicker()
+        setDob(currentDate.toDateString());
+      }  
+    }else{
+      toggleDatePicker()
+    }  
+  }
+  
+   const showDatePicker = () => {
+    setShow(true);
+  }
+
+  const toggleDatePicker = () => {
+    setShow(!show)
+  }
+
+  const confirmIosDate = () => {
+    setDob(date.toDateString())
+    toggleDatePicker()
   }
 
   const handleMessage = (message,type="FAILED") => {
-      setMessage(message)
-      setMessageType(type)
-  }
-
-  const showDatePicker = () => {
-      setShow(true);
+    setMessage(message)
+    setMessageType(type)
   }
 
   const selectPaymentOption = () => {
     setSubmitting(true)
-    console.log(balance)
+    // console.log(balance)
     if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ) {
       setSubmitting(false)
       handleMessage("Please enter all fields")
@@ -86,7 +109,7 @@ export default function AddTransaction({navigation, route}) {
     }
     
     if (inputValueAmount > balance) {
-      console.log('i was clicked!')
+      // console.log('i was clicked!')
       // setVisible(false)
       setVisible(true)
       setShowOptions(false)
@@ -109,124 +132,109 @@ export default function AddTransaction({navigation, route}) {
     handleAddTransaction(transactFromWallet, transactFromAddedFunds)
   }
 
-const handleAddTransaction = (transactFromWallet, transactFromAddedFunds) => {
-  setSubmitting(true);
-  setSubmittingConfirm(true)
-  handleMessage(null)
-  const url = `${BaseUrl}/transaction/add-transaction`;
+  const handleAddTransaction = (transactFromWallet, transactFromAddedFunds) => {
+    setSubmitting(true);
+    setSubmittingConfirm(true)
+    handleMessage(null)
+    const url = `${BaseUrl}/transaction/add-transaction`;
 
-  let headers = {
-    header: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+    let headers = {
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
     }
+
+    const credentials = {
+      email: email,
+      transactionDate: dob,
+      transactionId: transactionId,
+      amount: inputValueAmount,
+      transactionType: selectedValue,
+      date: date,
+      transactionName: selectedValue,
+      details: details,
+      secondPartyEmail: secondPartyEmail,
+      secondPartyPhone: secondPartyPhone,
+      transactionParty: transactionParty,
+      transactFromWallet: transactFromWallet,
+      transactFromAddedFunds: transactFromAddedFunds,
+      secondLegTransactionId: secondLeg ? secondLeg : 0.00,
+      token: `Bearer ${token}`
+    }
+
+    // console.log(credentials, '--credentials--');
+    // return
+    axios.post(url, credentials, headers).then((response) => {
+      // token = response.token
+      const result = response.data;
+      console.log(result)
+      const {message, status} = result
+      
+      if (status == 'SUCCESS') {
+        setVisible(false)
+        setSubmitting(false)
+        setSubmittingConfirm(false)
+        // navigation.navigate('AddTransaction')
+        handleMessage(message, status)
+        alert('Your transaction was successful')
+
+        //set the form to null
+        setInputValueAmount(null)
+        setSecondLeg(null)
+        setDetails(null)
+        setData([])
+        setInputValueAmount(null)
+      }else{
+        handleMessage('An error Occured')
+        setSubmitting(false)
+        setSubmittingConfirm(false)
+        setVisible(false)
+      }
+    }).catch((error) => {
+        console.log(error, '-error from axios')
+        setSubmitting(false)
+        setSubmittingConfirm(false)
+        setVisible(false)
+        handleMessage("An error occured and this transaction is not completed, check your network and try again")
+    })
   }
 
-  const credentials = {
-    email: email,
-    transactionDate: dob,
-    transactionId: transactionId,
-    amount: inputValueAmount,
-    transactionType: selectedValue,
-    date: date,
-    transactionName: selectedValue,
-    details: details,
-    transactionParty: transactionParty,
-    transactFromWallet: transactFromWallet,
-    transactFromAddedFunds: transactFromAddedFunds,
-    secondLegTransactionId: secondLeg ? secondLeg : 0.00,
-    token: `Bearer ${token}`
+  const handleCancel = () => {
+    setSubmitting(false)
+    setVisible(false)
   }
-
-  console.log(credentials);
-
-  axios.post(url, credentials, headers).then((response) => {
-    // token = response.token
-    const result = response.data;
-    console.log(result)
-    const {message, status} = result
-    
-    if (status == 'SUCCESS') {
-      setVisible(false)
-      setSubmitting(false)
-      setSubmittingConfirm(false)
-      // navigation.navigate('AddTransaction')
-      handleMessage(message, status)
-      alert('Your transaction was successful')
-
-      //set the form to null
-      setInputValueAmount(null)
-      setSecondLeg(null)
-      setDetails(null)
-      setData([])
-      setInputValueAmount(null)
-    }else{
-      handleMessage('An error Occured')
-      setSubmitting(false)
-      setSubmittingConfirm(false)
-      setVisible(false)
-    }
-  }).catch((error) => {
-      console.log(error, '-error from axios')
-      setSubmitting(false)
-      setSubmittingConfirm(false)
-      setVisible(false)
-      handleMessage("An error occured and this transaction is not completed, check your network and try again")
-  })
-}
-
-const handleCancel = () => {
-  setSubmitting(false)
-  setVisible(false)
-}
 
   const searchTransactionId = (text) => {
-      setSecondLegTransactionInput(text);
-      // console.log('get data')
-      if (text.length > 2) {
-
-        const url = 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions'
-
-        headers = {
-          'Authorization': `String text ${token}`
-        }
-
-        credentials = {
-          email: email,
-        }
-
-        axios.post(url, credentials,headers ).then((response) => {
-          // token = response.token
-          const result = response.data;
-          console.log(result)
-          if(result.length > 0) setData(result);
-          
-      
-          setSubmitting(false)
-        }).catch((error) => {
-            console.log(error)
-            setSubmitting(false)
-            handleMessage("An error occured, check your network and try again")
-        })
-        
+    console.log('get data')
+    if (text.length > 2) {
+      const url = `${BaseUrl}/transaction/get-transactions?searchSecondLeg=${text}`
+      const headers = {
+        'Authorization': `Bearer ${token}`
       }
+      const credentials = {
+        email: email,
+        token: `Bearer ${token}`
+      }
+
+      axios.post(url, credentials,headers ).then((response) => {
+        const result = response.data;
+        var searchResultData = [];
+        // console.log(result.data);
+        if (result.data.length > 0) {
+          result.data.forEach((item, index) => {
+            searchResultData.push(item.transactionId);
+          });
+        }
+        setSearchTrasactionSecondLeg(searchResultData);
+      }).catch((error) => {
+          console.log(error)
+          setSubmitting(false)
+          handleMessage("An error occured, check your network and try again")
+      })
+    }
   }
 
-  // const getItemText = (item) => {
-  //   let mainText = item.transactionId;
-    
-  //   return (
-  //     <View style={{ flexDirection: "row", alignItems: "center", padding: 15 }}>
-  //       <View style={{ marginLeft: 10, flexShrink: 1 }}>
-  //         <Text style={{ fontWeight: "700" }}>{mainText}</Text>
-  //         <Text style={{ fontSize: 12 }}>{item.transactionId}</Text>
-  //       </View>
-  //     </View>
-  //   );
-  // };
-  // const props = {
-  //     disabled: true
-  // }
   const handleSelectedValue  = (text) => {
     setSelectedValue(text)
     if (text == "FirstLeg") {
@@ -244,23 +252,12 @@ const handleCancel = () => {
   const renderDropdownIcon = () => {
     return(
       <Octicons name="triangle-down" size={22} color="black" />
-  )
-  }
+  )}
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingWrapper>
+      <StyledContainer>
         <View>
-          {show && (
-              <DateTimePicker
-                testID="dateTimePicker"
-                value={date}
-                mode='date'
-                is24Hour={true}
-                display="default"
-                onChange={onChange}
-              />
-          )}
-
           <TextInput
             style={styles.input}
             value = {transactionId}
@@ -275,38 +272,129 @@ const handleCancel = () => {
             keyboardType={'numeric'}
             onChangeText={amount => setInputValueAmount(amount)}
             value={inputValueAmount}
+          />        
+
+          <SelectDropdown
+            data={transactionLegs}
+            onSelect={(selectedItem, index) => { 
+              handleSelectedValue(selectedItem)
+            }}
+            defaultButtonText = "Transaction Leg"
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />
 
-          <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
-          >
-            <Picker.Item label="FirstLeg" value="FirstLeg" />
-            <Picker.Item label="SecondLeg" value="SecondLeg" />
-          </Picker>
+          <SelectDropdown
+            data={transactionParties}
+            onSelect={(selectedItem, index) => { 
+              setTransactionParty(selectedItem)
+            }}
+            defaultButtonText = "Transaction Party"
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+          />
 
-          <Picker
-            selectedValue={transactionParty}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => setTransactionParty(itemValue)}
-          >
-            <Picker.Item label="Buyer" value="Buyer" />
-            <Picker.Item label="Seller" value="Seller" />
-          </Picker>
+          {!showSecondLeg && <TextInput
+            style={styles.input}
+            placeholder="Second Party Email"
+            placeholderTextColor="#949197"
+            onChangeText={text => setSecondPartyEmail(text)}
+            value={secondPartyEmail} 
+          />}
+
+          {!showSecondLeg && <TextInput
+            style={styles.input}
+            placeholder="Second Party Phone"
+            placeholderTextColor="#949197"
+            onChangeText={text => setSecondPartyPhone(text)}
+            value={secondPartyPhone} 
+          />}
 
           <MyTextInput 
-              icon="calendar"
-              placeholder="YYYY - MM - DD"
-              placeholderTextColor={myPlaceHolderTextColor}
-              //onChangeText={handleChange('dateOfBirth')}
-              //onBlur = {handleBlur('dateOfBirth')}
-              value={dob ? dob.toDateString() : ''}
-              isDate={true}
-              editable = {false}
-              showDatePicker = {showDatePicker}
-              style={styles.input}
+            icon="calendar"
+            placeholder="Transaction Redemption Date - YYYY - MM - DD"
+            placeholderTextColor={myPlaceHolderTextColor}
+            value={dob ? dob : ''}
+            isDate={true}
+            editable = {false}
+            showDatePicker = {showDatePicker}
+            onPress={() => showMode('date')}
+            style={styles.input}
+            onPressIn = {toggleDatePicker}
           />
+
+          {show && (<DateTimePicker
+            testID="dateTimePicker"
+            value={date}
+            mode={mode}
+            is24Hour={true}
+            style={{height: 120,
+              marginTop: -10,
+              color: "#fff"}}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onChange}
+          />)}
+
+          {show &&  Platform.OS === 'ios' && <View
+            style={{flexDirection: 'row', justifyContent: 'space-around'}}
+          >
+            <TouchableOpacity style={[
+                styles.button,
+                styles.pickerButton,
+                {backgroundColor: '#3a5fbc',
+                height: 30,
+                width: 70,
+                alignSelf: 'center',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: -30,
+                borderRadius: 15 }
+              ]}
+              onPress={toggleDatePicker}
+            >
+              <Text
+                style={[
+                  styles.buttonText,
+                  {color: '#fff', fontFamily: 'Nunito' }
+                ]}
+              >Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[
+                styles.button,
+                styles.pickerButton,
+                {
+                  backgroundColor: '#3a5fbc',
+                  height: 30,
+                  width: 70,
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: -30,
+                  borderRadius: 15
+                }
+              ]}
+              onPress={confirmIosDate}
+            >
+              <Text
+                style={[
+                  styles.buttonText,
+                  {color: '#fff', fontFamily: 'Nunito'}
+
+                ]}
+              >Confirm</Text>
+            </TouchableOpacity>
+          </View>}
 
           <TextInput
             style={styles.input}
@@ -316,101 +404,22 @@ const handleCancel = () => {
             value={details} 
           />
 
-          {/* {showSecondLeg && <TextInput
-            style={styles.input}
-            placeholder="Second Leg Transaction"
-            placeholderTextColor="#949197"
-            onChangeText={secondLeg => setSecondLeg(secondLeg)}
-            value={secondLeg} 
-          />} */}
-
-          <SelectDropdown
-            data={countries}
+          {showSecondLeg && <SelectDropdown
             search={true}
-            onSelect={(selectedItem, index) => {
-              console.log(selectedItem, index)
-              // setDestinationCurrency(selectedItem)
-              // console.log(destinationCurrency)
-              // handleSelectedCountry(selectedItem)
-              // setCountrySelected(selectedItem)
+            onChangeSearchInputText = {(text) => {searchTransactionId(text)}}
+            data={searchTrasactionSecondLeg}
+            onSelect={(selectedItem, index) => { 
+              setTransactionParty(selectedItem)
             }}
-            
-            defaultButtonText="countries"
-              buttonStyle={{
-              paddingTop: 30,
-              backgroundColor: '#1b181f',
-              borderBottomColor: '#949197',
-              borderBottomWidth: 1,
-              borderRadius: 3,
-              color: '#fff',
-              margin: 10,
-              width: '95%',
-              paddingTop: 10,
-              fontFamily: 'Nunito',
-              fontSize: 5
-            }}
+            defaultButtonText = "Search Second Leg Transaction Leg"
+            buttonStyle={styles.dropDownButtonStyle}
             renderDropdownIcon = {renderDropdownIcon}
-            rowStyle={{
-              fontSize: 5,
-              fontFamily: 'Nunito',
-              // marginLeft: -5,
-              // marginRight: 280,
-            }}
-            buttonTextStyle={{
-              color: '#fff',
-              marginLeft: -10,
-              marginRight: 280,
-              fontFamily: 'Nunito',
-              fontSize: 14,
-
-              // justifyContent: 'left',
-            }}
-            rowTextStyle={{
-              // alignItems: 'left'
-              marginLeft: 0
-            }}
-            buttonTextAfterSelection={(selectedItem, index) => {
-              // text represented after item is selected
-              // if data array is an array of objects then return selectedItem.property to render after item is selected
-              // console.log(selectedItem)
-              // handleSelectedTransfer(selectedItem)
-              return selectedItem
-            }}
-            rowTextForSelection={(item, index) => {
-              // text represented for each item in dropdown
-              // if data array is an array of objects then return item.property to represent item in dropdown
-              return item
-            }}
-          />
-
-        {/* <Autocomplete
-              // data={data}
-              // value={query}
-              // onChangeText={(text) => this.setState({ query: text })}
-              // flatListProps={{
-              //   keyExtractor: (_, idx) => idx,
-              //   renderItem: ({ item }) => <Text>{item}</Text>,
-              // }}
-        /> */}
-
-          {/* <TouchableWithoutFeedback onPress={()=>Keyboard.dismiss}>
-            <SafeAreaView style={styles.options}>
-              <TextInput 
-                style={styles.input}
-                placeholder="Search For Transaction Id"
-                value={secondLegTransactionInput}
-                onChangeText={searchTransactionId}
-              />
-              <FlatList 
-                data={data}
-                renderItem={({item, index}) => (
-                  <Pressable onPress={()=>alert('i was clicked')}>
-                     {getItemText(item)}
-                  </Pressable>
-                )}
-              />
-            </SafeAreaView>
-          </TouchableWithoutFeedback> */}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+          />}
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
@@ -422,7 +431,6 @@ const handleCancel = () => {
           </TouchableOpacity>}
 
           {submitting && <TouchableOpacity 
-            // onPress={() => selectPaymentOption}
             style={styles.addTransactionButton}>
               <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
           </TouchableOpacity>}
@@ -477,28 +485,29 @@ const handleCancel = () => {
             </Dialog.Container>
           </View>}
         </View>
-    </View>
+      </StyledContainer>
+    </KeyboardAvoidingWrapper>
   );
 }
 
 const MyTextInput = ({label, icon,isPassword,hidePassword,setHidePassword, 
   isDate, showDatePicker,...props}) => {
   return (
-      <View>
-          <LeftIcon>
-              <Octicons name={icon} size={30} color={myButton} />
-          </LeftIcon>
-          <StyledInputLabel>{label}</StyledInputLabel>
-          {!isDate && <StyledTextInput {...props}/>}
-          {isDate && <TouchableOpacity onPress={showDatePicker}>
-                  <StyledTextInput {...props}/>
-              </TouchableOpacity>}
-          {isPassword && (
-              <RightIcon onPress={() => setHidePassword(!hidePassword)}>
-                  <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
-              </RightIcon>
-          )}
-      </View>
+    <View>
+      <LeftIcon>
+        <Octicons name={icon} size={30} color={myButton} />
+      </LeftIcon>
+      <StyledInputLabel>{label}</StyledInputLabel>
+        {!isDate && <StyledTextInput {...props}/>}
+        {isDate && <TouchableOpacity onPress={showDatePicker}>
+            <StyledTextInput {...props}/>
+          </TouchableOpacity>}
+        {isPassword && (
+        <RightIcon onPress={() => setHidePassword(!hidePassword)}>
+          <Ionicons name={hidePassword ? 'md-eye-off' : 'md-eye'} size={30} color={darkLight}  />
+        </RightIcon>
+      )}
+    </View>
   )
 }
 
@@ -519,7 +528,8 @@ const styles = StyleSheet.create({
       borderBottomWidth: 1,
       borderRadius: 3,
       color: '#fff',
-      margin: 10
+      margin: 10,
+      fontFamily: 'Nunito'
     },
     picker: {
       backgroundColor: '#1b181f',
@@ -543,5 +553,24 @@ const styles = StyleSheet.create({
     options: {
       flex: 1,
       flexDirection: 'column',
-    }
+    },
+    //select drop down
+    dropDownButtonStyle: {
+      paddingTop: 30,
+      backgroundColor: '#1b181f',
+      borderBottomColor: '#949197',
+      borderBottomWidth: 1,
+      borderRadius: 3,
+      color: '#fff',
+      margin: 10,
+      width: '95%',
+      paddingTop: 10,
+      fontFamily: 'Nunito',
+      fontSize: 5
+    },
+    dropDownButtonTextStyle: {
+      color: '#949197',
+      fontFamily: 'Nunito',
+      fontSize: 15,
+    },
 });
