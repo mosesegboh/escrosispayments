@@ -74,7 +74,16 @@ export default function AddToWallet({navigation}) {
     )
   }
 
-  const handleAddTransaction = () => {
+  const handleAddTransaction = (data) => {
+    // console.log(data, '--data--')
+    if (data.status === "cancelled") {
+      alert('Your transaction was cancelled')
+      handleMessage('Your transaction was cancelled')
+      setVisible(false)
+      setSubmitting(false)
+      return
+    }
+
     setSubmittingConfirm(true);
     handleMessage(null)
     const url = `${BaseUrl}/transaction/add-transaction`;
@@ -172,10 +181,6 @@ export default function AddToWallet({navigation}) {
     setSubmitting(false)
     setVisible(false)
     return
-  }
-
-  const handleRedirect = () => {
-    console.log('i was redirected!!!')
   }
 
   return (
@@ -298,7 +303,7 @@ export default function AddToWallet({navigation}) {
               </Dialog.Description>
               {!submittingConfirm && <PayWithFlutterwave
                 // style={styles.addTransactionButton}
-                onRedirect={handleRedirect}
+                onRedirect={(data) => handleAddTransaction(data)}
                 // onWillInitialize = {handleOnRedirect}
                 options={{
                   tx_ref: transactionId,
