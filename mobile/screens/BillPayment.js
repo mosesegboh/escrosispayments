@@ -8,10 +8,16 @@ import { Text,
       } from 'react-native';
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {randomString} from '../services';
+import {BaseUrl, randomString} from '../services';
 const {primary} = Colors;
 import {Octicons} from '@expo/vector-icons';
-import  {FLUTTERWAVE_SECRET_KEY}  from '../services/index';
+import  {FLUTTERWAVE_SECRET_KEY, 
+  SERVICE_FEE_BILL_PAYMENT,
+  TEST_STATUS_SUCCESS,
+  TEST_STATUS_FAILURE,
+  NG_PHONE_CODE,
+  SERVICE_FEE_TITHE
+}  from '../services/index';
 import  {FLUTTERWAVE_API_URL}  from '../services/index';
 import { CredentialsContext } from '../components/CredentialsContext';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
@@ -36,7 +42,9 @@ export default function BillPayment({route}) {
   const [messageType, setMessageType] = useState()
   const [billSelected, setBillSelected] = useState()
   const [dob, setDob] = useState();
+  const [transactionCurrency, setTransactionCurrency] = useState('NG');
   const [occurrence] = useState(['ONCE', 'HOURLY', 'WEEKLY', 'DAILY', 'MONTHLY'])
+  const [billerName, setBillerName] = useState()
 
   
   useEffect(()=>{
@@ -46,10 +54,11 @@ export default function BillPayment({route}) {
     //make api call to get all the available bill services
     const urlParameter = (bill == 'electricity') ? 'power' 
                       : (bill == 'internet') ? 'internet' 
+                      : (bill == 'airtime') ? 'airtime' 
                       :  (bill == 'data') ? 'data_bundle' 
                       :  (bill == 'dhl') ? 'dhl' 
                       : ''
-      const url = (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'toll' || bill == 'dhl') 
+      const url = (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'toll' || bill == 'dhl' || bill == "airtime") 
       ? `${FLUTTERWAVE_API_URL}/bill-categories`  
       : `${FLUTTERWAVE_API_URL}/bill-categories?${urlParameter}=1`;
       const token = FLUTTERWAVE_SECRET_KEY;
@@ -58,7 +67,7 @@ export default function BillPayment({route}) {
         const {message, status, data} = response.data
         // console.log(data, '--data')
         // console.log(typeof(data), '--response data')
-        if (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'dhl') {
+        if (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'dhl' || bill == 'airtime') {
           const processedResponse = response.data.data
 
           var unCategorizedBillData = []
@@ -74,8 +83,11 @@ export default function BillPayment({route}) {
             if ( element.id >= 165 && element.id <= 166 && bill == 'tax') {
               unCategorizedBillData.push(element)
             }
+            if (element.is_airtime == true && bill == 'airtime') {
+              unCategorizedBillData.push(element)
+            }
             if ( (element.id === 47 || element.id == 104 || element.id == 167) && bill == 'dhl') {
-              console.log('dhl')
+              // console.log('dhl')
               unCategorizedBillData.push(element)
             }
           }
@@ -83,7 +95,7 @@ export default function BillPayment({route}) {
         
         if (status == 'success'){
           // console.log('it was successful')
-          if (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'dhl'){
+          if (bill == 'tithe' || bill == 'cable' || bill == 'tax' || bill == 'dhl' || bill == 'airtime'){
             setbillData(unCategorizedBillData)
           }else{
             setbillData(data)
@@ -111,53 +123,78 @@ export default function BillPayment({route}) {
   }
 
   const handleBillPurchase = (text) => {
-    console.log(selectedValue, 'selected value')
-    if ( email == null || inputValueAmount == null || inputValuePhone == null || selectedValue == null || transactionId == null ) {
+    // console.log(selectedValue, 'selected value')
+    if ( (email == null || inputValueAmount == null || inputValuePhone == null || selectedValue == null || transactionId == null) && (bill !== "airtime") ) {
       setSubmitting(false)
       handleMessage("Please enter all fields")
       alert("Please enter all fields")
       return
+    } else if (bill == "airtime" && inputValueAmount == null) {
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    } else if (inputValuePhone.length > 11 && (bill=="airtime" || bill == "data")) {
+      setSubmitting(false)
+      handleMessage("Kindly check the phone number and try again")
+      alert("Kindly check the phone number and try again")
+      return
+    } else if (inputValuePhone.length > 10 && (bill=="electricity")) {
+      setSubmitting(false)
+      handleMessage("Kindly check the phone number and try again")
+      alert("Kindly check the phone number and try again")
+      return
     }
 
     if (inputValueAmount > balance) {
-      console.log('i was clicked!')
+      // console.log('i was clicked!')
       setSubmitting(false)
-      handleMessage("You have insufficient balance to complete this transaction")
-      alert("You have insufficient balance to complete this transaction")
+      handleMessage("You have insuficient balance to complete this transaction")
+      alert("You have insuficient balance to complete this transaction")
       return
     }
 
     setSubmitting(true)
 
-    var data = JSON.stringify({
-      country: 'NG',
-      customer: inputValuePhone,
-      amount: inputValueAmount,
-      recurrence: selectedValue,
-      type: billSelected,
-      reference: transactionId,
-    });
+    var serviceCharges = bill == 'tithe' ? SERVICE_FEE_TITHE :  SERVICE_FEE_BILL_PAYMENT
 
-    console.log(data, 'this is the data')
+    var data = {
+      country: 'NG',
+      customer: NG_PHONE_CODE + inputValuePhone.slice(1),
+      amount: (+inputValueAmount + +serviceCharges).toString(),
+      recurrence: selectedValue,
+      type: billerName,
+      reference: transactionId,
+    };
+
+    // console.log(data, 'this is the first data')
     // return
+
     var config = {
       method: 'post',
-      url: `${FLUTTERWAVE_API_URL}/bills`,
+      // url: `${FLUTTERWAVE_API_URL}/bills`,
+      url: `${BaseUrl}/transaction/test-api?module=${bill}-success`,
       headers: { 
         'Authorization': FLUTTERWAVE_SECRET_KEY, 
         'Content-Type': 'application/json'
       },
       data : data
     };
+
+    // console.log(config.url, 'this is the url')
+    // return
           
     axios(config)
     .then(function (response) {
       // console.log(JSON.stringify(response.data));
       const result = response.data
+
+      //FOR TESTING
       const { status, message} = result;
       
-      if(status === 'success') {
+      if (status === 'success') {
         data.email = email
+        data.status = status
         data.transactionType = (bill == 'electricity') ? 'power' 
                                 : (bill == 'internet') ? 'internet' 
                                 : (bill == 'data') ? 'data_bundle' 
@@ -165,17 +202,19 @@ export default function BillPayment({route}) {
                                 : (bill == 'cable') ? 'cable'
                                 : (bill == 'tax') ? 'tax'
                                 : (bill == 'dhl') ? 'dhl'
+                                : (bill == 'airtime') ? 'airtime'
                                 : ''
-        data.transactionName = 'billPayment' 
-        data.details = `${bill} bill purchase`
+        data.transactionName = 'billPayment'
+        data.details = `${bill} Bill Purchase`
         data.date = new Date()
         data.transactionId = transactionId
         data.transactFromAddedFunds = "none"
         data.transactFromWallet = "yes"
-        data.currency = currency
+        data.transactionCurrency = transactionCurrency
         data.token = `Bearer ${token}`
 
-        console.log(data, 'i got inside here oh')
+        // console.log(data, '----this is second data inside o')
+        // return
 
         //make another api call to update client account
         var config = {
@@ -195,11 +234,13 @@ export default function BillPayment({route}) {
     
           const { status, message} = result;
           
-          if(status === 'SUCCESS') {
+          if (status === 'SUCCESS') {
             handleMessage(message, status)
             setSubmitting(false)
             alert(message)
-          }else{
+            setInputValueAmount('')
+            setInputValuePhone('')
+          } else {
             handleMessage("An error occured", 'FAILED')
             setSubmitting(false)
             alert(error.message)
@@ -217,18 +258,20 @@ export default function BillPayment({route}) {
         setSubmitting(false)
       }
       
-      console.log(response, 'response from 11');
+      // console.log(response, 'response from 11');
     })
     .catch(function (error) {
+      setSubmitting(false)
+      console.log(error)
       console.log(error.response.data.message, 'response fom api call');
       handleMessage(error.response.data.message, 'FAILED')
-      // alert(error.message)
-      setSubmitting(false)
+      alert(error.response.data.message)
+      
     });      
   }
 
   const handleSelectBillerName  = (text) => {
-    if(bill == 'data') {
+    if (bill == 'data') {
       var dataBundleAmount = text.split(',')
       setBillSelected(dataBundleAmount[0]) 
       setInputValueAmount(dataBundleAmount[1])
@@ -239,8 +282,8 @@ export default function BillPayment({route}) {
   }
 
   const handleSelectedItem = (item) => {
-    console.log(item)
-    if(bill == 'data' || bill == 'cable') {
+    // console.log(item)
+    if (bill == 'data' || bill == 'cable') {
       setInputValueAmount(item.amount.toString())
     }
   }
@@ -274,12 +317,14 @@ export default function BillPayment({route}) {
 
           {((bill == 'electricity' || bill == 'internet'
             || bill == 'data' || bill == 'tithe' || bill == 'cable'
-            || bill == 'tax' || bill == 'dhl'
+            || bill == 'tax' || bill == 'dhl' || bill == 'airtime'
             ) && billData.length !== 0) ? <SelectDropdown
               data={billData}
               search={true}
               onSelect={(selectedItem, index) => { 
+                // console.log(selectedItem.biller_name, '---this is biler name')
                 handleSelectedItem(selectedItem)
+                setBillerName(selectedItem.biller_name)
                 // if (bill == 'data') {() => setInputValueAmount('100')}
                 // handleSelectBillerName(selectedItem.biller_name)
               }}
@@ -290,6 +335,7 @@ export default function BillPayment({route}) {
                                 : bill == 'cable' ? 'Select Cable TV Provider'
                                 : bill == 'tax' ? 'Select Tax Authority'
                                 : bill == 'dhl' ? 'Select Shipping Payment'
+                                : bill == 'airtime' ? 'Select Airtime Provider'
                                 : ''}
             buttonStyle={styles.dropDownButtonStyle}
             renderDropdownIcon = {renderDropdownIcon}
@@ -317,7 +363,7 @@ export default function BillPayment({route}) {
             placeholder =  { (bill == 'electricity') ? 'Meter Number' 
                         : (bill == 'internet') ? 'Customer Number' 
                         : (bill == 'electricity') ? 'Meter Number' 
-                        : (bill == 'data') ? 'Phone Number' 
+                        : (bill == 'data' || bill == 'airtime') ? 'Phone Number' 
                         : (bill == 'dhl') ? 'Label Number' 
                         :  'Customer Number'}
             placeholderTextColor="#949197" 
@@ -362,6 +408,7 @@ export default function BillPayment({route}) {
                   : (bill == 'cable') ? 'Pay For Cable TV'
                   : (bill == 'tax') ? 'Pay For Tax'
                   : (bill == 'tax') ? 'Pay For Shipping'  
+                  : (bill == 'airtime') ? 'Pay For Airtime' 
                   : ''
                 }
               </Text>
@@ -435,129 +482,3 @@ const styles = StyleSheet.create({
       fontSize: 15,
     }
 });
-
-// const navigateConfirmTransaction = () => {
-//   if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ){
-//       setSubmitting(false)
-//       handleMessage("Please enter all fields")
-//       alert("Please enter all fields")
-//       return
-//   }
-  
-//   navigation.navigate('ConfirmTransaction', {
-//     transactionId: transactionId,
-//     email: email,
-//     // transactionDate: new Date(),
-//     amount: inputValueAmount,
-//     transactionType: selectedValue,
-//     date: dob,
-//     details: details,
-//     // secondLegTransactionId: secondLeg,
-//     token: `Bearer ${token}`
-//   })
-// }
-
-
-// {(bill == 'electricity') && <Picker
-//             selectedValue={billSelected}
-//             style={styles.picker}
-//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-//           >
-//             {billData ? 
-//                 billData.map((item, index) => (
-//                     <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
-//                 ))
-//                 : <ActivityIndicator size="large" color={primary}/>
-//             }
-//           </Picker>}
-
-// {(bill == 'internet') && <Picker
-//             selectedValue={billSelected}
-//             style={styles.picker}
-//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-//           >
-//             {billData ? 
-//                 billData.map((item, index) => (
-//                     <Picker.Item key={item.id} label={item.short_name} value={item.biller_name} />
-//                 ))
-//                 : <ActivityIndicator size="large" color={primary}/>
-//             }
-//           </Picker>}
-
-// {(bill == 'data') && <Picker
-//             selectedValue={billSelected}
-//             style={styles.picker}
-//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-//           >
-//             {billData ? 
-//                 billData.map((item, index) => (
-//                     <Picker.Item key={item.id} label={item.biller_name} value={ ` ${item.biller_name},${item.amount} `} />
-//                 ))
-//                 : <ActivityIndicator size="large" color={primary}/>
-//             }
-//           </Picker>}
-
-
-// {(bill == 'tithe') && <Picker
-// selectedValue={billSelected}
-// style={styles.picker}
-// onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-// >
-// {billData ? 
-//     billData.map((item, index) => (
-//         <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-//     ))
-//     : <ActivityIndicator size="large" color={primary}/>
-// }
-// </Picker>}
-
-// {(bill == 'cable') && <Picker
-//             selectedValue={billSelected}
-//             style={styles.picker}
-//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-//           >
-//             {billData ? 
-//                 billData.map((item, index) => (
-//                     <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-//                 ))
-//                 : <ActivityIndicator size="large" color={primary}/>
-//             }
-//           </Picker>}
-
-// {(bill == 'tax') && <Picker
-//             selectedValue={billSelected}
-//             style={styles.picker}
-//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-//           >
-//             {billData ? 
-//                 billData.map((item, index) => (
-//                     <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-//                 ))
-//                 : <ActivityIndicator size="large" color={primary}/>
-//             }
-//           </Picker>}
-
-// {(bill == 'dhl') && <Picker
-//             selectedValue={billSelected}
-//             style={styles.picker}
-//             onValueChange={(billSelected, itemIndex) => handleSelectBillerName(billSelected)}
-//           >
-//             {billData ? 
-//                 billData.map((item, index) => (
-//                     <Picker.Item key={item.id} label={`${item.short_name} ${item.biller_name}`} value={item.biller_name} />
-//                 ))
-//                 : <ActivityIndicator size="large" color={primary}/>
-//             }
-//           </Picker>}
-
- {/* <Picker
-            selectedValue={selectedValue}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => handleSelectedValue(itemValue)}
-          >
-            <Picker.Item label="ONCE" value="ONCE" />
-            <Picker.Item label="HOURLY" value="HOURLY" />
-            <Picker.Item label="WEEKLY" value="WEEKLY" />
-            <Picker.Item label="DAILY" value="DAILY" />
-            <Picker.Item label="MONTHLY" value="MONTHLY" />
-          </Picker> */}

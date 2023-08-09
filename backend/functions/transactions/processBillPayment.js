@@ -9,13 +9,19 @@ const processBillPayment = async (data, res) => {
 
     validateData(data, res)
 
-    var userCurrentDetails = await getCurrentUserDetails(data);
+    var userCurrentDetails = await getCurrentUserDetails(data, undefined, 1, undefined);
 
-    const {currentBalance, currentlockedTransactionBalance,currentUnlockedTransactionBalance} = userCurrentDetails
+    var {
+        balanceForAdditionalCurrencies, 
+        currentBalance, 
+        currentlockedTransactionBalance,
+        currentUnlockedTransactionBalance,
+        // userCurrentTransactionCurrency,
+    } = userCurrentDetails
 
-    var filter = { transactionId: data.transactionId }; //filter is a check for added transactions
+    // var filter = { transactionId: data.transactionId }; //filter is a check for added transactions
     var update = {
-        status: "pending",
+        status: data.status,
         transactionId: data.transactionId,
         transactionName: data.transactionName,
         transactionType: data.transactionType,
@@ -32,9 +38,11 @@ const processBillPayment = async (data, res) => {
         customer: data.customer,
         recurrence: data.recurrence,
         reference: data.reference,
+        balanceForAdditionalCurrencies: balanceForAdditionalCurrencies
     };
 
-    saveTransaction(filter, update, data, res)
+    // saveTransaction(filter, update, data, res)
+    saveTransaction(undefined, update, data, res, "directsave")
 }
 
 module.exports = {processBillPayment}  

@@ -10,6 +10,7 @@ const {processVirtualCards} = require('../functions/transactions/processVirtualC
 const {processSearchSecondLeg} = require('../functions/transactions/processSearchSecondLeg')
 const {processSwapCurrency} = require('../functions/transactions/processSwapCurrency')
 const {processAddFundsToWallet} = require('../functions/transactions/processAddFundsToWallet')
+const {processBillPayment} = require('../functions/transactions/processBillPayment')
 
 router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateTokenMiddleware.authenticateTokenMiddleware, async  (req, res) => {
     
@@ -51,6 +52,11 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
 
     if (transactionName == 'wallet') {
         processAddFundsToWallet( req.body, res)
+        return
+    }
+
+    if (transactionName == 'billPayment') {
+        processBillPayment( req.body, res)
         return
     }
 
@@ -275,17 +281,17 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
         //     };    
         // }
 
-        if (transactionName == 'airtime') {
-            //filter variable
-            const balance = newLockedTransactionBalanceValue[2]
-            var filter = { transactionId: transactionId };
-            var update = { 
-                balance: +balance - +amount,
-                transactionName: transactionName,
-                amount: amount,
-                details: "Purchase Of Airtime"
-            };    
-        }
+        // if (transactionName == 'airtime') {
+        //     //filter variable
+        //     const balance = newLockedTransactionBalanceValue[2]
+        //     var filter = { transactionId: transactionId };
+        //     var update = { 
+        //         balance: +balance - +amount,
+        //         transactionName: transactionName,
+        //         amount: amount,
+        //         details: "Purchase Of Airtime"
+        //     };    
+        // }
 
         if (newLockedTransactionBalanceValue[3]) {
             if (transactFromWallet == "yes"){
@@ -368,6 +374,34 @@ router.post('/add-transaction',  authMiddleware.authMiddleware, authenticateToke
                 })
             }
         }      
+    }
+})
+
+router.post('/test-api', (req, res) => {
+
+    if (req.query.module = 'airtime-success') {
+        console.log('i was here ppp')
+        return res.json({
+            "status": "success",
+            "message": "Bill status fetch successful",
+            "data": {
+                "currency": "NGN",
+                "customer_id": "2348109728098",
+                "frequency": "One Time",
+                "amount": "500.0000",
+                "product": "AIRTIME",
+                "product_name": "MTN",
+                "commission": 15,
+                "transaction_date": "2022-06-07T10:59:40.72Z",
+                "country": "NG",
+                "tx_ref": "CF-FLYAPI-20220607105940408290",
+                "extra": null,
+                "product_details": "FLY-API-NG-AIRTIME-MTN",
+                "status": "successful",
+                "code": "200"
+            }
+        })
+        
     }
 })
 

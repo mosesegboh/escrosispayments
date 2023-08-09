@@ -8,7 +8,7 @@ import SignUp from '../screens/SignUp';
 import Dashboard from '../screens/Dashboard';
 import AddTransaction from '../screens/AddTransaction';
 import Transaction from '../screens/Transaction';
-import PurchaseCredit from '../screens/PurchaseCredit';
+// import PurchaseCredit from '../screens/PurchaseCredit';
 import ConfirmTransaction from '../screens/ConfirmTransaction';
 import Profile from '../screens/Profile';
 import AllTransactions from '../screens/AllTransactions';
@@ -121,14 +121,14 @@ const RootStack = () => {
                                         }, }}      
                                     name="Transaction" component={Transaction} 
                                 />
-                                <Stack.Screen
+                                {/* <Stack.Screen
                                     options={{headerShown: true, 
                                         headerTitle:"Purchase Credit",
                                         headerTintColor: 'white', 
                                         headerStyle: {backgroundColor: "#1b181f",
                                         }, }} 
                                     name="PurchaseCredit" component={PurchaseCredit} 
-                                />
+                                /> */}
                                 <Stack.Screen
                                     options={{headerShown: true, 
                                         headerTitle:"All Your Transactions",

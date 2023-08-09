@@ -13,11 +13,17 @@ export const ADD_TRANSACTION_URL = '/transaction/add-transaction'
 export const CARD_BLOCK_STATUS = 'block'
 export const CARD_UNBLOCK_STATUS = 'unblock'
 export const SERVICE_FEE_TRANSFER = 100
+export const AIRTIME_SERVICE_FEE = 100
 export const SERVICE_FEE_INT_TRANFER_DOLLAR = 5
 export const SERVICE_FEE_BILL_PAYMENT = 100
 export const SERVICE_FEE_INT_TRANFER_NAIRA = 100
 export const DEFAULT_CURRENCY = 'NGN'
 export const WEBSITE_URL = 'www.escrosis.com/contact'
+export const TEST_STATUS_SUCCESS = 'success'
+export const TEST_STATUS_FAILURE = 'success'
+export const NG_PHONE_CODE = '+234'
+export const SERVICE_FEE_TITHE = 200
+export const MAIN_CURRENCY_BALANCE = 'NGN'
 
 async function wrapper(response) {
     const result = await response.json();

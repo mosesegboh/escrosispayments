@@ -113,11 +113,10 @@ export default function AddToWallet({navigation}) {
   axios.post(url, transactionData, headers).then((response) => {
     // token = response.token
     const result = response.data;
-    console.log(result)
+    // console.log(result)
     const {message, status} = result
 
-    console.log(status, message, '--this is status and message')
-    
+    // console.log(status, message, '--this is status and message')
     if (status == 'SUCCESS') {
       setSubmitting(false)
       handleMessage(message, status)
@@ -136,9 +135,10 @@ export default function AddToWallet({navigation}) {
     // navigation.navigate('AddTransaction')
   }).catch((error) => {
     console.log(error)
-    setSubmitting(false)
+    // setSubmitting(false)
     setVisible(false)
     handleMessage("An error occured and this transaction is not completed, check your network and try again")
+    setSubmitting(false)
   })
 }
 

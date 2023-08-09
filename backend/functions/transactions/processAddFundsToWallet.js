@@ -36,7 +36,7 @@ const processAddFundsToWallet = async (data, res) => {
         transactionType: data.transactionType,
         customer: data.customer,
         reference: data.reference,
-        balanceForAdditionalCurrencies,
+        balanceForAdditionalCurrencies: balanceForAdditionalCurrencies,
         // data: data.data
     };
 

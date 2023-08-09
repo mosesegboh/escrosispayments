@@ -267,6 +267,14 @@ const TransactionSchema = new Schema({
     secondPartyEmail: {
         type: String,
         required: false
+    },
+    mainBalanceAfterTransaction: {
+        type: Number,
+        required: false
+    },
+    mainBalanceBeforeTransaction: {
+        type: Number,
+        required: false
     }
 })
 

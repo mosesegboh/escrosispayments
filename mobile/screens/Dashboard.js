@@ -7,14 +7,14 @@ import {Octicons} from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons'; 
-import { FontAwesome5 } from '@expo/vector-icons'; 
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { AntDesign } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
 import { BaseUrl } from '../services/';
-import {DEFAULT_CURRENCY} from '../services/'
-import Carousel from 'react-native-snap-carousel'
+import {DEFAULT_CURRENCY} from '../services/';
+import Carousel from 'react-native-snap-carousel';
 const { primary} = Colors;
 
 //you can get rid of navigation and route
@@ -28,11 +28,9 @@ export default function Dashboard ({navigation, route}) {
   const isFocused = useIsFocused()
   const [hasMultipleCurrency, setHasMultipleCurrency] = useState(false)
   const [multipleCurrencyObject, setMultipleCurrencyObject] = useState()
+  const [isLoading, setLoading] = useState(true);
 
   let {name, email, token,  photoUrl} = storedCredentials
-  // console.log(name, email, token, 'Name and email')
-  // console.log(storedCredentials, 'this is the stored credentials')
-  // const {name, email} = route.params
   useEffect(()=>{
     var axios = require('axios');
     var data = JSON.stringify({
@@ -52,12 +50,10 @@ export default function Dashboard ({navigation, route}) {
 
     // console.log(config, '--config')
     // return
-
     axios(config)
     .then(function (response) {
       // console.log(response)
       if (response.data.status == "SUCCESS") {
-        
         var transactions = response.data.data;
         // console.log(transactions, '--transactions')
         // return
@@ -67,18 +63,34 @@ export default function Dashboard ({navigation, route}) {
         const latestValue = transactions[latestIndex-1]
         // console.log(latestValue.balanceForAdditionalCurrencies.length > 0, '--latest value')
         // (latestValue.balanceForAdditionalCurrencies && latestValue.balanceForAdditionalCurrencies.length > 0) ? setHasMultipleCurrency(true) : setHasMultipleCurrency(false)
-        if (latestValue.balanceForAdditionalCurrencies.length > 0) {
-          latestValue.balanceForAdditionalCurrencies.push({balance: latestValue.balance, toCurrency: DEFAULT_CURRENCY})
+        
+
+        // setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
+        
+        if (latestValue && latestValue.balanceForAdditionalCurrencies 
+          && latestValue.balanceForAdditionalCurrencies.length > 0 
+          && latestValue.balanceForAdditionalCurrencies[0] !== 0) {
+          // latestValue.balanceForAdditionalCurrencies.push({balance: latestValue.balance, toCurrency: DEFAULT_CURRENCY})
           // console.log(latestValue.balanceForAdditionalCurrencies, 'true ooooo')
-          setHasMultipleCurrency(true)
           setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
+          latestValue.balanceForAdditionalCurrencies.forEach((item) => {
+            if ( item.toCurrency === DEFAULT_CURRENCY ) {setBalance(item.newBalanceToAfterTransaction ? item.newBalanceToAfterTransaction : 0.00)}
+            // console.log(balance,item.toCurrency,item.newBalanceToAfterTransaction, DEFAULT_CURRENCY, '--blance')
+          })
+          setHasMultipleCurrency(true)
+          
+        } else {
+          setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
         }
-        setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
+        // setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
         setLockedTransaction(transactions.length > 0 ? latestValue.lockedTransaction : 0.00)
         setUnLockedTransaction(transactions.length > 0 ? latestValue.unLockedTransaction : 0.00)
         // console.log(response.data.data.length === 0)
         setIsUserTransactions(response.data.data.length === 0)
         setUserTransactions(response.data.data.reverse())
+        setLoading(false);
+
+        // console.log(isLoading)
       }else{
         alert('kindly login again')
         clearLogin()
@@ -92,21 +104,9 @@ export default function Dashboard ({navigation, route}) {
 
   
   // Carousel data
-  const Images= [
+const Images= [
   {
     // image: require('../assets/img/card2.png'),
-    text: 'heeeeeeee'
-  },
-  {
-    // image: require('../assets/img/card1.png'),
-    text: 'heeeeeeee'
-  },
-  {
-    // image: require('../assets/img/card3.png'),
-    text: 'heeeeeeee'
-  },
-  {
-    // image: require('../assets/img/card4.png'),
     text: 'heeeeeeee'
   },
 ];
@@ -115,18 +115,13 @@ const carouselRef = useRef(null)
 const RenderItem = ({item, index}) => {
   return(
     <View style={styles.balanceView}>
-        {/* <TouchableWithoutFeedback> */}
-        <Text style={styles.balanceText}>
-            TOTAL BALANCE (s)
-          </Text>
-          <Text style={styles.balanceValue}>
-            {item.balance || '0.00'} {item.toCurrency} 
-          </Text>
-          {/* <Text style={{color: 'white'}}>{item.balance}</Text> */}
-          {/* <Image source={item.image} style={{width: 310, height: 180, borderRadius: 10}} /> */}
-        {/* </TouchableWithoutFeedback> */}
+      <Text style={styles.balanceText}>
+        TOTAL BALANCE (s)
+      </Text>
+      <Text style={styles.balanceValue}>
+        {item.newBalanceToAfterTransaction || '0.00'} {item.toCurrency} 
+      </Text>
     </View>
-    
   )
 }
   // console.log(token)
@@ -134,7 +129,6 @@ const RenderItem = ({item, index}) => {
 
   //for google sign in
   // name = name ? name : displayName
-
   const clearLogin = async () => {
     try {
       if (!__DEV__) {
@@ -183,7 +177,7 @@ const RenderItem = ({item, index}) => {
        </View>}
 
       {!hasMultipleCurrency && <View style={styles.balanceView}>
-          <Text style={styles.balanceText}>Hello {name || 'Egboh Moses'}</Text>
+          <Text style={styles.balanceText}>Hello {name || 'Customer'}</Text>
           {/* <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text> */}
           {/* <Text style={styles.balanceText}>{token || 'token'}</Text> */}
           <Text style={styles.balanceText}>
@@ -198,15 +192,15 @@ const RenderItem = ({item, index}) => {
       </View>}
 
       <View style={styles.servicesIcons}>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
           <Ionicons name='wallet' size={24} color='green' />
           <Text style={styles.billsText}>wallet</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('PurchaseCredit', {email: email, token: token, balance: balance})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'airtime'})}>
           <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
           <Text style={styles.billsText}>airtime</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
           <MaterialCommunityIcons name="bank-transfer-out" size={32} color="green" />
           <Text style={styles.billsText}>transfers</Text>
         </TouchableOpacity>
@@ -238,12 +232,14 @@ const RenderItem = ({item, index}) => {
           <MaterialCommunityIcons name="cash" size={26} color="green" />
           <Text style={styles.billsText}>shipping</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance})}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
           <MaterialCommunityIcons name="earth-arrow-right" size={20} color="green" />
           <Text style={styles.billsText}>swap</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency})}>
-          <Ionicons name="card" size={24} color="green" />
+        <TouchableOpacity style={styles.billPaymentIcon} 
+          // onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
+        >
+          <Ionicons name="card" size={24} color="#808080" />
           <Text style={styles.billsText}>v-cards</Text>
         </TouchableOpacity> 
       </View>
@@ -285,7 +281,14 @@ const RenderItem = ({item, index}) => {
       </View>
 
       <ScrollView>
-          {userTransactions.length > 0 ? 
+      {/* userTransactions.length > 0 */}
+          {isLoading ? 
+            <ActivityIndicator size="large" color={primary}/>:
+          (userTransactions.length === 0)  ? 
+          <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+            <MaterialIcons name="hourglass-empty" size={36} color="green" />
+            <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+          </View> :
             userTransactions.slice(0, 5).map((item, index) => (
               <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
                 <View style={styles.singleTransactionRightSide}>
@@ -301,7 +304,7 @@ const RenderItem = ({item, index}) => {
                 <View style={styles.transactionDetailRightSide}>
                   <View style={styles.recentTransactionAmount}>
                     <Text style={styles.transacitonAmount}>
-                      {item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}  
+                      {item.transactionType == 'transfer' ? '-' : '+'} {item.amount}  
                     </Text>
                   </View>
                   {
@@ -316,13 +319,13 @@ const RenderItem = ({item, index}) => {
                 </View>
               </TouchableOpacity>
             ))
-              : (isUserTransactions) ?  
-              <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
-                <MaterialIcons name="hourglass-empty" size={36} color="green" />
-                <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
-              </View>
-              :
-              <ActivityIndicator size="large" color={primary}/> 
+              // : (!isUserTransactions) ?  
+              // <ActivityIndicator size="large" color={primary}/> 
+              // :
+              // <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+              //   <MaterialIcons name="hourglass-empty" size={36} color="green" />
+              //   <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+              // </View>
             }
       </ScrollView>
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>
