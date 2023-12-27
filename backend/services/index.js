@@ -1,5 +1,5 @@
 const walletTemplate = require('./email/templates/walletTemplate')
-const escrowTemplate = require('./email/templates/escrowTemplate')
+const escrowTemplate = require('./email/templates/firstLegEscrowTemplate')
 const {virtualCardFundTransactionSuccess, 
     virtualCardFundTransactionFailed} = require('./email/templates/virtualCardFundingSuccess')
 const verificationEmailTemplate = require('./email/templates/verificationEmailTemplate')

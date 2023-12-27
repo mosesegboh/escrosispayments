@@ -12,8 +12,7 @@ import {Octicons} from '@expo/vector-icons';
 import SelectDropdown from 'react-native-select-dropdown'
 import {randomString} from '../services';
 const { primary} = Colors;
-import  {FLUTTERWAVE_SECRET_KEY, BaseUrl, MAIN_CURRENCY_BALANCE, FLUTTERWAVE_API_URL, DEFAULT_CURRENCY}  from '../services/index';
-// import  {FLUTTERWAVE_API_URL}  from '../services/index';
+import  {FLUTTERWAVE_SECRET_KEY, BaseUrl, MAIN_CURRENCY_BALANCE, FLUTTERWAVE_API_URL, DEFAULT_CURRENCY, MULTIPLE_CURRENCY_LIMIT}  from '../services/index';
 import { Colors,MsgBox,StyledContainer} from '../components/styles';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 import  {allowedInternationalCurrencies}  from '../services/index'; 
@@ -25,13 +24,13 @@ export default function SwapCurrency({route}) {
   let {email, token, name} = storedCredentials
   // const {balance} = route.params
   const {balance, multipleCurrencyObject, hasMultipleCurrency} = route.params
-  console.log(balance)
+  // console.log(multipleCurrencyObject)
   var balanceArray = []
   if (multipleCurrencyObject && multipleCurrencyObject.length > 0 
     // && multipleCurrencyObject[0] !== 0
     ) {
     multipleCurrencyObject.forEach((item) => {
-      balanceArray.push(`${item.toCurrency} - ${item.balance}`)
+      balanceArray.push(`${item.toCurrency} - ${item.newBalanceToAfterTransaction}`)
     })
   } else {
     balanceArray.push(`${DEFAULT_CURRENCY} - ${balance}`)
@@ -120,25 +119,12 @@ export default function SwapCurrency({route}) {
   }
 
   const handleSwapCurrency = () => {  
+    // console.log('here return')
+    // console.log( multipleCurrencyObject.length)
+    // return
         setSubmitting(true)  
         handleMessage("")
-        // console.log(mainBalance, '--previous balance to')
-        // setSubmitting(false)
-        // setDestinationAmount('')
-        // setDestinationCurrency('')
-        // setSourceAmount('')
-        // setSourceCurrency('')
-        // setRate('')
-        // setConvertedAmount('')
-        // setNewCurrency('')
-        // return
-
-
-        // console.log(amount, destinationCurrency, sourceCurrencyBalance, '--datae')
-        // console.log(typeof(+sourceCurrencyBalance))
-        // setSubmitting(false) 
-        // return
-
+        
         if (amount > +sourceCurrencyBalance) {
           handleMessage("You do not have sufficient funds to complete this transaction")
           alert("You do not have sufficient funds to complete this transaction")
@@ -153,26 +139,28 @@ export default function SwapCurrency({route}) {
           return
         }
 
-        // console.log(multipleCurrencyObject, '--multiple object')
+        // console.log(multipleCurrencyObject.length, multipleCurrencyObject)
 
-        //go through the multiple currency onject to get the from currency and balance
-        // multipleCurrencyObject.forEach((item) => {
-        //   // console.log(item,destinationCurrency,item.toCurrency, typeof(destinationCurrency), typeof(item.toCurrency),item.toCurrency, 'this is item')
-        //   if (destinationCurrency == item.toCurrency) {
-        //     // console.log('inside here o')
-        //     setPreviousBalanceFrom(item.balance)
-        //   }
+        if (multipleCurrencyObject && (multipleCurrencyObject.length > 0) && (multipleCurrencyObject[0] !== 0)) {
+          let found = false;
+          for(let i = 0; i < multipleCurrencyObject.length; i++) {
+            if ( multipleCurrencyObject[i].sourceCurrency === destinationCurrency ||
+              multipleCurrencyObject[i].destinationCurrency === sourceCurrency || multipleCurrencyObject[i].destinationCurrency === destinationCurrency
+              ) {
+              found = true;
+              break;
+            }
+          }
+        }
+        
 
-        //   if (sourceCurrency == item.toCurrency) {
-        //     // console.log(item.toCurrency, 'inside here')
-        //     setPreviousBalanceTo(item.balance)
-        //   }
-        //   // console.log()
-        // })
-
-        // console.log(prevBalanceFrom, prevBalanceTo, 'i got here o')
-        // setSubmitting(false)
-        // return
+        if (multipleCurrencyObject.length === MULTIPLE_CURRENCY_LIMIT && (found === false)) {
+          console.log('heree')
+          handleMessage("You cannot hold more than 3 currencies at this time");
+          alert("You cannot hold more than 3 currencies at this time");
+          setSubmitting(false);
+          return;
+        }
     
         if ( destinationCurrency == null || sourceCurrency == null || amount == null) {
           handleMessage("Please enter destination currency and source currency to get rates")
@@ -180,9 +168,6 @@ export default function SwapCurrency({route}) {
           setSubmitting(false)
           return
         }
-        // console.log(sourceCurrency)
-        // return
-        // console.log(`${FLUTTERWAVE_API_URL}/transfers/rates?amount=${amount}&destination_currency=${sourceCurrency}&source_currency=${destinationCurrency}`)
       
         var config = {
           method: 'get',
@@ -226,22 +211,47 @@ export default function SwapCurrency({route}) {
             //   response.data.data.rate,
             //   '---result'
             // )
-            
+            let updatedAmount = amount; // Start with the current state value
+            let isMainCurrencyDestinationTo = false;
+            let isMainCurrencySourceFrom = false;
+            let updatedAmountSource = '';
+            let updatedAmountDestination = '';
+            if (multipleCurrencyObject && (multipleCurrencyObject.length > 0) && (multipleCurrencyObject[0] !== 0)) {
+              for (let i = 0; i < multipleCurrencyObject.length; i++) {
+                  // const item = multipleCurrencyObject[i];
+                // console.log(sourceCurrency, '--amount before');
+                
+                if (MAIN_CURRENCY_BALANCE === sourceCurrency) {
+                  console.log('hereeeeeee')
+                  isMainCurrencySourceFrom = true;
+                  updatedAmountSource = updatedAmount * (updatedAmount * +responseRate);
+                  break; // Exit the loop
+                }
+                if (MAIN_CURRENCY_BALANCE === destinationCurrency) {
+                  console.log(222222)
+                  isMainCurrencyDestinationTo = true;
+                  // console.log(responseRate,updatedAmount,amount, '--------inside here');
+                  updatedAmountDestination = updatedAmount * (updatedAmount * +responseRate);
+                  // console.log(updatedAmount, '---inside updated amount')
+                  break; // Exit the loop
+                }
+              }
+            }
+             
+            console.log(MAIN_CURRENCY_BALANCE === sourceCurrency,'upest')
+            console.log(MAIN_CURRENCY_BALANCE, destinationCurrency, sourceCurrency, '----')
+            console.log(isMainCurrencySourceFrom, updatedAmountSource,  'destinaion amount')
+            console.log(mainBalance, '--main balance')
+            console.log(isMainCurrencyDestinationTo, '---main currrency to')
+            console.log(mainBalance, updatedAmountDestination, '2 currencies')
+            console.log(+(mainBalance - +updatedAmountDestination), '--what should be')
+            // console.log(isMainCurrencyDestinationTo ? +(mainBalance + +updatedAmountDestination)  :  +(mainBalance - +updatedAmountDestination))
+            // console.log("Updated amount destination :, ", updatedAmountDestination)
+            // console.log("main currency destination to:", isMainCurrencyDestinationTo)
+            // console.log(+mainBalance - +(isMainCurrencyDestinationTo ? +updatedAmountDestination :  +0.00))
             // setSubmitting(false)
+            // return;
 
-            // setDestinationAmount('')
-            // setDestinationCurrency('')
-            // setSourceAmount('')
-            // setSourceCurrency('')
-            // setRate('')
-            // setConvertedAmount('')
-            // setNewCurrency('')
-
-            // return
-            
-            // setSubmitting(false) 
-            // return
-            // console.log(prevBalanceFrom, prevBalanceTo, '------i got here o')
             const data = {
               transactionId: transactionId,
               email: email,
@@ -249,13 +259,16 @@ export default function SwapCurrency({route}) {
               transactionName: 'swapcurrency',
               details: "Swap Currency",
               amount: amount,
-              currencyHoldingBalance: +prevBalanceFrom,
+              // currencyHoldingBalance: +prevBalanceFrom,
               newBalanceFromAfterTransaction: +sourceCurrencyBalance - +amount,
               prevBalanceFrom: +sourceCurrencyBalance,
               newBalanceToAfterTransaction: +prevBalanceFrom + (amount * response.data.data.rate),
               prevBalanceTo: +prevBalanceFrom,
               mainBalanceBeforeTransaction: +mainBalance,
-              mainBalanceAfterTransaction: +mainBalance - +amount ,
+              // mainBalanceAfterTransaction:   +mainBalance - +(isMainCurrencyDestinationTo ? +updatedAmountDestination :  +0.00),
+              mainBalanceAfterTransaction:  isMainCurrencyDestinationTo ? +(mainBalance + +updatedAmountDestination) :  
+                                            isMainCurrencySourceFrom ? +(mainBalance - +amount) :
+                                            (+mainBalance - amount),
               mainCurrency: mainCurrency,
               transactionCurrency: response.data.data.destination.currency,
               destinationCurrency: response.data.data.destination.currency,
@@ -267,7 +280,7 @@ export default function SwapCurrency({route}) {
               token: `Bearer ${token}`
             }
 
-            console.log(data, '--data')
+            // console.log(data, '--data')
             // setSubmitting(false)
             // setDestinationAmount('')
             // setDestinationCurrency('')
@@ -299,7 +312,6 @@ export default function SwapCurrency({route}) {
 
                 // console.log(result)
                 // return
-            
               if (status === 'SUCCESS') {
                 handleMessage(message, status)
                 setSubmitting(false)
@@ -312,6 +324,7 @@ export default function SwapCurrency({route}) {
                 setRate('')
                 setConvertedAmount('')
                 setNewCurrency('')
+                setAmount('')
               } else {
                 handleMessage("An error occured", 'FAILED')
                 setSubmitting(false)
@@ -324,6 +337,7 @@ export default function SwapCurrency({route}) {
               setRate('')
               setConvertedAmount('')
               setNewCurrency('')
+              setAmount('')
 
             })
             .catch(function (error) {
@@ -443,22 +457,6 @@ export default function SwapCurrency({route}) {
             rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />
 
-          {/* <SelectDropdown
-            search={true}
-            data={sourceCurrency}
-            onSelect={(selectedItem, index) => { 
-              setSourceCurrency(selectedItem)
-            }}
-            defaultButtonText = "Source Currency"
-            buttonStyle={styles.dropDownButtonStyle}
-            renderDropdownIcon = {renderDropdownIcon}
-            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
-            buttonTextStyle={styles.dropDownButtonTextStyle}
-            rowTextStyle={{ marginLeft: 0 }}
-            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
-            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
-          /> */}
-
           <MsgBox type={messageType}>{message}</MsgBox>
 
           {submitting && <TouchableOpacity 
@@ -541,16 +539,16 @@ const styles = StyleSheet.create({
       fontSize: 15,
     },
     resultView: {
-        backgroundColor: 'rgba(59, 96, 189, 0.2)',
-        height: 130,
-        width: '99%',
-        flexDirection: 'column',
-        alignSelf: 'center',
-        // borderRadius: 3,
-        marginTop: 12,
-        marginBottom: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
+      backgroundColor: 'rgba(59, 96, 189, 0.2)',
+      height: 130,
+      width: '99%',
+      flexDirection: 'column',
+      alignSelf: 'center',
+      // borderRadius: 3,
+      marginTop: 12,
+      marginBottom: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     balanceText: {
       color: "white",
@@ -570,15 +568,15 @@ const styles = StyleSheet.create({
       fontFamily: 'Nunito'
     },
     balanceView: {
-        backgroundColor: 'rgba(59, 96, 189, 0.2)',
-        height: 130,
-        width: '99%',
-        flexDirection: 'column',
-        alignSelf: 'center',
-        // borderRadius: 3,
-        marginTop: 12,
-        marginBottom: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
+      backgroundColor: 'rgba(59, 96, 189, 0.2)',
+      height: 130,
+      width: '99%',
+      flexDirection: 'column',
+      alignSelf: 'center',
+      // borderRadius: 3,
+      marginTop: 12,
+      marginBottom: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 });

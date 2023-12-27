@@ -1,7 +1,7 @@
 const {saveTransaction, getCurrentUserDetails} = require('../process')
 const {validateData} = require('../validation/validateData')
 
-const processAddFundsToWallet = async (data, res) => {
+const processPayments = async (data, res) => {
 
     validateData(data, res)
 
@@ -39,4 +39,4 @@ const processAddFundsToWallet = async (data, res) => {
     saveTransaction(undefined, update, data, res, "directsave")
 }
 
-module.exports = {processAddFundsToWallet}
+module.exports = {processPayments}

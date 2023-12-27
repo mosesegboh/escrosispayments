@@ -9,7 +9,6 @@ const UserVerification = require('./../models/UserVerification')
 const UserOTPVerification = require('./../models/UserOTPVerification')
 const email = require('../services/index')
 const nodemailer = require('nodemailer')
-
 //unique string
 const {v4: uuidv4} = require('uuid')
 
@@ -179,7 +178,6 @@ router.post('/signup', (req, res) => {
         })
     }
 })
-
 //hashed password
 // const generateToken = (data, res, userPassword) => {
 //     // console.log(data, '--data');
@@ -251,11 +249,7 @@ const generateToken = (data, res, userPassword) => {
           reject(err);
         });
     });
-  };
-  
-
-
-
+};
 //sign in
 router.post('/signin', (req, res) => {
     let {email, password} = req.body
@@ -355,6 +349,39 @@ router.post('/signin', (req, res) => {
 
 })
 
+router.get('/get-user', (req, res) => {
+    
+    let {email} = req.query
+
+    console.log(email, '--test')
+
+    User.find({email}).then(data => {
+        if (data.length){
+            if (!data[0].verified) {
+                res.json({
+                    status: "FAILED",
+                    message: "Email has not been verified. you cannot perform this transaction",
+                })
+            }else{
+                res.json({
+                    status: "SUCCESS",
+                    message: "user details successfully retrieved",
+                    data: data
+                })
+            }            
+        }else{
+            res.json({
+                status: "FAILED",
+                message: "User does not exist"
+            })
+        }
+    }).catch(err => {
+        res.json({
+            status: "FAILED",
+            message: "An error has occurred, please try again later"
+        })
+    })
+})
 
 //send otp verification Email
 const sendOTPVerificationEmail = async (result, res) => {
@@ -667,6 +694,5 @@ router.get('/verify/:userId/:uniqueString', (req, res) =>{
             })
         })
 })
-
 
 module.exports = router

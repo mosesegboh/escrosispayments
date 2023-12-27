@@ -7,6 +7,7 @@ const UserSchema = new Schema({
     password: String,
     dateOfBirth: Date,
     verified: Boolean,
+    phone: Number,
     isGoogleSignIn: Boolean
 })
 

@@ -98,8 +98,6 @@ const Login = ({navigation}) => {
         }
     }
 
-    
-
     const persistLogin = (credentials, message, status) => {
         // console.log(credentials, '--credentials')
         // return

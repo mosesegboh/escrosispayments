@@ -8,12 +8,10 @@ import SignUp from '../screens/SignUp';
 import Dashboard from '../screens/Dashboard';
 import AddTransaction from '../screens/AddTransaction';
 import Transaction from '../screens/Transaction';
-// import PurchaseCredit from '../screens/PurchaseCredit';
 import ConfirmTransaction from '../screens/ConfirmTransaction';
 import Profile from '../screens/Profile';
 import AllTransactions from '../screens/AllTransactions';
 import OTPVerification from '../screens/OTPVerification';
-import DrawerContent from './DrawerContent';
 import SwapCurrency from '../screens/SwapCurrency';
 import SingleTransaction from '../screens/SingleTransaction';
 import GetRate from '../screens/GetRate';
@@ -21,20 +19,18 @@ import SideBar from './customDrawer';
 import AddToWallet from '../screens/AddToWallet';
 import BillPayment from '../screens/BillPayment';
 import Transfer from '../screens/Transfer';
+import QrCode from '../screens/QrCode';
 import ComingSoon from '../screens/ComingSoon';
 import VirtualCard from '../screens/VirtualCards';
 import {Ionicons} from '@expo/vector-icons';
 
-// import DrawerNavigator from '../navigators/DrawerNavigator';
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
-//credentials context
 import { CredentialsContext } from '../components/CredentialsContext';
 
 function MyDrawer({navigation}){
     return (
-       
         <Drawer.Navigator 
             initialRouteName="Dashboard"
             drawerContent={props => <SideBar {...props}/>}
@@ -212,6 +208,15 @@ const RootStack = () => {
                                         headerStyle: {backgroundColor: "#1b181f",
                                         }, }} 
                                     name="SwapCurrency" component={SwapCurrency}
+                                />
+
+                                <Stack.Screen
+                                    options={{headerShown: true, 
+                                        headerTitle:"Your QR Code",
+                                        headerTintColor: 'white', 
+                                        headerStyle: {backgroundColor: "#1b181f",
+                                        }, }} 
+                                    name="QrCode" component={QrCode}
                                 />
 
                                 <Stack.Screen 

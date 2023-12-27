@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react'
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native'
-import {Octicons} from '@expo/vector-icons'
+import {Octicons, MaterialIcons} from '@expo/vector-icons'
 import { CredentialsContext } from '../components/CredentialsContext'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Colors } from '../components/styles'
@@ -11,6 +11,7 @@ const {primary} = Colors;
 
 export default function AllTransactions({navigation, route}) {
     const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
+    const [isLoading, setLoading] = useState(true);
     let {name, email, token,  photoUrl} = storedCredentials
     const [userTransactions, setUserTransactions] = useState()
 
@@ -35,6 +36,7 @@ export default function AllTransactions({navigation, route}) {
         .then(function (response) {
           const transactions = response.data.data.reverse()
           setUserTransactions(transactions)
+          setLoading(false);
         })
         .catch(function (error) {
           console.log(error);
@@ -46,7 +48,9 @@ export default function AllTransactions({navigation, route}) {
     return (
         <View style={styles.container}>
             <ScrollView>
-            {userTransactions ? 
+            {isLoading ? 
+            <ActivityIndicator size="large" color={primary}/>:
+            userTransactions ? 
                 userTransactions.map((item, index) => (
                   
                   <View key={item._id} style={styles.singleTransaction}>
@@ -78,7 +82,11 @@ export default function AllTransactions({navigation, route}) {
                     </View>
                   </View>
                 ))
-                : <ActivityIndicator size="large" color={primary}/>
+                : 
+                <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+                  <MaterialIcons name="hourglass-empty" size={36} color="green" />
+                  <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+                </View> 
             }
             </ScrollView>
         </View>

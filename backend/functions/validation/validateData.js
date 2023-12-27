@@ -11,7 +11,6 @@ const validateData = (data, res) => {
         
         var trimedDataKey = JSON.stringify(item[0]).trim()
         var trimedDataValue = JSON.stringify(item[1]).trim()
-
         var stringCompareDate = JSON.stringify("date").trim()
         var stringCompareTransactionDate = JSON.stringify("date").trim()
         if (trimedDataKey == stringCompareDate || trimedDataKey == stringCompareTransactionDate) {

@@ -68,17 +68,17 @@ export const StyledFormArea = styled.View`
 `
 export const StyledTextInput = styled.TextInput`
    background-color: ${grey};
-   padding: 15px;
+   padding: 10px;
    padding-left: 55px;
    padding-right: 55px;
    border-radius: 0px;
    border-bottom-width: 1px;
    border-bottom-color: '#949197;
    font-size: 16px;
-   height: 60px;
+   height: 50px;
    margin-vertical: 0px;
-   margin-bottom: 0px;
-   margin-top: 10px;
+   margin-bottom: 10px;
+   margin-top: 0px;
    color: ${myWhite}
    border-bottom-color: ${myWhite}
 `
@@ -90,13 +90,13 @@ export const StyledInputLabel = styled.Text`
 `
 export const LeftIcon = styled.View`
    left: 15px;
-   top: 38px;
+   top: 30px;
    position: absolute;
    z-index: 1;
 `
 export const RightIcon = styled.TouchableOpacity`
    right: 15px;
-   top: 38px;
+   top: 25px;
    position: absolute;
    z-index: 1;
 `

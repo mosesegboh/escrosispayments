@@ -1,19 +1,13 @@
 import React, {useContext, useEffect, useState, useRef} from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions} from 'react-native';
 import { Colors, TextLink, TextLinkContent } from '../components/styles';
-import {trimString} from '../services/';
 import { useIsFocused } from '@react-navigation/native'
-import {Octicons} from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons, AntDesign, FontAwesome5, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CredentialsContext } from '../components/CredentialsContext';
 import { ScrollView } from 'react-native-gesture-handler';
-import { BaseUrl } from '../services/';
-import {DEFAULT_CURRENCY} from '../services/';
+import {DEFAULT_CURRENCY, ENABLE_FUNCTION, BaseUrl, trimString} from '../services/';
 import Carousel from 'react-native-snap-carousel';
 const { primary} = Colors;
 
@@ -27,7 +21,7 @@ export default function Dashboard ({navigation, route}) {
   const [unLockedTransaction, setUnLockedTransaction] = useState()
   const isFocused = useIsFocused()
   const [hasMultipleCurrency, setHasMultipleCurrency] = useState(false)
-  const [multipleCurrencyObject, setMultipleCurrencyObject] = useState()
+  const [multipleCurrencyObject, setMultipleCurrencyObject] = useState([])
   const [isLoading, setLoading] = useState(true);
 
   let {name, email, token,  photoUrl} = storedCredentials
@@ -47,7 +41,6 @@ export default function Dashboard ({navigation, route}) {
       },
       data : data
     };
-
     // console.log(config, '--config')
     // return
     axios(config)
@@ -55,10 +48,6 @@ export default function Dashboard ({navigation, route}) {
       // console.log(response)
       if (response.data.status == "SUCCESS") {
         var transactions = response.data.data;
-        // console.log(transactions, '--transactions')
-        // return
-        // console.log(response.data.data)
-        // return
         const latestIndex = transactions.length
         const latestValue = transactions[latestIndex-1]
         // console.log(latestValue.balanceForAdditionalCurrencies.length > 0, '--latest value')
@@ -70,17 +59,27 @@ export default function Dashboard ({navigation, route}) {
         if (latestValue && latestValue.balanceForAdditionalCurrencies 
           && latestValue.balanceForAdditionalCurrencies.length > 0 
           && latestValue.balanceForAdditionalCurrencies[0] !== 0) {
+            // console.log('inside here')
           // latestValue.balanceForAdditionalCurrencies.push({balance: latestValue.balance, toCurrency: DEFAULT_CURRENCY})
           // console.log(latestValue.balanceForAdditionalCurrencies, 'true ooooo')
           setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
           latestValue.balanceForAdditionalCurrencies.forEach((item) => {
-            if ( item.toCurrency === DEFAULT_CURRENCY ) {setBalance(item.newBalanceToAfterTransaction ? item.newBalanceToAfterTransaction : 0.00)}
+            console.log(item.toCurrency, 'current')
+            if ( item.toCurrency == DEFAULT_CURRENCY ) { 
+              // console.log('true'); 
+              setBalance(item.newBalanceToAfterTransaction ? item.newBalanceToAfterTransaction : 0.00); 
+              return; 
+            }
             // console.log(balance,item.toCurrency,item.newBalanceToAfterTransaction, DEFAULT_CURRENCY, '--blance')
           })
           setHasMultipleCurrency(true)
+          // console.log(balance, 'balance 2')
+          // console.log(balance,item.toCurrency,item.newBalanceToAfterTransaction)
           
         } else {
           setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
+          setMultipleCurrencyObject([])
+          // console.log(balance, 'balance 2')
         }
         // setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
         setLockedTransaction(transactions.length > 0 ? latestValue.lockedTransaction : 0.00)
@@ -102,7 +101,6 @@ export default function Dashboard ({navigation, route}) {
     });
   },[isFocused]);
 
-  
   // Carousel data
 const Images= [
   {
@@ -232,16 +230,22 @@ const RenderItem = ({item, index}) => {
           <MaterialCommunityIcons name="cash" size={26} color="green" />
           <Text style={styles.billsText}>shipping</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('QrCode', {email: email, token: token, balance: balance, bill: 'dhl'})}>
+          <FontAwesome5 name="qrcode" size={26} color="green" />
+          <Text style={styles.billsText}>Qr Code</Text>
+        </TouchableOpacity>
+        {(ENABLE_FUNCTION == true) && <TouchableOpacity style={styles.billPaymentIcon} 
+          onPress={() => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
+        >
           <MaterialCommunityIcons name="earth-arrow-right" size={20} color="green" />
           <Text style={styles.billsText}>swap</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} 
-          // onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
+        </TouchableOpacity>}
+        {/* <TouchableOpacity style={styles.billPaymentIcon} 
+          onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
         >
           <Ionicons name="card" size={24} color="#808080" />
           <Text style={styles.billsText}>v-cards</Text>
-        </TouchableOpacity> 
+        </TouchableOpacity>  */}
       </View>
 
       <View style={styles.inflows}>
@@ -304,7 +308,9 @@ const RenderItem = ({item, index}) => {
                 <View style={styles.transactionDetailRightSide}>
                   <View style={styles.recentTransactionAmount}>
                     <Text style={styles.transacitonAmount}>
-                      {item.transactionType == 'transfer' ? '-' : '+'} {item.amount}  
+                      {(item.transactionType == 'transfer') ? '-' :
+                      (item.transactionType == 'Swapcurrency') ? '-'
+                      : '+'} {item.amount}  
                     </Text>
                   </View>
                   {

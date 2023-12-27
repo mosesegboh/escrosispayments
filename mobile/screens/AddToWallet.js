@@ -140,7 +140,7 @@ export default function AddToWallet({navigation}) {
     handleMessage("An error occured and this transaction is not completed, check your network and try again")
     setSubmitting(false)
   })
-}
+  }
 
   const confirmTransaction = () => {
     if ( inputValueAmount == null || transactionId == null ){

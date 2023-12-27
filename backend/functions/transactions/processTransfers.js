@@ -217,66 +217,6 @@ const processTransfers = async (data, res) => {
             })
         })
     }
-
-    //OLD CODE
-    // if (transactFromWallet == "yes") {    
-    //     const newTransaction = new Transaction(update)
-    //     newTransaction.save()
-    //     .then(result => {
-    //         if (result) {
-    //             const status = "success"
-    //             transferFunction.sendTransferEmail(result, res, status)
-    //             res.json({
-    //                 status: "SUCCESS",
-    //                 message: "The transaction was successfully added"
-    //             })
-    //         }
-    //     }).catch(err => {
-    //         console.log(err)
-    //         res.json({
-    //             status: "FAILED",
-    //             message: "An error occured while saving user"
-    //         })
-    //     })
-    // }else{
-    //     setTimeout(function(){
-    //         console.log("Delaying for 5 secs for webhook");
-    //     }, 5000);
-    //     //balance will remain thesame if you are doing from added funds
-    //     if ( transactFromAddedFunds == "yes"){
-    //         update.balance = userCurrentDetails[0]
-    //     }
-
-    //     Transaction.findOneAndUpdate(filter, update, {
-    //         new: true
-    //     }).then(result => {
-    //             console.log(result, '<-result, right track')
-    //         if (result){
-    //             const status = "success"
-    //             transferFunction.sendTransferEmail(result, res, status)
-                
-    //             return res.json({
-    //                 status: "SUCCESS",
-    //                 message: "Transfer has been sent successfully"
-    //             })
-    //         }else{
-    //             return res.json({
-    //                 status: "FAILED",
-    //                 message: "The transaction could not be completed - API"
-    //             })
-    //         }
-    //     }).catch(err => {
-    //         const status = "failed"
-    //         var result = {}
-    
-    //         transferFunction.sendTransferEmail(result, res, status)
-    //         console.log(err)
-    //         return res.json({
-    //             status: "FAILED",
-    //             message: "An error occured, while trying to send the transfer"
-    //         })
-    //     })
-    // }
 }
 
 module.exports = {processTransfers}  

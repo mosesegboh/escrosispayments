@@ -68,7 +68,7 @@ const SignUp = ({navigation}) => {
   }
 
 const handleSignUp = async (credentials,setSubmitting) => {
-    console.log(credentials, '--credentials')
+    // console.log(credentials, '--credentials')
     handleMessage(null)
     const url = `${BaseUrl}/user/signup`;
 

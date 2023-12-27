@@ -7,12 +7,10 @@ import { Text,
         ActivityIndicator,
         Platform
       } from 'react-native';
-import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
 import  axios from 'axios'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {randomString} from '../services/';
 import {BaseUrl} from '../services/'
-import {PayWithFlutterwave} from 'flutterwave-react-native';
 import Dialog from "react-native-dialog";
 import { CredentialsContext } from '../components/CredentialsContext';
 import {
@@ -28,6 +26,8 @@ const {myButton, myPlaceHolderTextColor, darkLight, primary} = Colors;
 import {Octicons, Ionicons} from '@expo/vector-icons';
 import SelectDropdown from 'react-native-select-dropdown'
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
+// import { FLUTTERWAVE_PUBLIC_KEY } from '../services';
+// import {PayWithFlutterwave} from 'flutterwave-react-native';
 
 export default function AddTransaction({navigation, route}) {
   const {storedCredentials} = useContext(CredentialsContext)
@@ -44,7 +44,6 @@ export default function AddTransaction({navigation, route}) {
   const [inputValueAmount, setInputValueAmount] = useState();
   const [transactionId, setTransactionId] = useState();
   const [transactionParty, setTransactionParty] = useState();
-  const [secondLegTransactionId, setSecondLegTransactionInput] = useState();
   const [secondLeg, setSecondLeg] = useState();
   const [details, setDetails] = useState();
   const [data, setData] = useState([]);
@@ -61,6 +60,10 @@ export default function AddTransaction({navigation, route}) {
   const [searchTrasactionSecondLeg, setSearchTrasactionSecondLeg] = useState([])
   const [secondPartyEmail, setSecondPartyEmail] = useState()
   const [secondPartyPhone, setSecondPartyPhone] = useState()
+  const [transactionLeg, setTransactionLeg] = useState()
+  const [editable, setEditable] = useState(true)
+  var [searchResultData, searchResultAmount, transactionRedemptionDate, transactionDetails, searchTransactionParty] = [[], [], [], [], []];
+
   
   useEffect(()=>{
     var rString = randomString(10, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
@@ -100,7 +103,7 @@ export default function AddTransaction({navigation, route}) {
 
   const selectPaymentOption = () => {
     setSubmitting(true)
-    // console.log(balance)
+    console.log(email, inputValueAmount,dob, transactionId, details, transactionLeg )
     if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ) {
       setSubmitting(false)
       handleMessage("Please enter all fields")
@@ -150,12 +153,12 @@ export default function AddTransaction({navigation, route}) {
       transactionDate: dob,
       transactionId: transactionId,
       amount: inputValueAmount,
-      transactionType: selectedValue,
+      transactionType: transactionLeg,
       date: date,
-      transactionName: selectedValue,
+      transactionName: "escrow",
       details: details,
-      secondPartyEmail: secondPartyEmail,
-      secondPartyPhone: secondPartyPhone,
+      ...((secondPartyEmail !== undefined) ? { secondPartyEmail: secondPartyEmail } : {}),
+      ...((secondPartyEmail !== undefined) ? { secondPartyPhone: secondPartyPhone } : {}),
       transactionParty: transactionParty,
       transactFromWallet: transactFromWallet,
       transactFromAddedFunds: transactFromAddedFunds,
@@ -164,6 +167,7 @@ export default function AddTransaction({navigation, route}) {
     }
 
     // console.log(credentials, '--credentials--');
+    // setSubmitting(false);
     // return
     axios.post(url, credentials, headers).then((response) => {
       // token = response.token
@@ -184,7 +188,11 @@ export default function AddTransaction({navigation, route}) {
         setSecondLeg(null)
         setDetails(null)
         setData([])
+        setTransactionParty(null)
         setInputValueAmount(null)
+        setSecondPartyEmail(null)
+        setSecondPartyPhone(null)
+        setTransactionLeg(null)
       }else{
         handleMessage('An error Occured')
         setSubmitting(false)
@@ -206,7 +214,7 @@ export default function AddTransaction({navigation, route}) {
   }
 
   const searchTransactionId = (text) => {
-    console.log('get data')
+    // console.log('get data')
     if (text.length > 2) {
       const url = `${BaseUrl}/transaction/get-transactions?searchSecondLeg=${text}`
       const headers = {
@@ -219,14 +227,25 @@ export default function AddTransaction({navigation, route}) {
 
       axios.post(url, credentials,headers ).then((response) => {
         const result = response.data;
-        var searchResultData = [];
-        // console.log(result.data);
         if (result.data.length > 0) {
           result.data.forEach((item, index) => {
             searchResultData.push(item.transactionId);
+            searchResultAmount.push(item.amount)
+            transactionRedemptionDate.push(item.redemptionDate)
+            transactionDetails.push(item.details)
+            searchTransactionParty.push(item.transactionParty)
           });
         }
         setSearchTrasactionSecondLeg(searchResultData);
+        setInputValueAmount(String(searchResultAmount[0]))
+        setEditable(false);
+        setDetails(transactionDetails[0])
+        let dateObject = new Date(transactionRedemptionDate);
+        let formattedDate = `${dateObject.getFullYear()}-${(dateObject.getMonth() + 1).toString().padStart(2, '0')}-${dateObject.getDate().toString().padStart(2, '0')}`;
+        setDob(formattedDate);
+        // searchTransactionParty[0] === "Buyer" ? setTransactionParty("Seller") : setTransactionParty("Buyer")
+        console.log(searchTransactionParty[0], 'ooooo')
+        // console.log(searchResultAmount[0],typeof(searchResultAmount[0]) ,transactionRedemptionDate[0],searchResultData, transactionDetails[0], '--options')
       }).catch((error) => {
           console.log(error)
           setSubmitting(false)
@@ -264,20 +283,11 @@ export default function AddTransaction({navigation, route}) {
             editable={false}
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Amount"
-            placeholderTextColor="#949197" 
-            type="number"
-            keyboardType={'numeric'}
-            onChangeText={amount => setInputValueAmount(amount)}
-            value={inputValueAmount}
-          />        
-
           <SelectDropdown
             data={transactionLegs}
             onSelect={(selectedItem, index) => { 
               handleSelectedValue(selectedItem)
+              setTransactionLeg(selectedItem)
             }}
             defaultButtonText = "Transaction Leg"
             buttonStyle={styles.dropDownButtonStyle}
@@ -289,18 +299,48 @@ export default function AddTransaction({navigation, route}) {
             rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />
 
-          <SelectDropdown
-            data={transactionParties}
+          {showSecondLeg && <SelectDropdown
+            search={true}
+            onChangeSearchInputText = {(text) => {searchTransactionId(text)}}
+            data={searchTrasactionSecondLeg}
             onSelect={(selectedItem, index) => { 
               setTransactionParty(selectedItem)
+              console.log(searchResultAmount, 'iii')
+              // setInputValueAmount('test amount')
             }}
-            defaultButtonText = "Transaction Party"
+            defaultButtonText = "Search Second Leg Transaction Leg"
             buttonStyle={styles.dropDownButtonStyle}
             renderDropdownIcon = {renderDropdownIcon}
             rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
             buttonTextStyle={styles.dropDownButtonTextStyle}
             rowTextStyle={{ marginLeft: 0 }}
             buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
+            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
+          />}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Amount"
+            placeholderTextColor="#949197" 
+            keyboardType={'numeric'}
+            onChangeText={value => setInputValueAmount(value)}
+            value={inputValueAmount}
+            editable={editable}
+          />        
+
+          <SelectDropdown
+            data={transactionParties}
+            onSelect={(selectedItem, index) => { 
+              setTransactionParty(selectedItem)
+            }}
+            defaultButtonText = "Transaction Leg"
+            onPress={editable ? undefined : () => {}}
+            buttonStyle={styles.dropDownButtonStyle}
+            renderDropdownIcon = {renderDropdownIcon}
+            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
+            buttonTextStyle={styles.dropDownButtonTextStyle}
+            rowTextStyle={{ marginLeft: 0 }}
+            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem;  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
             rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
           />
 
@@ -309,7 +349,7 @@ export default function AddTransaction({navigation, route}) {
             placeholder="Second Party Email"
             placeholderTextColor="#949197"
             onChangeText={text => setSecondPartyEmail(text)}
-            value={secondPartyEmail} 
+            value={secondPartyEmail}
           />}
 
           {!showSecondLeg && <TextInput
@@ -322,18 +362,18 @@ export default function AddTransaction({navigation, route}) {
 
           <MyTextInput 
             icon="calendar"
-            placeholder="Transaction Redemption Date - YYYY - MM - DD"
+            placeholder="Transaction Redemption Date"
             placeholderTextColor={myPlaceHolderTextColor}
-            value={dob ? dob : ''}
+            value={dob ? dob :  ''}
             isDate={true}
-            editable = {false}
+            editable = {editable}
             showDatePicker = {showDatePicker}
             onPress={() => showMode('date')}
             style={styles.input}
             onPressIn = {toggleDatePicker}
           />
 
-          {show && (<DateTimePicker
+          {show && editable && (<DateTimePicker
             testID="dateTimePicker"
             value={date}
             mode={mode}
@@ -401,25 +441,9 @@ export default function AddTransaction({navigation, route}) {
             placeholder="Details"
             placeholderTextColor="#949197"
             onChangeText={details => setDetails(details)}
-            value={details} 
+            value={details}
+            editable={editable}
           />
-
-          {showSecondLeg && <SelectDropdown
-            search={true}
-            onChangeSearchInputText = {(text) => {searchTransactionId(text)}}
-            data={searchTrasactionSecondLeg}
-            onSelect={(selectedItem, index) => { 
-              setTransactionParty(selectedItem)
-            }}
-            defaultButtonText = "Search Second Leg Transaction Leg"
-            buttonStyle={styles.dropDownButtonStyle}
-            renderDropdownIcon = {renderDropdownIcon}
-            rowStyle={{ fontSize: 5, fontFamily: 'Nunito' }}
-            buttonTextStyle={styles.dropDownButtonTextStyle}
-            rowTextStyle={{ marginLeft: 0 }}
-            buttonTextAfterSelection={(selectedItem, index) => { return selectedItem  }}// text represented after item is selected // if data array is an array of objects then return selectedItem.property to render after item is selected
-            rowTextForSelection={(item, index) => {  return item }}// text represented for each item in dropdown // if data array is an array of objects then return item.property to represent item in dropdown
-          />}
 
           <MsgBox type={messageType}>{message}</MsgBox>
 
@@ -437,7 +461,7 @@ export default function AddTransaction({navigation, route}) {
 
           {showNormal  && <View>
             <Dialog.Container visible={visible}>
-              <Dialog.Title>Attention!!!</Dialog.Title>
+              <Dialog.Title>Attention!</Dialog.Title>
               <Dialog.Description>
                 Please select the paymet type you desire?
               </Dialog.Description>
@@ -456,7 +480,7 @@ export default function AddTransaction({navigation, route}) {
                   <Text style={styles.buttonText}><ActivityIndicator size="large" color={primary}/></Text>
               </TouchableOpacity>}
 
-              {!submittingConfirm && <PayWithFlutterwave
+              {/* {!submittingConfirm && <PayWithFlutterwave
                 // style={styles.addTransactionButton}
                 onRedirect={handleFromAddedFunds}
                 // onWillInitialize = {handleOnRedirect}
@@ -480,8 +504,7 @@ export default function AddTransaction({navigation, route}) {
                       <Text style={styles.buttonText}>Add Funds</Text>
                   </TouchableOpacity>
                 )}
-              />}
-
+              />} */}
             </Dialog.Container>
           </View>}
         </View>
@@ -522,7 +545,7 @@ const styles = StyleSheet.create({
     input: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingTop: 30,
+      paddingTop: 20,
       backgroundColor: '#1b181f',
       borderBottomColor: '#949197',
       borderBottomWidth: 1,

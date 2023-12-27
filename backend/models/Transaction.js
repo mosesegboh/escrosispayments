@@ -256,7 +256,15 @@ const TransactionSchema = new Schema({
         type: Array,
         required: false
     },
+    redemptionDate: {
+        type: Date,
+        required: false
+    },
     transactionCurrency: {
+        type: String,
+        required: false
+    },
+    transactionParty: {
         type: String,
         required: false
     },
@@ -274,6 +282,14 @@ const TransactionSchema = new Schema({
     },
     mainBalanceBeforeTransaction: {
         type: Number,
+        required: false
+    },
+    transactionDate: {
+        type: Date,
+        required: false
+    },
+    transactionLastUpdated: {
+        type: Date,
         required: false
     }
 })

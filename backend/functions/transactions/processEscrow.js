@@ -1,42 +1,55 @@
-// const transferFunction = require('../../services/email/functions/transferFunction')
-// const Transaction = require('../../models/Transaction')
 const {validateData} = require('../validation/validateData')
-// const sendEmailFunction = require('../../services/email/functions/sendEmailFunction')
-// const airtimeTemplate = require('../../services/email/templates/airtimeTemplate')
 const {saveTransaction, getCurrentUserDetails} = require('../process')
 
-const processFirstLeg = async (data, res) => {
+const processEscrow = async (data, res) => {
 
     validateData(data, res)
 
-    var userCurrentDetails = await getCurrentUserDetails(data);
+    var userCurrentDetails = await getCurrentUserDetails(data, undefined, 1, undefined);
 
-    const {currentBalance, currentlockedTransactionBalance, currentUnlockedTransactionBalance} = userCurrentDetails
+    const {
+        balanceForAdditionalCurrencies,
+        currentBalance, 
+        currentlockedTransactionBalance, 
+        currentUnlockedTransactionBalance
+    } = userCurrentDetails
+
+    console.log(currentUnlockedTransactionBalance, 'unlocked balance')
 
     var filter = { transactionId: data.transactionId }; //filter is a check for added transactions
     var update = {
         transactionId: data.transactionId, 
         transactionName: data.transactionName,
         transactionType: data.transactionType,
-        // balance: +userCurrentDetails[2] - +data.amount,
         balance: currentBalance - +data.amount,
-        // lockedTransaction: +userCurrentDetails[0],
-        lockedTransaction: currentlockedTransactionBalance,
-        // unLockedTransaction: +userCurrentDetails[1] + +data.amount,
-        unLockedTransaction: currentUnlockedTransactionBalance + +data.amount,
+        ...((data.transactionType == "FirstLeg") ? { 
+            unLockedTransaction: currentUnlockedTransactionBalance + +data.amount,
+            lockedTransaction: currentlockedTransactionBalance,
+            status: "open",
+            secondPartyPhone: data.secondPartyPhone,
+            secondPartyEmail: data.secondPartyEmail,
+        } : {}
+        ),
+        ...((data.transactionType == "SecondLeg") ? { 
+            unLockedTransaction: currentUnlockedTransactionBalance,
+            lockedTransaction: currentlockedTransactionBalance + +data.amount,
+            status: "locked" } : {}
+        ),
+        transactionParty: data.transactionParty,
         amount: data.amount,
         email: data.email,
-        date: data.date,
+        date: new Date(),
+        redemptionDate: data.date,
         details: data.details,
         transactFromWallet: data.transactFromWallet,
-        country: data.country,
-        transactionType: data.transactionType,
-        customer: data.customer,
-        recurrence: data.recurrence,
-        reference: data.reference,
-    };
+        transactionType: data.transactionType, 
+        reference: data.transactionId,
+        balanceForAdditionalCurrencies: balanceForAdditionalCurrencies
+    }; 
 
-    saveTransaction(filter, update, data, res)
+    console.log(update, '--update')
+
+    saveTransaction(undefined, update, data, res, "directsave")
 }
 
-module.exports = {processFirstLeg}  
+module.exports = {processEscrow}   
