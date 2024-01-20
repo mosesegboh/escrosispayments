@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState, useRef} from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions} from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions, RefreshControl} from 'react-native';
 import { Colors, TextLink, TextLinkContent } from '../components/styles';
 import { useIsFocused } from '@react-navigation/native'
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -23,9 +23,11 @@ export default function Dashboard ({navigation, route}) {
   const [hasMultipleCurrency, setHasMultipleCurrency] = useState(false)
   const [multipleCurrencyObject, setMultipleCurrencyObject] = useState([])
   const [isLoading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   let {name, email, token,  photoUrl} = storedCredentials
   useEffect(()=>{
+    // console.log('i am here');
     var axios = require('axios');
     var data = JSON.stringify({
       "email": email,
@@ -34,7 +36,8 @@ export default function Dashboard ({navigation, route}) {
 
     var config = {
       method: 'post',
-      url: `${BaseUrl}/transaction/get-transactions`,
+      // url: `${BaseUrl}/transaction/get-transactions`,
+      url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
       headers: { 
         'Content-Type': 'application/json', 
         'Authorization': `Bearer ${token}`
@@ -122,224 +125,237 @@ const RenderItem = ({item, index}) => {
     </View>
   )
 }
+
+const getData = () => {
+  
+}
+
+const onRefresh = React.useCallback(() => {
+  setRefreshing(true);
+    //makig api calls
+
+  setRefreshing(false);
+}, []);
+
+
   // console.log(token)
   //const AvatarImg = photoUrl ? {uri: photoUrl} : require('./../assets/img/img1')
 
   //for google sign in
   // name = name ? name : displayName
-  const clearLogin = async () => {
-    try {
-      if (!__DEV__) {
-        await GoogleSignIn.signOutAsync()
-        await  AsyncStorage.removeItem('escrosisCredentials')
-      }else{
-        await  AsyncStorage.removeItem('escrosisCredentials')
-      }
-      setStoredCredentials('')
-    }catch (message) {
-      alert('Logout Error: ' + message)
+const clearLogin = async () => {
+  try {
+    if (!__DEV__) {
+      await GoogleSignIn.signOutAsync()
+      await  AsyncStorage.removeItem('escrosisCredentials')
+    }else{
+      await  AsyncStorage.removeItem('escrosisCredentials')
     }
-    // AsyncStorage.removeItem('escrosisCredentials').then(() =>{
-    //   setStoredCredentials("")
-    // }).catch(err => {
-    //   console.error(err)
-    // })
+    setStoredCredentials('')
+  }catch (message) {
+    alert('Logout Error: ' + message)
   }
+  // AsyncStorage.removeItem('escrosisCredentials').then(() =>{
+  //   setStoredCredentials("")
+  // }).catch(err => {
+  //   console.error(err)
+  // })
+}
 
-  return (
-    <View style={styles.container}>
-      {hasMultipleCurrency && <View style={{ alignItems: 'center', justifyContent: 'center'}}>
-        <Carousel 
-           // layout={"tinder"}
-           layout={"default"}
-           ref={carouselRef}
-           data={multipleCurrencyObject}
-           renderItem={RenderItem}
-           sliderWidth={width}
-           itemWidth={width - 10}
-           swipeThreshold={100}
-           layoutCardOffset={-12}
-           inactiveSlideOpacity={0.4}
-           autoplay={true}
-           autoplayDelay={1000} // Adjust the delay as needed (in milliseconds)
-           autoplayInterval={3000} // Adjust the interval as needed (in milliseconds)
-           // containerCustomStyle={{
-           // overflow: 'visible',
-           // marginVertical: 0
-           // }}
-           contentContainerCustomStyle={{
-           paddingTop: 10,
-           paddingLeft: 60
-           }}
-         />
-       </View>}
-
-      {!hasMultipleCurrency && <View style={styles.balanceView}>
-          <Text style={styles.balanceText}>Hello {name || 'Customer'}</Text>
-          {/* <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text> */}
-          {/* <Text style={styles.balanceText}>{token || 'token'}</Text> */}
-          <Text style={styles.balanceText}>
-            TOTAL BALANCE
-          </Text>
-          <Text style={styles.balanceValue}>
-            ₦{balance || '0.00'}
-          </Text>
-          {/* <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
-              <Text>Logout</Text>
-          </TouchableOpacity> */}
+return (
+  <View style={styles.container}>
+    {hasMultipleCurrency && <View style={{ alignItems: 'center', justifyContent: 'center'}}>
+      <Carousel 
+          // layout={"tinder"}
+          layout={"default"}
+          ref={carouselRef}
+          data={multipleCurrencyObject}
+          renderItem={RenderItem}
+          sliderWidth={width}
+          itemWidth={width - 10}
+          swipeThreshold={100}
+          layoutCardOffset={-12}
+          inactiveSlideOpacity={0.4}
+          autoplay={true}
+          autoplayDelay={1000} // Adjust the delay as needed (in milliseconds)
+          autoplayInterval={3000} // Adjust the interval as needed (in milliseconds)
+          // containerCustomStyle={{
+          // overflow: 'visible',
+          // marginVertical: 0
+          // }}
+          contentContainerCustomStyle={{
+          paddingTop: 10,
+          paddingLeft: 60
+          }}
+        />
       </View>}
 
-      <View style={styles.servicesIcons}>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
-          <Ionicons name='wallet' size={24} color='green' />
-          <Text style={styles.billsText}>wallet</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'airtime'})}>
-          <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
-          <Text style={styles.billsText}>airtime</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
-          <MaterialCommunityIcons name="bank-transfer-out" size={32} color="green" />
-          <Text style={styles.billsText}>transfers</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'electricity'})}>
-          <Octicons name="zap" size={22} color="green" />
-          <Text style={styles.billsText}>electricity</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'internet'})}>
-          <Octicons name="browser" size={22} color="green" />
-          <Text style={styles.billsText}>internet</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance,  bill: 'data'})}>
-          <MaterialIcons name="signal-cellular-connected-no-internet-4-bar" size={24} color="green" />
-          <Text style={styles.billsText}>data</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tithe'})}>
-          <FontAwesome5 name="church" size={24} color="green" />
-          <Text style={styles.billsText}>pay tithes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'cable'})}>
-          <Ionicons name="tv" size={24} color="green" />
-          <Text style={styles.billsText}>cable</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tax'})}>
-          <MaterialIcons name="payments" size={24} color="green" />
-          <Text style={styles.billsText}>pay tax</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'dhl'})}>
-          <MaterialCommunityIcons name="cash" size={26} color="green" />
-          <Text style={styles.billsText}>shipping</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('QrCode', {email: email, token: token, balance: balance, bill: 'dhl'})}>
-          <FontAwesome5 name="qrcode" size={26} color="green" />
-          <Text style={styles.billsText}>Qr Code</Text>
-        </TouchableOpacity>
-        {(ENABLE_FUNCTION == true) && <TouchableOpacity style={styles.billPaymentIcon} 
-          onPress={() => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
-        >
-          <MaterialCommunityIcons name="earth-arrow-right" size={20} color="green" />
-          <Text style={styles.billsText}>swap</Text>
-        </TouchableOpacity>}
-        {/* <TouchableOpacity style={styles.billPaymentIcon} 
-          onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
-        >
-          <Ionicons name="card" size={24} color="#808080" />
-          <Text style={styles.billsText}>v-cards</Text>
-        </TouchableOpacity>  */}
-      </View>
+    {!hasMultipleCurrency && <View style={styles.balanceView}>
+        <Text style={styles.balanceText}>Hello {name || 'Customer'}</Text>
+        {/* <Text style={styles.balanceText}>{email || 'mosesegboh@gmail.com'}</Text> */}
+        {/* <Text style={styles.balanceText}>{token || 'token'}</Text> */}
+        <Text style={styles.balanceText}>
+          TOTAL BALANCE
+        </Text>
+        <Text style={styles.balanceValue}>
+          ₦{balance || '0.00'}
+        </Text>
+        {/* <TouchableOpacity onPress={clearLogin} style={styles.balanceValue}>
+            <Text>Logout</Text>
+        </TouchableOpacity> */}
+    </View>}
 
-      <View style={styles.inflows}>
-        <View style={styles.income}>
-          <View>
-            <Text style={styles.incomeText}>
-              LOCKED
-            </Text>
-            <Text style={styles.incomeValue}>
-              ₦{lockedTransaction || 0.00}
-            </Text>
-          </View>
-          <View style={styles.lockedIconBckground}>
-            <Octicons name="lock" size={22} color="#c74657" />
-          </View>
-        </View>
-        <View style={styles.income}>
-          <View>
-            <Text style={styles.unlockedText}>
-              UNLOCKED
-            </Text>
-            <Text style={styles.incomeValue}>
-              ₦{unLockedTransaction || 0.00} 
-            </Text>
-          </View>
-          <View style={styles.unlockedIconBckground}>
-            <Octicons name="unlock" size={22} color="#3f9876" />
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.recentTransactionHeading}>
-        <Text style={styles.recentTransactionText}>Recent Transactions</Text>
-        <TextLink onPress={() => navigation.navigate('AllTransactions', {email: email, token: token})}>
-            <TextLinkContent>View All</TextLinkContent>
-        </TextLink>
-      </View>
-
-      <ScrollView>
-      {/* userTransactions.length > 0 */}
-          {isLoading ? 
-            <ActivityIndicator size="large" color={primary}/>:
-          (userTransactions.length === 0)  ? 
-          <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
-            <MaterialIcons name="hourglass-empty" size={36} color="green" />
-            <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
-          </View> :
-            userTransactions.slice(0, 5).map((item, index) => (
-              <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
-                <View style={styles.singleTransactionRightSide}>
-                  <View style={styles.singletTransactionIconView}>
-                    <Octicons name="book" size={18} color="#3f9876" />
-                  </View>
-                  <View>
-                    <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 15)}</Text>
-                    <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
-                  </View>
-                </View>
-                
-                <View style={styles.transactionDetailRightSide}>
-                  <View style={styles.recentTransactionAmount}>
-                    <Text style={styles.transacitonAmount}>
-                      {(item.transactionType == 'transfer') ? '-' :
-                      (item.transactionType == 'Swapcurrency') ? '-'
-                      : '+'} {item.amount}  
-                    </Text>
-                  </View>
-                  {
-                    item.status == 'success' ? 
-                    <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" /> :
-                    item.status == 'pending' ? 
-                    <AntDesign style={{marginRight:10}} name="minuscircle" size={13} color="#a87532" /> :
-                    item.status == 'failed' ?
-                    <AntDesign style={{marginRight:10}} name="closecircle" size={13} color="#a8324a" /> :
-                    <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" />
-                  }
-                </View>
-              </TouchableOpacity>
-            ))
-              // : (!isUserTransactions) ?  
-              // <ActivityIndicator size="large" color={primary}/> 
-              // :
-              // <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
-              //   <MaterialIcons name="hourglass-empty" size={36} color="green" />
-              //   <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
-              // </View>
-            }
-      </ScrollView>
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>
-          <Octicons name="plus" size={22} color="#fff" />
+    <View style={styles.servicesIcons}>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('AddToWallet', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
+        <Ionicons name='wallet' size={24} color='green' />
+        <Text style={styles.billsText}>wallet</Text>
       </TouchableOpacity>
-      
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'airtime'})}>
+        <MaterialCommunityIcons name="cellphone-arrow-down" size={24} color="green" />
+        <Text style={styles.billsText}>airtime</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('Transfer', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}>
+        <MaterialCommunityIcons name="bank-transfer-out" size={32} color="green" />
+        <Text style={styles.billsText}>transfers</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'electricity'})}>
+        <Octicons name="zap" size={22} color="green" />
+        <Text style={styles.billsText}>electricity</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'internet'})}>
+        <Octicons name="browser" size={22} color="green" />
+        <Text style={styles.billsText}>internet</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance,  bill: 'data'})}>
+        <MaterialIcons name="signal-cellular-connected-no-internet-4-bar" size={24} color="green" />
+        <Text style={styles.billsText}>data</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tithe'})}>
+        <FontAwesome5 name="church" size={24} color="green" />
+        <Text style={styles.billsText}>pay tithes</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'cable'})}>
+        <Ionicons name="tv" size={24} color="green" />
+        <Text style={styles.billsText}>cable</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'tax'})}>
+        <MaterialIcons name="payments" size={24} color="green" />
+        <Text style={styles.billsText}>pay tax</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} onPress={() => navigation.navigate('BillPayment', {email: email, token: token, balance: balance, bill: 'dhl'})}>
+        <MaterialCommunityIcons name="cash" size={26} color="green" />
+        <Text style={styles.billsText}>shipping</Text>
+      </TouchableOpacity>
+        <TouchableOpacity style={styles.billPaymentIcon} onPress={ (ENABLE_FUNCTION == true) ? () => navigation.navigate('QrCode', {email: email, token: token, balance: balance, bill: 'dhl'}) : ()=>{}}>
+        <FontAwesome5 name="qrcode" size={26} color={(ENABLE_FUNCTION == true) ? "green" : "grey"} />
+        <Text style={styles.billsText}>Qr Code</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.billPaymentIcon} 
+        onPress={ (ENABLE_FUNCTION == true) ? () => navigation.navigate('SwapCurrency', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject }) : ()=>{}}
+      >
+        <MaterialCommunityIcons name="earth-arrow-right" size={20} color={(ENABLE_FUNCTION == true) ? "green" : "grey"} />
+        <Text style={styles.billsText}>swap</Text>
+      </TouchableOpacity>
+      {/* <TouchableOpacity style={styles.billPaymentIcon} 
+        onPress={() => navigation.navigate('VirtualCard', {email: email, token: token, balance: balance, hasMultipleCurrency: hasMultipleCurrency, multipleCurrencyObject: multipleCurrencyObject })}
+      >
+        <Ionicons name="card" size={24} color="#808080" />
+        <Text style={styles.billsText}>v-cards</Text>
+      </TouchableOpacity>  */}
     </View>
-  );
+
+    <View style={styles.inflows}>
+      <View style={styles.income}>
+        <View>
+          <Text style={styles.incomeText}>
+            LOCKED
+          </Text>
+          <Text style={styles.incomeValue}>
+            ₦{lockedTransaction || 0.00}
+          </Text>
+        </View>
+        <View style={styles.lockedIconBckground}>
+          <Octicons name="lock" size={22} color="#c74657" />
+        </View>
+      </View>
+      <View style={styles.income}>
+        <View>
+          <Text style={styles.unlockedText}>
+            UNLOCKED
+          </Text>
+          <Text style={styles.incomeValue}>
+            ₦{unLockedTransaction || 0.00} 
+          </Text>
+        </View>
+        <View style={styles.unlockedIconBckground}>
+          <Octicons name="unlock" size={22} color="#3f9876" />
+        </View>
+      </View>
+    </View>
+
+    <View style={styles.recentTransactionHeading}>
+      <Text style={styles.recentTransactionText}>Recent Transactions</Text>
+      <TextLink onPress={() => navigation.navigate('AllTransactions', {email: email, token: token})}>
+          <TextLinkContent>View All</TextLinkContent>
+      </TextLink>
+    </View>
+
+    <ScrollView>
+    {/* userTransactions.length > 0 */}
+        {isLoading ? 
+          <ActivityIndicator size="large" color={primary}/>:
+        (userTransactions.length === 0)  ? 
+        <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+          <MaterialIcons name="hourglass-empty" size={36} color="green" />
+          <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+        </View> :
+          userTransactions.slice(0, 5).map((item, index) => (
+            <TouchableOpacity onPress={() => navigation.navigate('SingleTransaction', {transactionDetails: item})} key={item._id} style={styles.singleTransaction}>
+              <View style={styles.singleTransactionRightSide}>
+                <View style={styles.singletTransactionIconView}>
+                  <Octicons name="book" size={18} color="#3f9876" />
+                </View>
+                <View>
+                  <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 15)}</Text>
+                  <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.transactionDetailRightSide}>
+                <View style={styles.recentTransactionAmount}>
+                  <Text style={styles.transacitonAmount}>
+                    {(item.transactionType == 'transfer') ? '-' :
+                    (item.transactionType == 'Swapcurrency') ? '-'
+                    : '+'} {item.amount}  
+                  </Text>
+                </View>
+                {
+                  item.status == 'success' ? 
+                  <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" /> :
+                  item.status == 'pending' ? 
+                  <AntDesign style={{marginRight:10}} name="minuscircle" size={13} color="#a87532" /> :
+                  item.status == 'failed' ?
+                  <AntDesign style={{marginRight:10}} name="closecircle" size={13} color="#a8324a" /> :
+                  <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" />
+                }
+              </View>
+            </TouchableOpacity>
+          ))
+            // : (!isUserTransactions) ?  
+            // <ActivityIndicator size="large" color={primary}/> 
+            // :
+            // <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
+            //   <MaterialIcons name="hourglass-empty" size={36} color="green" />
+            //   <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
+            // </View>
+          }
+    </ScrollView>
+    <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>
+        <Octicons name="plus" size={22} color="#fff" />
+    </TouchableOpacity>
+    
+  </View>
+);
 }
 
 const styles = StyleSheet.create({

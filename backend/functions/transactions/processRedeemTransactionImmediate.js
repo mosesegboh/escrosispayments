@@ -1,5 +1,7 @@
 const Transaction = require('../../models/Transaction')
 const validation = require('../validation/validateData')
+const sendEmailFunction = require('../../services/email/functions/sendEmailFunction')
+const redeemTransactionTemplate = require('../../services/email/templates/transactionRedemptionTemplate')
 const {redeemTransaction} = require('../process')
 
 const processRedeemTransactionImmediate = async (data, res) => {
@@ -13,7 +15,14 @@ const processRedeemTransactionImmediate = async (data, res) => {
         let transactionToRedeem = await Transaction.find({transactionId: transactionId})
                 
         if (transactionToRedeem) {
-            await redeemTransaction(transactionToRedeem, res)
+            if (transactionToRedeem.transactionLeg = "SecondLeg") {
+                await redeemTransaction(transactionToRedeem, res);
+            }else {
+                return res.json({
+                    status: "FAILED",
+                    message: "This transaction is cannot be redeemed but can only be canceled!"
+                })
+            }
         }else{
             return res.json({
                 status: "FAILED",
@@ -24,7 +33,7 @@ const processRedeemTransactionImmediate = async (data, res) => {
         console.log(err);
         return res.json({
             status: "FAILED",
-            message: "An error occurred!"
+            message: "An error Occurred!"
         })
     }
 }

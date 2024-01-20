@@ -11,6 +11,8 @@ const {processAddFundsToWallet} = require('../functions/transactions/processAddF
 const {processBillPayment} = require('../functions/transactions/processBillPayment')
 const {processEscrow} = require('../functions/transactions/processEscrow')
 const {processPayments} = require('../functions/transactions/processPayments')
+const {processRedeemTransactionImmediate} = require('../functions/transactions/processRedeemTransactionImmediate')
+const {processCancelTransactionImmediate} = require('../functions/transactions/processCancelTransaction')
 
 router.post('/add-transaction',  authMiddleware, authenticateTokenMiddleware, async  (req, res) => {
     
@@ -49,6 +51,17 @@ router.post('/add-transaction',  authMiddleware, authenticateTokenMiddleware, as
 
     if (receivepayments == 'receivepayments') {
         processPayments(req.body, res)
+        return
+    }
+
+    if (receivepayments == 'redeemEscrow') {
+        processRedeemTransactionImmediate(req.body, res)
+        return
+    }
+
+    if (receivepayments == 'cancelEscrow') {
+        processCancelTransactionImmediate(req.body, res)
+        return
     }
 })
 

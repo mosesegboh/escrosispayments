@@ -1,11 +1,11 @@
 // export const BaseUrl = 'http://localhost:8000'
 // export const BaseUrl = 'http://localhost:3000'
 // export const BaseUrl = 'http://10.0.2.2:3000'
-// export const BaseUrl = 'http://172.20.10.3:3000'
+export const BaseUrl = 'http://172.20.10.2:3000'
 // export const BaseUrl = 'http://192.168.43.190:3000'
 export const PaymentsUrl = `${BaseUrl}/payments/get-payment`
 export const secondPaymentsUrl = ''
-export const BaseUrl = 'https://boiling-everglades-35416.herokuapp.com'
+// export const BaseUrl = 'https://boiling-everglades-35416.herokuapp.com'
 export const FLUTTERWAVE_PUBLIC_KEY = 'FLWPUBK_TEST-3f746dcb908cfa7a7c6088ed4e05388c-X'
 export const FLUTTERWAVE_SECRET_KEY = 'FLWSECK_TEST-b6f850878ce0d9e3ba061e0da47afa56-X'
 // export const FLUTTERWAVE_SECRET_KEY = 'FLWSECK-0ac57183f19368ebdcaaa96ffdb490bd-X'
@@ -32,7 +32,7 @@ export const USE_TRANSFER =  true
 export const USE_INT_TRANSFER =  true
 export const USE_SWAP_CURRENCY =  true
 export const USE_VIRTUAL_CARD =  true
-export const ENABLE_FUNCTION = true
+export const ENABLE_FUNCTION = false
 export const MULTIPLE_CURRENCY_LIMIT = 3
 
 async function wrapper(response) {

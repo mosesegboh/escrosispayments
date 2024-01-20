@@ -1,9 +1,4 @@
-// const transferTemplate = require('../templates/transferTemplate')
 const nodemailer = require('nodemailer')
-// const success = require('../templates/billPaymentTemplate')
-// const failed = require('../templates/billPaymentTemplate')
-const {success, failed} = require('../templates/walletTemplate')
-// import {getProducts} from '../services';
 
 let transporter = nodemailer.createTransport({
     service: 'gmail',

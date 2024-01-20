@@ -1,8 +1,8 @@
 const Transaction = require('../../models/Transaction')
 const validation = require('../validation/validateData')
-const {redeemTransaction} = require('../process')
+const {cancelTransaction} = require('../process')
 
-const processRedeemTransactionImmediate = async (data, res) => {
+const processCancelTransactionImmediate = async (data, res) => {
 
     validation.validateData(data, res)
 
@@ -10,10 +10,10 @@ const processRedeemTransactionImmediate = async (data, res) => {
 
     try
     {
-        let transactionToRedeem = await Transaction.find({transactionId: transactionId})
+        let transactionToCancel = await Transaction.find({transactionId: transactionId})
                 
-        if (transactionToRedeem) {
-            await redeemTransaction(transactionToRedeem, res)
+        if (transactionToCancel) {
+            await cancelTransaction(transactionToCancel, res)
         }else{
             return res.json({
                 status: "FAILED",
@@ -29,4 +29,4 @@ const processRedeemTransactionImmediate = async (data, res) => {
     }
 }
 
-module.exports = {processRedeemTransactionImmediate}  
+module.exports = {processCancelTransactionImmediate}  

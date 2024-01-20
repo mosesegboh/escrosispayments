@@ -114,6 +114,7 @@ const Login = ({navigation}) => {
     }
 
     const handleLogin = (credentials,setSubmitting) => {
+        // console.log('i got here')
         // console.log()
         handleMessage(null)
         const url = 'https://boiling-everglades-35416.herokuapp.com/user/signin';
@@ -181,6 +182,7 @@ const Login = ({navigation}) => {
 
     //initialize google sign in
     useEffect(() => {
+        // console.log('i am here')
         //from the former google sign in
         // initAsync()
 

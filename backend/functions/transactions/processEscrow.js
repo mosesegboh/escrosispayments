@@ -13,9 +13,7 @@ const processEscrow = async (data, res) => {
         currentlockedTransactionBalance, 
         currentUnlockedTransactionBalance
     } = userCurrentDetails
-
-    console.log(currentUnlockedTransactionBalance, 'unlocked balance')
-
+    // console.log(currentUnlockedTransactionBalance, 'unlocked balance')
     var filter = { transactionId: data.transactionId }; //filter is a check for added transactions
     var update = {
         transactionId: data.transactionId, 
@@ -46,9 +44,7 @@ const processEscrow = async (data, res) => {
         reference: data.transactionId,
         balanceForAdditionalCurrencies: balanceForAdditionalCurrencies
     }; 
-
-    console.log(update, '--update')
-
+    // console.log(update, '--update')
     saveTransaction(undefined, update, data, res, "directsave")
 }
 

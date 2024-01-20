@@ -6,6 +6,8 @@ const billPaymentTemplate = require('../../services/email/templates/billPaymentT
 const firstLegEscrowTemplate = require('../../services/email/templates/firstLegEscrowTemplate')
 const secondLegEscrowTemplate = require('../../services/email/templates/secondLegEscrowTemplate') 
 const paymentTemplate = require('../../services/email/templates/paymentTemplate')
+const cancelTransactionTemplate = require('../../services/email/templates/cancelledTransactionTemplate')
+const redeemTransactionTemplate = require('../../services/email/templates/redeemTransactionTemplate')
 
 
 const getCurrentUserDetails = async ({email, amount, transactFromWallet}, sortOrder=-1, limit=2, getBy={email: email}) => {
@@ -201,4 +203,120 @@ const updateParticularCurrencyBalances = (amount, currency, multipleCurrencyObje
     return multipleCurrencyObject
 }
 
-module.exports = {saveTransaction, getCurrentUserDetails, updateParticularCurrencyBalances}  
+
+async function redeemTransaction(transaction, res) {
+    if (transaction.status === 'complete') {
+        return res.json({
+            status: "FAILED",
+            message: "This transaction has already being completed!"
+        })
+    }
+
+    if (transaction.transactionLeg = "FirstLeg") {
+        return res.json({
+            status: "FAILED",
+            message: "First Leg Transactions can only be cancelled!"
+        })
+    }
+
+    var filterFirstLeg = {
+        transactionId: transaction.transactionId,
+        status: 'redeemed',
+        lockedTransaction: +transaction.unlockedTransaction - +transaction.amount,
+        transactionDate: new Date(),
+    }
+
+    var filterSecondLeg = {
+        transactionId: transaction.transactionId
+    }
+
+    const updateFirstLeg = {
+        status: 'redeemed',
+        lockedTransaction: transaction.lockedTransaction - transaction.amount
+    };
+
+    const updateSecondLeg = {
+        status: 'redeemed',
+        lockedTransaction: transaction.lockedTransaction - transaction.amount
+    };
+
+    try {
+        const redeemedTransaction = await Transaction.findOneAndUpdate(
+            { 
+                transactionId: transaction.transactionId, 
+                secondLegTransactionId: transaction.secondLegTransactionId  
+            },
+            update, { new: true }
+        );
+
+        console.log('Transaction Redeemed Successfully');
+        sendEmailFunction(redeemedTransaction, res, 'success', redeemTransactionTemplate);
+    } catch (err) {
+        console.error(err);
+        console.log('An error occurred while redeeming this transaction');
+    }
+}
+
+async function cancelTransaction(transaction, res) {
+    if (transaction.status === 'complete') {
+        return res.json({
+            status: "FAILED",
+            message: "This transaction has already being completed"
+        })
+    }
+
+    if (transaction.transactionParty !== "seller") {
+        return res.json({
+            status: "FAILED",
+            message: "This transaction can only be redeemed by the seller"
+        })
+    }
+
+    var filter = {
+        transactionId: transaction.transactionId
+    }
+
+    if (transaction.transactionLeg = "FirstLeg") {
+        var update = {
+            status: 'cancelled',
+            lockedTransaction: +transaction.unlockedTransaction - +transaction.amount,
+            balance: +balance + +amount,
+            transactionDate: new Date(),
+        }
+    }
+
+    if (transaction.transactionLeg = "SecondLeg") {
+        var update = {
+            status: 'cancelled',
+            lockedTransaction: +transaction.lockedTransaction - +transaction.amount,
+            balance: +balance + +amount,
+            transactionDate: new Date(),
+        }
+    }
+
+    if (transaction.transactionParty = "seller") {
+        Transaction.findOneAndUpdate(filter, update, {
+            new: true
+        }).then((result) => {
+            console.log('Transaction redeemed Successfully')
+            const status = "success"
+            const relevantTemplate = cancelTransactionTemplate
+            sendEmailFunction(result, res, status, relevantTemplate)
+            return res.json({
+                status: "SUCCESS",
+                message: "The transaction was successfully cancelled"
+            })
+        }).catch((err) => {
+            console.log(err)
+            console.log('An error occured while cancelling this transaction')
+        })
+    }
+}
+
+module.exports = {
+    saveTransaction, 
+    getCurrentUserDetails, 
+    updateParticularCurrencyBalances, 
+    redeemTransaction,
+    cancelTransaction
+}  
