@@ -7,7 +7,7 @@ import {Formik} from  'formik';
 import {Octicons, Ionicons, Fontisto} from '@expo/vector-icons';
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
 import  axios from 'axios'
-import { BaseUrl } from '../services/';
+import { BaseUrl, LiveUrl } from '../services/';
 // import * as GoogleSignIn from 'expo-google-sign-in';
 //web: 334602610846-0cuqj82v9lg1eea4b8vpgstik6nk68ts.apps.googleusercontent.com
 import {

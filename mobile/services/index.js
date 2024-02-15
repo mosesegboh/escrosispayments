@@ -2,6 +2,7 @@
 // export const BaseUrl = 'http://localhost:3000'
 // export const BaseUrl = 'http://10.0.2.2:3000'
 export const BaseUrl = 'http://172.20.10.2:3000'
+export const LiveUrl = 'https://boiling-everglades-35416.herokuapp.com'
 // export const BaseUrl = 'http://192.168.43.190:3000'
 export const PaymentsUrl = `${BaseUrl}/payments/get-payment`
 export const secondPaymentsUrl = ''

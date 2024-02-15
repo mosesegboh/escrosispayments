@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState, useRef} from 'react';
+import React, {useContext, useEffect, useState, useRef, useCallback} from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, ActivityIndicator, Dimensions, RefreshControl} from 'react-native';
 import { Colors, TextLink, TextLinkContent } from '../components/styles';
 import { useIsFocused } from '@react-navigation/native'
@@ -11,7 +11,6 @@ import {DEFAULT_CURRENCY, ENABLE_FUNCTION, BaseUrl, trimString} from '../service
 import Carousel from 'react-native-snap-carousel';
 const { primary} = Colors;
 
-//you can get rid of navigation and route
 export default function Dashboard ({navigation, route}) {
   const {storedCredentials, setStoredCredentials} = useContext(CredentialsContext)
   const [userTransactions, setUserTransactions] = useState([])
@@ -23,6 +22,7 @@ export default function Dashboard ({navigation, route}) {
   const [hasMultipleCurrency, setHasMultipleCurrency] = useState(false)
   const [multipleCurrencyObject, setMultipleCurrencyObject] = useState([])
   const [isLoading, setLoading] = useState(true);
+  const [isLoadingRefresh, setLoadingRefresh] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   let {name, email, token,  photoUrl} = storedCredentials
@@ -55,16 +55,11 @@ export default function Dashboard ({navigation, route}) {
         const latestValue = transactions[latestIndex-1]
         // console.log(latestValue.balanceForAdditionalCurrencies.length > 0, '--latest value')
         // (latestValue.balanceForAdditionalCurrencies && latestValue.balanceForAdditionalCurrencies.length > 0) ? setHasMultipleCurrency(true) : setHasMultipleCurrency(false)
-        
-
         // setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
-        
         if (latestValue && latestValue.balanceForAdditionalCurrencies 
           && latestValue.balanceForAdditionalCurrencies.length > 0 
           && latestValue.balanceForAdditionalCurrencies[0] !== 0) {
-            // console.log('inside here')
           // latestValue.balanceForAdditionalCurrencies.push({balance: latestValue.balance, toCurrency: DEFAULT_CURRENCY})
-          // console.log(latestValue.balanceForAdditionalCurrencies, 'true ooooo')
           setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
           latestValue.balanceForAdditionalCurrencies.forEach((item) => {
             console.log(item.toCurrency, 'current')
@@ -73,12 +68,8 @@ export default function Dashboard ({navigation, route}) {
               setBalance(item.newBalanceToAfterTransaction ? item.newBalanceToAfterTransaction : 0.00); 
               return; 
             }
-            // console.log(balance,item.toCurrency,item.newBalanceToAfterTransaction, DEFAULT_CURRENCY, '--blance')
           })
           setHasMultipleCurrency(true)
-          // console.log(balance, 'balance 2')
-          // console.log(balance,item.toCurrency,item.newBalanceToAfterTransaction)
-          
         } else {
           setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
           setMultipleCurrencyObject([])
@@ -91,8 +82,6 @@ export default function Dashboard ({navigation, route}) {
         setIsUserTransactions(response.data.data.length === 0)
         setUserTransactions(response.data.data.reverse())
         setLoading(false);
-
-        // console.log(isLoading)
       }else{
         alert('kindly login again')
         clearLogin()
@@ -127,13 +116,79 @@ const RenderItem = ({item, index}) => {
 }
 
 const getData = () => {
-  
+  setLoadingRefresh(true)
+  var axios = require('axios');
+  var data = JSON.stringify({
+    "email": email,
+    "token": `Bearer ${token}`
+  });
+
+  var config = {
+    method: 'post',
+    // url: `${BaseUrl}/transaction/get-transactions`,
+    url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
+    headers: { 
+      'Content-Type': 'application/json', 
+      'Authorization': `Bearer ${token}`
+    },
+    data : data
+  };
+
+  axios(config)
+  .then(function (response) {
+    // console.log(response)
+    if (response.data.status == "SUCCESS") {
+      var transactions = response.data.data;
+      const latestIndex = transactions.length
+      const latestValue = transactions[latestIndex-1]
+      if (latestValue && latestValue.balanceForAdditionalCurrencies 
+        && latestValue.balanceForAdditionalCurrencies.length > 0 
+        && latestValue.balanceForAdditionalCurrencies[0] !== 0) {
+        // latestValue.balanceForAdditionalCurrencies.push({balance: latestValue.balance, toCurrency: DEFAULT_CURRENCY})
+        setMultipleCurrencyObject(latestValue.balanceForAdditionalCurrencies)
+        latestValue.balanceForAdditionalCurrencies.forEach((item) => {
+          console.log(item.toCurrency, 'current')
+          if ( item.toCurrency == DEFAULT_CURRENCY ) { 
+            // console.log('true'); 
+            setBalance(item.newBalanceToAfterTransaction ? item.newBalanceToAfterTransaction : 0.00); 
+            return; 
+          }
+        })
+        setHasMultipleCurrency(true)
+      } else {
+        setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
+        setMultipleCurrencyObject([])
+      }
+      // setBalance(transactions.length > 0 ? latestValue.balance : 0.00)
+      setLockedTransaction(transactions.length > 0 ? latestValue.lockedTransaction : 0.00)
+      setUnLockedTransaction(transactions.length > 0 ? latestValue.unLockedTransaction : 0.00)
+      // console.log(response.data.data.length === 0)
+      setIsUserTransactions(response.data.data.length === 0)
+      setUserTransactions(response.data.data.reverse())
+      setLoading(false);
+      setLoadingRefresh(false)
+    }else{
+      alert('kindly login again')
+      clearLogin()
+      // navigation.navigate('Login')
+    }
+  })
+  .catch(function (error) {
+    console.log(error);
+    setLoadingRefresh(false)
+  });
 }
 
-const onRefresh = React.useCallback(() => {
+const onRefresh = useCallback(async () => {
   setRefreshing(true);
-    //makig api calls
-
+  try {
+    // Call your data fetching logic here
+    // setLoadingRefresh(true)
+    getData();
+    // setLoadingRefresh(false)
+  } catch (error) {
+    console.error(error);
+  }
   setRefreshing(false);
 }, []);
 
@@ -164,6 +219,19 @@ const clearLogin = async () => {
 
 return (
   <View style={styles.container}>
+    {isLoadingRefresh && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }
+    >
     {hasMultipleCurrency && <View style={{ alignItems: 'center', justifyContent: 'center'}}>
       <Carousel 
           // layout={"tinder"}
@@ -300,7 +368,14 @@ return (
       </TextLink>
     </View>
 
-    <ScrollView>
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }
+    >
     {/* userTransactions.length > 0 */}
         {isLoading ? 
           <ActivityIndicator size="large" color={primary}/>:
@@ -353,7 +428,7 @@ return (
     <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddTransaction', {balance: balance})}>
         <Octicons name="plus" size={22} color="#fff" />
     </TouchableOpacity>
-    
+    </ScrollView>
   </View>
 );
 }

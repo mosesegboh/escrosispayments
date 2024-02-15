@@ -22,7 +22,7 @@ import {
   StyledContainer
 } from '../components/styles';
 import {Octicons, Ionicons} from '@expo/vector-icons';
-import {BaseUrl} from '../services/'
+import {BaseUrl, LiveUrl} from '../services/'
 import {PayWithFlutterwave} from 'flutterwave-react-native';
 import { FLUTTERWAVE_PUBLIC_KEY, DEFAULT_CURRENCY } from '../services';
 const {primary} = Colors;
@@ -86,7 +86,7 @@ export default function AddToWallet({navigation}) {
 
     setSubmittingConfirm(true);
     handleMessage(null)
-    const url = `${BaseUrl}/transaction/add-transaction`;
+    const url = `${LiveUrl}/transaction/add-transaction`;
 
     let headers = 
     {

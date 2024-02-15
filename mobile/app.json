@@ -18,12 +18,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.escrosis.app",
-      "config": {
-        "googleSignIn" : {
-          "reservedClientId": "com.googleusercontent.apps.334602610846-truoiam9crqjnj41n17o4advbsnu12hf"
-        }
-      }
+      "bundleIdentifier": "com.escrosis.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +28,12 @@
       "package": "com.escrosis.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "config": {
+        "googleSignIn" : {
+          "reservedClientId": "com.googleusercontent.apps.334602610846-truoiam9crqjnj41n17o4advbsnu12hf"
+        }
+      }
     }
   }
 }

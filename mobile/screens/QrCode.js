@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import {randomString} from '../services/';
 import { CredentialsContext } from '../components/CredentialsContext';
-import { QRCode } from 'react-native-custom-qr-codes-expo';
+// import { QRCode } from 'react-native-custom-qr-codes-expo';
 import { StyledContainer } from '../components/styles';
 import {PaymentsUrl} from '../services/'
 import KeyboardAvoidingWrapper from '../components/KeyboardAvoidingWrapper'
@@ -23,10 +23,10 @@ export default function QrCode({}) {
       <StyledContainer>
         <Text>Scan for payment</Text>
         <View style={styles.input}>
-          <QRCode 
+          {/* <QRCode 
             color="#fff" 
             content = {`${PaymentsUrl}?email=${email}&transactionId=${transactionId}`}
-          />
+          /> */}
         </View>
       </StyledContainer>
       </KeyboardAvoidingWrapper>  

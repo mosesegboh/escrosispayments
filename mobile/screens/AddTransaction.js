@@ -112,15 +112,20 @@ export default function AddTransaction({navigation, route}) {
     }
     
     if (inputValueAmount > balance) {
-      // console.log('i was clicked!')
-      // setVisible(false)
-      setVisible(true)
-      setShowOptions(false)
-      setShowNormal(true)
-    }else if(inputValueAmount < balance) {
-      setVisible(true)
-      setShowOptions(true)
+
+      setSubmitting(false)
+      handleMessage("Kindly add funds to your wallet")
+      alert("Kindly add funds to your wallet")
+      return
+     
+      // setVisible(true)
+      // setShowOptions(false)
+      // setShowNormal(true)
     }
+    // else if(inputValueAmount < balance) {
+    //   setVisible(true)
+    //   setShowOptions(true)
+    // }
   }
    
   const handleFromWallet = () => {
@@ -139,6 +144,22 @@ export default function AddTransaction({navigation, route}) {
     setSubmitting(true);
     setSubmittingConfirm(true)
     handleMessage(null)
+
+    if ( email == null || inputValueAmount == null || dob == null || transactionId == null || details == null ) {
+      setSubmitting(false)
+      handleMessage("Please enter all fields")
+      alert("Please enter all fields")
+      return
+    }
+
+    if (inputValueAmount > balance) {
+
+      setSubmitting(false)
+      handleMessage("Kindly add funds to your wallet from the dashboard")
+      alert("Kindly add funds to your wallet from the dashboard")
+      return
+    }
+
     const url = `${BaseUrl}/transaction/add-transaction`;
 
     let headers = {
@@ -449,7 +470,7 @@ export default function AddTransaction({navigation, route}) {
 
           {!submitting && 
             <TouchableOpacity 
-            onPress={() => selectPaymentOption()}
+            onPress={/*() => selectPaymentOption()*/handleFromWallet}
             style={styles.addTransactionButton}>
               <Text style={styles.buttonText}>Make Payment</Text>
           </TouchableOpacity>}

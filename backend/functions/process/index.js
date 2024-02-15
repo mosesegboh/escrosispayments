@@ -204,19 +204,21 @@ const updateParticularCurrencyBalances = (amount, currency, multipleCurrencyObje
 }
 
 
-async function redeemTransaction(transaction, res) {
+async function redeemTransaction(transaction, res = null) {
     if (transaction.status === 'complete') {
-        return res.json({
+        const response = {
             status: "FAILED",
             message: "This transaction has already being completed!"
-        })
+        };
+        return res ? res.json(response) : response;
     }
 
-    if (transaction.transactionLeg = "FirstLeg") {
-        return res.json({
+    if (transaction.transactionLeg === "FirstLeg") {
+        const response = {
             status: "FAILED",
             message: "First Leg Transactions can only be cancelled!"
-        })
+        };
+        return res ? res.json(response) : response;
     }
 
     var filterFirstLeg = {
@@ -250,7 +252,11 @@ async function redeemTransaction(transaction, res) {
         );
 
         console.log('Transaction Redeemed Successfully');
-        sendEmailFunction(redeemedTransaction, res, 'success', redeemTransactionTemplate);
+        if (res) {
+            sendEmailFunction(redeemedTransaction, res, 'success', redeemTransactionTemplate);
+        } else {
+            return redeemedTransaction;
+        }
     } catch (err) {
         console.error(err);
         console.log('An error occurred while redeeming this transaction');

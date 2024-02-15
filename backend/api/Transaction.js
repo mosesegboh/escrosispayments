@@ -103,6 +103,10 @@ router.post('/get-transactions', authMiddleware, authenticateTokenMiddleware, (r
     
     let {email} = req.body
     email = email.trim()
+    let { page, limit } = req.query;
+
+    page = page ? parseInt(page) : 1;
+    limit = limit ? parseInt(limit) : 10;
 
     if (email == ""){
         res.json({
@@ -110,22 +114,30 @@ router.post('/get-transactions', authMiddleware, authenticateTokenMiddleware, (r
             message: "Empty credentials"
         })
     } else {
-        Transaction.find({email}).then(data => {
-            if (!data) {
+        Transaction.countDocuments({ email }).then(totalCount => {
+            Transaction.find({email})
+            .skip((page - 1) * limit) // Skip the previous pages' data
+            .limit(limit) // Limit the number of results
+            .then(data => {
+                if (!data) {
+                    res.json({
+                        status: "FAILED",
+                        message: "There is no transaction available"
+                    })
+                }else{
+                    res.json({
+                        status: "SUCCESS",
+                        data: data,
+                        totalCount: totalCount,
+                        currentPage: page,
+                        totalPages: Math.ceil(totalCount / limit) 
+                    })
+                }    
+            }).catch(err => {
                 res.json({
                     status: "FAILED",
-                    message: "There is no transaction available"
+                    message: "An error has occurred"
                 })
-            }else{
-                res.json({
-                    status: "SUCCESS",
-                    data: data  
-                })
-            }    
-        }).catch(err => {
-            res.json({
-                status: "FAILED",
-                message: "An error has occurred"
             })
         })
     }

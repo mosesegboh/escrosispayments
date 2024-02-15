@@ -4,8 +4,8 @@ import {Octicons, MaterialIcons} from '@expo/vector-icons'
 import { CredentialsContext } from '../components/CredentialsContext'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Colors } from '../components/styles'
-import {trimString} from '../services/'
 import { AntDesign } from '@expo/vector-icons'
+import {DEFAULT_CURRENCY, ENABLE_FUNCTION, BaseUrl, trimString} from '../services/';
 
 const {primary} = Colors;
 
@@ -14,8 +14,15 @@ export default function AllTransactions({navigation, route}) {
     const [isLoading, setLoading] = useState(true);
     let {name, email, token,  photoUrl} = storedCredentials
     const [userTransactions, setUserTransactions] = useState()
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setLoadingMore] = useState(false);
+
+
 
     useEffect(()=>{
+      if (!hasMore) return;
+
         var axios = require('axios');
         var data = JSON.stringify({
           "email": email,
@@ -24,7 +31,8 @@ export default function AllTransactions({navigation, route}) {
     
         var config = {
           method: 'post',
-          url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
+          // url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
+          url: `${BaseUrl}/transaction/get-transactions?page=${page}`,
           headers: { 
             'Content-Type': 'application/json', 
             'Authorization': `Bearer ${token}`
@@ -35,62 +43,104 @@ export default function AllTransactions({navigation, route}) {
         axios(config)
         .then(function (response) {
           const transactions = response.data.data.reverse()
-          setUserTransactions(transactions)
+          if (transactions.length === 0) {
+            setHasMore(false);
+          } else {
+            setUserTransactions(prevTransactions => [...prevTransactions, ...transactions.reverse()]);
+          }
           setLoading(false);
+          // setLoadingMore(false);
         })
         .catch(function (error) {
           console.log(error);
         });
+      },[page]);
+      
+      const getData = () => {
+        var axios = require('axios');
+        var data = JSON.stringify({
+          "email": email,
+          "token": `Bearer ${token}`
+        });
     
+        var config = {
+          method: 'post',
+          // url: 'https://boiling-everglades-35416.herokuapp.com/transaction/get-transactions',
+          url: `${BaseUrl}/transaction/get-transactions?page=${page}`,
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}`
+          },
+          data : data
+        };
     
-      },[]);
+        axios(config)
+        .then(function (response) {
+          const transactions = response.data.data.reverse()
+          if (transactions.length === 0) {
+            setHasMore(false);
+          } else {
+            setUserTransactions(prevTransactions => [...prevTransactions, ...transactions.reverse()]);
+          }
+          setLoading(false);
+          setLoadingMore(false);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      }
 
-    return (
+      const loadMoreTransactions = () => {
+        if (!hasMore) return; // Check if there are more items to load
+    
+        setLoadingMore(true);
+        setPage(prevPage => prevPage + 1); // Assuming you have a 'page' state variable
+    
+        // Make your API call here to fetch more transactions
+        // After fetching, remember to set 'isLoadingMore' to false
+        getData()
+    };
+    
+
+      return (
         <View style={styles.container}>
-            <ScrollView>
             {isLoading ? 
-            <ActivityIndicator size="large" color={primary}/>:
-            userTransactions ? 
-                userTransactions.map((item, index) => (
-                  
-                  <View key={item._id} style={styles.singleTransaction}>
-                    <View style={styles.singleTransactionRightSide}>
-                      <View style={styles.singletTransactionIconView}>
-                        <Octicons name="book" size={18} color="#3f9876" />
-                      </View>
-                      <View>
-                        <Text style={styles.recentTransactionHeadingActual}>{trimString(item.details == undefined ? item.transactionName : item.details, 15)}</Text>
-                        <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>{item.transactionType}</Text>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.transactionDetailRightSide}>
-                      <View style={styles.recentTransactionAmount}>
-                        <Text style={styles.transacitonAmount}>
-                          {item.transactionType == 'transfer' ? '-' : '+'} ₦{item.amount}  
-                        </Text>
-                      </View>
-                      {
-                        item.status == 'success' ? 
-                        <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" /> :
-                        item.status == 'pending' ? 
-                        <AntDesign style={{marginRight:10}} name="minuscircle" size={13} color="#a87532" /> :
-                        item.status == 'failed' ?
-                        <AntDesign style={{marginRight:10}} name="closecircle" size={13} color="#a8324a" /> :
-                        <AntDesign style={{marginRight:10}} name="checkcircle" size={13} color="green" />
-                      }
-                    </View>
-                  </View>
-                ))
+                <ActivityIndicator size="large" color={primary} /> 
                 : 
-                <View style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>
-                  <MaterialIcons name="hourglass-empty" size={36} color="green" />
-                  <Text style={{alignItems: 'center', justifyContent: 'center', color: 'white', marginTop: 20}}>You do not have any transactions at the moment!</Text>
-                </View> 
+                <FlatList
+                    data={userTransactions}
+                    keyExtractor={item => item._id}
+                    renderItem={({ item }) => (
+                        <View style={styles.singleTransaction}>
+                            <View style={styles.singleTransactionRightSide}>
+                                <View style={styles.singletTransactionIconView}>
+                                    <Octicons name="book" size={18} color="#3f9876" />
+                                </View>
+                                <View>
+                                    <Text style={styles.recentTransactionHeadingActual}>
+                                        {trimString(item.details === undefined ? item.transactionName : item.details, 15)}
+                                    </Text>
+                                    <Text style={{textTransform: 'capitalize', color: 'white', fontFamily: 'Nunito'}}>
+                                        {item.transactionType}
+                                    </Text>
+                                </View>
+                            </View>
+                            
+                            <View style={styles.transactionDetailRightSide}>
+                                {/* ...rest of your code for transaction detail right side */}
+                            </View>
+                        </View>
+                    )}
+                    onEndReached={loadMoreTransactions} // Function to load more transactions
+                    onEndReachedThreshold={0.5} // Trigger the load more function when half of the last item is visible
+                    ListFooterComponent={() => 
+                        isLoadingMore && <ActivityIndicator size="small" color={primary} />
+                    } // Optional: Render a loading spinner at the bottom
+                />
             }
-            </ScrollView>
         </View>
-    )
+    );
+    
 }
 
 const styles = StyleSheet.create({
